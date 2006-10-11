@@ -1,0 +1,31 @@
+<?xml version = '1.0' encoding = 'UTF-8'?>
+<!DOCTYPE KDevPrjSession>
+<KDevPrjSession>
+ <DocsAndViews NumberOfDocuments="1" >
+  <Doc0 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/mpngtocaas.cpp" >
+   <View0 line="33" Type="Source" />
+  </Doc0>
+ </DocsAndViews>
+ <pluginList>
+  <kdevdebugger>
+   <breakpointList>
+    <breakpoint0 location="/home/dafox/Projects/tmvp/imagizer2/src/colorize.cpp:109" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+     <tracedExpressions/>
+    </breakpoint0>
+   </breakpointList>
+  </kdevdebugger>
+  <kdevbookmarks>
+   <bookmarks>
+    <bookmark url="/home/dafox/Projects/tmvp/imagizer2/src/octree.h" >
+     <mark line="44" />
+    </bookmark>
+   </bookmarks>
+  </kdevbookmarks>
+  <kdevvalgrind>
+   <executable path="" params="" />
+   <valgrind path="" params="" />
+   <calltree path="" params="" />
+   <kcachegrind path="" />
+  </kdevvalgrind>
+ </pluginList>
+</KDevPrjSession>
