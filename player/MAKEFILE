@@ -1,8 +1,8 @@
-# Make file for aavp (ascii art video player)
+# Make file for tmvp (text mode video player)
 #   Copyright (c) 2006 by Da Fox && Hackykid.
 #       make -B                 Will build aavp.exe
 #       make -B -DDEBUG         Will build the debug version of aavp.exe
-NAME=aavp
+NAME=tmvp
 !if $d(DEBUG)
 TASMDEBUG=/zi
 LINKDEBUG=/v
@@ -25,13 +25,13 @@ TASM_OPTIONS = $(TASMDEBUG) /m $(THEINCLUDE)
 wdosx : $(NAME).exe
   stubit $(NAME).exe
    
-aavp.exe : aavp.obj init.obj smallfnc.obj vsprintf.obj printf.obj
-  tlink32 /Tpe /c $(LINKDEBUG) aavp+init+smallfnc+vsprintf+printf,$(NAME),,, $(DEF)
+$(NAME).exe : $(NAME).obj init.obj smallfnc.obj vsprintf.obj printf.obj
+  tlink32 /Tpe /c $(LINKDEBUG) $(NAME)+init+smallfnc+vsprintf+printf,$(NAME),,, $(DEF)
 
 .ASM.OBJ :
   tasm32 $(TASM_OPTIONS) $*
 
-aavp.obj     : aavp.asm globals.inc
+tmvp.obj     : $(NAME).asm globals.inc
 init.obj     : init.asm globals.inc
 smallfnc.obj : smallfnc.asm globals.inc
 printf.obj   : printf.asm globals.inc
