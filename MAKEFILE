@@ -1,0 +1,38 @@
+# Make file for aavp (ascii art video player)
+#   Copyright (c) 2006 by Da Fox && Hackykid.
+#       make -B                 Will build aavp.exe
+#       make -B -DDEBUG         Will build the debug version of aavp.exe
+NAME=aavp
+!if $d(DEBUG)
+TASMDEBUG=/zi
+LINKDEBUG=/v
+!else
+TASMDEBUG=
+LINKDEBUG=
+!endif
+
+!if $d(MAKEDIR)
+THEINCLUDE=-I$(MAKEDIR)\..\include
+!else
+THEINCLUDE=
+!endif
+
+DEF  = $(NAME).def
+
+#TASM_OPTIONS = $(TASMDEBUG) /dMDL=flat /m $(THEINCLUDE)
+TASM_OPTIONS = $(TASMDEBUG) /m $(THEINCLUDE)
+
+wdosx : $(NAME).exe
+  stubit $(NAME).exe
+   
+aavp.exe : aavp.obj init.obj smallfnc.obj vsprintf.obj printf.obj
+  tlink32 /Tpe /c $(LINKDEBUG) aavp+init+smallfnc+vsprintf+printf,$(NAME),,, $(DEF)
+
+.ASM.OBJ :
+  tasm32 $(TASM_OPTIONS) $*
+
+aavp.obj     : aavp.asm globals.inc
+init.obj     : init.asm globals.inc
+smallfnc.obj : smallfnc.asm globals.inc
+printf.obj   : printf.asm globals.inc
+vsprintf.obj : vsprintf.asm globals.inc
