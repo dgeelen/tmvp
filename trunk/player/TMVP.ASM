@@ -18,16 +18,16 @@ proc tmvp
   int  21h
  
   ; Wait for a keypress
-@l1:
-  call keypressed
-  jnz  @l1  
+;@l1:
+;  call keypressed
+;  jnz  @l1  
   
 ;  call UnInitialise
   
-;  push 1234
-;  push 5678
-;  push dword offset strTestsprintf
-;  call _printf
+  push 1234
+  push 5678
+  push dword offset strTestsprintf
+  call _printf
   
   ; Terminate
   mov  eax, 4C00h
