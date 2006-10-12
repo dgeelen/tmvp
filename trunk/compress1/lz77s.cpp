@@ -25,9 +25,9 @@ int main(int argc, char* argv[])
 	string ifname = "-";
 	string ofname = "-";
 
-	// TODO: read cmd line params
-	ifname = "c:\\export.aap";
-	ofname = "c:\\export.lz7";
+	// TODO: maybe read other cmd line params???
+	if (argc > 1) ifname = argv[1];
+	if (argc > 2) ofname = argv[2];
 
 	FILE* ifhandle = (ifname == "-") ? stdin  : fopen(ifname.c_str(), "rb");
 	FILE* ofhandle = (ofname == "-") ? stdout : fopen(ofname.c_str(), "wb");
@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
 	for (int i = 0; i < 0xFFFFFF; ++i)
 		lookup[i] = NULL;
 
-  uint16 ocode;
+	uint16 ocode;
 
 	uint32 mind;
 	uint16 mlen;
