@@ -36,13 +36,72 @@ void TPalMedianCut::CalcPal(RawRGBImage* src, TextPal* dst)
 	APoint* points = new APoint[src->GetHeight() * src->GetWidth()];
 	memcpy(points, src->data, src->GetHeight() * src->GetWidth() * 3);
 	std::list<APoint> tpal = medianCut(points, src->GetHeight() * src->GetWidth(), 16);
-	std::vector<APoint> vpal = std::vector<APoint>(tpal.begin(), tpal.end());
 
-	for (int i = 0; i < 16; ++i)
-		dst->SetColor(i, vpal[i].x);
+	uint ti = 0;
+	for (std::list<APoint>::iterator iter = tpal.begin() ; iter != tpal.end(); iter++) {
+		dst->SetColor(ti,(*iter).x);
+		++ti;
+	}
 
 	delete[] points;
 }
+
+
+TPalMedianCutSort::TPalMedianCutSort(double t)
+{
+	threshold = t;
+}
+
+void TPalMedianCutSort::CalcPal(RawRGBImage* src, TextPal* dst)
+{
+	TextPal newpal;
+	TextPal medpal;
+
+	TPalMedianCut::CalcPal(src, &medpal);
+
+	for (int i = 0; i < 16; ++i)
+		newpal.SetColor(i,dst->GetColor(i));
+
+	bool *old_done = new bool[16];
+	bool *med_done = new bool[16];
+	for(int i=0; i < 16; i++) {
+		old_done[i]=false;
+		med_done[i]=false;
+	}
+
+	double total_dist = 0;
+
+	for(int u = 0 ; u < 16 ; u++) {  // for every entry in the palette
+		uint32 best_dist = ULONG_MAX;
+
+		long int best_old = -1;
+		long int best_med = -1;
+
+		for(int i = 0 ; i < 16 ; i++)  // for every entry in the palette not assigned yet
+		if(!old_done[i]) {
+			for(int j = 0 ; j < 16 ; j++) // try all (remaining) entries to find the lowest diff
+			if(!med_done[j]) {
+				uint32 dist = MRGBDistInt(dst->GetColor(i), medpal.GetColor(j));
+				if(dist < best_dist) {
+					best_dist = dist;
+					best_old = i;
+					best_med = j;
+				}
+			}
+		}
+		if (best_old == -1 || best_med == -1)
+			best_old=0;
+		old_done[best_old]=true;
+		med_done[best_med]=true;
+		newpal.SetColor(best_old, medpal.GetColor(best_med));
+		total_dist += sqrt(best_dist);
+	}
+
+	if (total_dist > threshold)
+		for (uint i = 0; i < 16; ++i)
+			dst->SetColor(i, newpal.GetColor(i));
+}
+
 
 void TRenderBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 {
@@ -116,6 +175,8 @@ void TRenderBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 
 
 #pragma package(smart_init)
+
+
 
 
 

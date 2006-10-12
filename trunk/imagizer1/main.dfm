@@ -66,7 +66,12 @@ object Form1: TForm1
     OnChange = ComboBoxPalleteMethodChange
     Items.Strings = (
       'Standard Dos Colors'
-      'Median Cut')
+      'Median Cut'
+      'Median Cut + sort'
+      'Median Cut + sort (750)'
+      'Median Cut + sort (1000)'
+      'Median Cut + sort (1250)'
+      'Median Cut + sort (1500)')
   end
   object ComboBoxCharset: TComboBox
     Left = 656

@@ -12,11 +12,18 @@ class TCalcPallete {
 
 class TPalStandard : public TCalcPallete {
  public:
-	void CalcPal(RawRGBImage* src, TextPal* dst);
+	virtual void CalcPal(RawRGBImage* src, TextPal* dst);
 };
 
 class TPalMedianCut : public TCalcPallete {
  public:
+	void CalcPal(RawRGBImage* src, TextPal* dst);
+};
+
+class TPalMedianCutSort : public TPalMedianCut {
+	double threshold;
+ public:
+	TPalMedianCutSort(double t);
 	void CalcPal(RawRGBImage* src, TextPal* dst);
 };
 
