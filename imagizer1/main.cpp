@@ -100,6 +100,20 @@ void DoInput(RawRGBImage &image, int32 frame)
 void DoOutPut(TextImage &textimage, int32 frame)
 {
 	static RawRGBImage image;
+/*
+	static RawRGBImage image2;
+
+	image2.SetSize(320,320);
+	for (int i=0; i < 16; ++i) {
+		for (int j=0; j < 16; ++j) {
+			for (int k=0; k < 16; ++k) {
+				image2.SetPixel((frame-60)*16+j, i*16+k, textimage.pal->GetColor(i));
+			}
+		}
+	}
+
+	image2.SaveToPNG("c:\\debug.png");
+	*/
 	if (Form1->CheckBoxSaveScreen->Checked || Form1->CheckBoxSavePng->Checked)
 		textimage.SaveToRawRGBImage(&image);
 
@@ -120,7 +134,7 @@ void DoOutPut(TextImage &textimage, int32 frame)
 			loadnum = frame;
 		}
 		fname = CalcFName(fname, frame);
-		FILE *fp=fopen(fname.c_str(), "wb");
+		FILE *fp=fopen(fname.c_str(), "a+");
 		if (fseek(fp, loadnum*(8000+48), SEEK_SET) == 0) {
 			fwrite(textimage.data, 8000, 1, fp);
 			fwrite(textimage.pal, 48, 1, fp);
@@ -368,6 +382,11 @@ void __fastcall TForm1::ComboBoxPalleteMethodChange(TObject *Sender)
 	switch (ComboBoxPalleteMethod->ItemIndex) {
 		case 0: r_palcalc = new TPalStandard; break;
 		case 1: r_palcalc = new TPalMedianCut; break;
+		case 2: r_palcalc = new TPalMedianCutSort(0); break;
+		case 3: r_palcalc = new TPalMedianCutSort(750); break;
+		case 4: r_palcalc = new TPalMedianCutSort(1000); break;
+		case 5: r_palcalc = new TPalMedianCutSort(1250); break;
+		case 6: r_palcalc = new TPalMedianCutSort(1500); break;
 	}
 	assert(r_palcalc != NULL);
 }
