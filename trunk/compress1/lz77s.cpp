@@ -109,6 +109,7 @@ int main(int argc, char* argv[])
 	for (int i = 0; i < 0xFFFFFF; ++i)
 		if (lookup[i] != NULL) delete lookup[i];
 
+	delete[] lookup;
 
 	if (ifname != "-") fclose(ifhandle);
 	if (ofname != "-") fclose(ofhandle);
