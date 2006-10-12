@@ -50,9 +50,10 @@ int main(int argc, char* argv[])
 	while (instr.check(ifpos))
 	{
 		mlen = 0;
-		uint32 lookupind = lookuphash(instr[ifpos], instr[ifpos+1], instr[ifpos+2], instr[ifpos+3]);
+		uint32 lookupind;
 		// check for a match (of at least length 4)
 		if (instr.check(ifpos+3)) {
+			lookupind = lookuphash(instr[ifpos], instr[ifpos+1], instr[ifpos+2], instr[ifpos+3]);
 			deque<uint32> *clook = &lookup[lookupind];
 			while ((clook->size() > 0) && (clook->front()+0x7FFF < ifpos))
 				clook->pop_front();
@@ -100,6 +101,14 @@ int main(int argc, char* argv[])
 				--mlen;
 			}
 		}
+	}
+
+	if (nmlen!=0)
+	{
+		outstr.write(nmlen + (1<<7));
+		for (uint i = ifpos-nmlen; i < ifpos; ++i)
+			outstr.write(instr[i]);
+		nmlen = 0;
 	}
 
 	outstr.flush();
