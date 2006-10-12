@@ -23,6 +23,12 @@
 
 //unsigned long int totals;
 
+void minChange(unsigned  char *a,unsigned  char *b, unsigned char *palette) { // tries to minimize the ammount of change from frame to frame
+
+  }
+
+/** ---- RLE encoder ---- **/
+
 unsigned int diffcount(unsigned char *a, unsigned char *b, unsigned int s) {
   unsigned int i = s;
   while(i<4000 && (a[i<<1]!=b[i<<1] || a[1+(i<<1)]!=b[1+(i<<1)] ) ) { //(short int)(a[i<<1])!=(short int)(b[i<<1])) {

@@ -24,8 +24,7 @@
 #define min(x,y) (x<y?(x):(y))
 #define abs(x)   (x<0?(-x):(x))
 
-extern unsigned long int totals;
-//void diff(FILE *f, char *a, char *b);
+void minChange(unsigned  char *a,unsigned  char *b);
 void diff(FILE *f,unsigned  char *a,unsigned  char *b,unsigned  char *output, unsigned long int * outputlen) ;
 
 #endif
