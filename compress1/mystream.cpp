@@ -4,48 +4,80 @@
 
 #include "mystream.h"
 
-MyInStream::MyInStream(std::string filename)
+const BUFSIZE = 0x20000;  // = 128k
+const BUFMASK = 0x1FFFF;
+const BUFREAD = 0x08000;  // = 32k
+
+MyInStream::MyInStream(FILE* file)
 {
-	fhandle = fopen(filename.c_str(), "rb");
-	offset = 0;
-	lastread = 0;
-	buffer.clear();
+	fhandle = file;
+	numread = 0;
+	buffer = new uint8[BUFSIZE];
 }
 
 MyInStream::~MyInStream()
 {
-	if (fhandle)
-		fclose(fhandle);
-	buffer.clear();
+	delete [] buffer;
 }
 
 void MyInStream::DoRead()
 {
-	uint8 fbuf[0xFFFF];
+	uint32 readind = numread & BUFMASK;
+	uint32 toread = BUFSIZE - readind;
 
-	uint32 bread = fread(fbuf, 10, 1, fhandle);
+	if (toread > BUFREAD) toread = BUFREAD;
 
-	while (buffer.size() + bread > 123)
-	{
-		buffer.pop_front();
-		offset++;
-	}
+	uint32 bread = fread(&buffer[readind], 1, toread, fhandle);
 
-	for (uint i=0; i < bread; ++i)
-		buffer.push_back(fbuf[i]);
+	numread += bread;
 }
 
-uint8& MyInStream::operator[](uint32 index)
+uint8 MyInStream::operator[](uint32 index)
 {
-	if (index >= lastread) lastread = index + 1;
-	return buffer[index-offset];
+	return buffer[index & BUFMASK];
 }
 
-bool MyInStream::empty()
+bool MyInStream::check(uint32 index)
 {
-	if (!fhandle) return true;
-	if (lastread >= offset + buffer.size()) DoRead();
-	return (lastread >= offset + buffer.size());
+	if (!fhandle) return false;
+	if (index < numread) return true;
+	DoRead();
+	return (index < numread);
+}
+
+
+MyOutStream::MyOutStream(FILE* file)
+{
+	fhandle = file;
+	numwrite = 0;
+	buffer = new uint8[BUFSIZE];
+}
+
+MyOutStream::~MyOutStream()
+{
+	delete [] buffer;
+}
+
+void MyOutStream::DoWrite()
+{
+	uint32 bwrite = fwrite(buffer, 1, BUFSIZE, fhandle);
+	numwrite = 0;
+}
+
+uint8 MyOutStream::operator[](uint32 index)
+{
+	return buffer[index & BUFMASK];
+}
+
+void MyOutStream::write(uint8 val)
+{
+	buffer[numwrite++] = val;
+	if (numwrite == BUFSIZE) DoWrite();
+}
+
+void MyOutStream::flush()
+{
+	uint32 bwrite = fwrite(buffer, 1, numwrite, fhandle);
 }
 
 //---------------------------------------------------------------------------

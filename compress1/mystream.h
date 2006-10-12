@@ -10,29 +10,33 @@
 
 class MyInStream {
  private:
-	std::deque<uint8> buffer;
-	uint32 offset;
+	uint8* buffer;
 	FILE* fhandle;
-	uint32 lastread;
+	uint32 numread;
 
 	void DoRead();
  public:
-	MyInStream(std::string filename);
+	MyInStream(FILE* file);
 	~MyInStream();
 
-	uint8& operator[](uint32 index);
-	bool empty();
+	uint8 operator[](uint32 index);
+	bool check(uint32 index);
 };
 
 class MyOutStream {
  private:
-	std::deque<uint8> buffer;
-	uint32 offset;
+	uint8* buffer;
+	FILE* fhandle;
+	uint32 numwrite;
+
+	void DoWrite();
  public:
-	MyOutStream(std::string filename);
+	MyOutStream(FILE* file);
 	~MyOutStream();
 
-	uint8& operator[](uint32 index);
+	uint8 operator[](uint32 index);
+	void write(uint8 val);
+	void flush();
 };
 //---------------------------------------------------------------------------
 #endif
