@@ -105,12 +105,6 @@ int main(int argc, char* argv[])
 	}
 
 	outstr.flush();
-	char buf[100]="woofddfdfdft";
-	fwrite(buf, 40, 1, ofhandle);
-	fwrite(buf, 40, 1, ofhandle);
-
-
-//	delete[] lookup;
 
 	for (int i = 0; i < 0xFFFFFF; ++i)
 		if (lookup[i] != NULL) delete lookup[i];
@@ -120,94 +114,4 @@ int main(int argc, char* argv[])
 	if (ofname != "-") fclose(ofhandle);
 	return 0;
 }
-/*
- void getbestmatch(vector<uint8>& buf, uint32 sind, uint32& index, uint16& len)
-{
-	len = 0;
-	for(uint i=0; i < sind; ++i)
-		for(uint j=0; j < COPYLEN_SIZE && i+j<buf.size(); ++j)
-			if (buf[sind+j]==buf[i+j]) {
-				if (j >= len) {
-					len = j+1;
-					index = i;
-				};
-			} else j = COPYLEN_SIZE;
-}
-*/
-/*
-void LZ77_compress(string infile, string outfile)
-{
-	FILE *fin = fopen(infile.c_str(), "rb");
-	FILE *fout = fopen(outfile.c_str(), "wb");
-	vector<uint8> buffer;
-	uint8  icode;
-	uint8  ocode;
 
-	uint32 cind = 0;
-	uint32 mind;
-	uint16 mlen;
-
-	uint32 nmlen = 0;
-
-	if (!fin || !fout) return;
-
-	while (buffer.size() > cind || !feof(fin))
-	{
-		while (buffer.size() - cind < COPYLEN_SIZE && !feof(fin)) {
-			fread(&icode, 1, 1, fin);
-			if (!feof(fin)) buffer.push_back(icode);
-		}
-		while (cind > WINDOW_SIZE) {
-			buffer.erase(buffer.begin());
-			--cind;
-		}
-
-		getbestmatch(buffer, cind, mind, mlen);
-		if (mlen<4) mlen = 0;
-		if (mlen==0)
-		{
-			nmlen++;
-			++cind;
-		};
-		if ((mlen!=0 && nmlen!=0) || nmlen == SKIPLEN_SIZE)
-		{
-			ocode = nmlen + (1<<7);
-			fwrite(&ocode, 1, 1, fout);
-			for (uint i = cind-nmlen; i < cind; ++i)
-			{
-				ocode = buffer[i];
-				fwrite(&ocode, 1, 1, fout);
-			}
-			nmlen = 0;
-		}
-		if (mlen!=0) {
-			mind = cind - mind;
-			ocode = mind >> 8;
-			fwrite(&ocode, 1, 1, fout);
-			ocode = mind & 0xFF;
-			fwrite(&ocode, 1, 1, fout);
-			ocode = mlen;
-			fwrite(&ocode, 1, 1, fout);
-			cind += mlen;
-		}
-	}
-
-	if (nmlen!=0)
-	{
-		ocode = nmlen + (1<<7);
-		fwrite(&ocode, 1, 1, fout);
-		for (uint i = cind-nmlen; i < cind; ++i)
-		{
-			ocode = buffer[i];
-			fwrite(&ocode, 1, 1, fout);
-		}
-		nmlen = 0;
-	}
-
-	fclose(fin);
-	fclose(fout);
-};
-
-*/
-
-//---------------------------------------------------------------------------
