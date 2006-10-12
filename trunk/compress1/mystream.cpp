@@ -60,7 +60,7 @@ MyOutStream::~MyOutStream()
 
 void MyOutStream::DoWrite()
 {
-	uint32 bwrite = fwrite(buffer, 1, BUFSIZE, fhandle);
+	uint32 bwrite = fwrite(buffer, 1, numwrite, fhandle);
 	numwrite = 0;
 }
 
@@ -77,7 +77,7 @@ void MyOutStream::write(uint8 val)
 
 void MyOutStream::flush()
 {
-	uint32 bwrite = fwrite(buffer, 1, numwrite, fhandle);
+	DoWrite();
 }
 
 //---------------------------------------------------------------------------
