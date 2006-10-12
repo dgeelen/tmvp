@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 			uint32 lookupind = (instr[ifpos] << 16) | (instr[ifpos+1] << 8) | (instr[ifpos+2] << 0);
 			if (lookup[lookupind] != NULL) {
 				deque<uint32> *clook = lookup[lookupind];
-				while ((clook->size() > 0) && ((*clook)[0] < ifpos-0x7FFF))
+				while ((clook->size() > 0) && ((*clook)[0]+0x7FFF < ifpos))
 					clook->pop_front();
 				for (uint i = 0; i < clook->size(); ++i)
 				{
