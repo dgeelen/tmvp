@@ -5,7 +5,7 @@
 
 #include <queue>
 #include <string>
-#include <stdio>
+#include <stdio.h>
 #include "UTypes.h"
 
 /**
