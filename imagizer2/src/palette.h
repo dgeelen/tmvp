@@ -20,6 +20,6 @@
 #ifndef PALETTE_H
 #define PALETTE_H
 void palette6bit(unsigned char *palette) ;
-void get_default_palette(unsigned char *palette) ;
-void find_opt_pal(unsigned char * img, unsigned char *palette,unsigned long int width, unsigned long int heigth);
+void get_default_palette(unsigned char *palette);
+void find_opt_pal(unsigned char * img, unsigned char *palette,unsigned char *prevpalette,unsigned long int width, unsigned long int heigth);
 #endif

@@ -1,10 +1,25 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="1" >
+ <DocsAndViews NumberOfDocuments="6" >
   <Doc0 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/mpngtocaas.cpp" >
-   <View0 line="33" Type="Source" />
+   <View0 line="157" Type="Source" />
   </Doc0>
+  <Doc1 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/aadiff.cpp" >
+   <View0 Type="Source" />
+  </Doc1>
+  <Doc2 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/aadiff.h" >
+   <View0 Type="Source" />
+  </Doc2>
+  <Doc3 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/palette.cpp" >
+   <View0 line="158" Type="Source" />
+  </Doc3>
+  <Doc4 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/imagizer.cpp" >
+   <View0 line="105" Type="Source" />
+  </Doc4>
+  <Doc5 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/palette.h" >
+   <View0 line="23" Type="Source" />
+  </Doc5>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
@@ -12,6 +27,12 @@
     <breakpoint0 location="/home/dafox/Projects/tmvp/imagizer2/src/colorize.cpp:109" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
      <tracedExpressions/>
     </breakpoint0>
+    <breakpoint1 location="/home/dafox/Projects/tmvp/imagizer2/src/imagizer.cpp:106" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+     <tracedExpressions/>
+    </breakpoint1>
+    <breakpoint2 location="/home/dafox/Projects/tmvp/imagizer2/src/palette.cpp:149" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+     <tracedExpressions/>
+    </breakpoint2>
    </breakpointList>
   </kdevdebugger>
   <kdevbookmarks>
@@ -23,7 +44,7 @@
   </kdevbookmarks>
   <kdevvalgrind>
    <executable path="" params="" />
-   <valgrind path="" params="" />
+   <valgrind path="/usr/bin/valgrind" params="--tool=memcheck --tool=memcheck --leak-check=yes" />
    <calltree path="" params="" />
    <kcachegrind path="" />
   </kdevvalgrind>

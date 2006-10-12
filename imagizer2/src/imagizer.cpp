@@ -97,6 +97,12 @@ void texttopng(unsigned char *textdata,unsigned char * palette) {
   unsigned char fg;
   unsigned char bg;
   unsigned char fc;
+
+  //wth
+  for(int i=0; i<16; i++) {
+    fprintf(stderr, "pal_%i = %i, %i, %i\n",i,palette[i*3+0],palette[i*3+1],palette[i*3+2]);
+    }
+
   for(unsigned long int y=0; y<400;y++) {
     for(unsigned long int x=0; x<80;x++) {
       tx=x;
@@ -162,6 +168,10 @@ void texttopng(unsigned char *textdata,unsigned char * palette) {
         png_set_rows(png_ptr, info_ptr, row_pointers);
         png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
         png_write_end(png_ptr, info_ptr);
+        for(unsigned long int i = 0 ; i < 400 ; i++) {
+          row_pointers[i]=NULL;
+          }
+        delete row_pointers;
         png_destroy_write_struct(&png_ptr, &info_ptr);
         }
       else {
@@ -264,7 +274,10 @@ void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h,
     g_verh[i]=(unsigned char)((float(pal_g(i&0x0f))*quad_verh[i>>8].fg)+(float(pal_g((i>>4)&0x0f))*quad_verh[i>>8].bg));
     b_verh[i]=(unsigned char)((float(pal_b(i&0x0f))*quad_verh[i>>8].fg)+(float(pal_b((i>>4)&0x0f))*quad_verh[i>>8].bg));
     }
-
+  /*wth
+  for(int i=0; i<16; i++) {
+    fprintf(stderr, "pal_%i = %i, %i, %i\n",i,pal_r(i),pal_g(i),pal_b(i));
+    } */
   for( unsigned long int y = 0 ; y < img_height; y+=2) {
     for( unsigned long int x = 0 ; x < img_width; x+=2) { // for every quad region
       unsigned char best_bg=0;
@@ -280,7 +293,8 @@ void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h,
           unsigned long int lr=pal_r(fg)-pal_r(bg);
           unsigned long int lg=pal_g(fg)-pal_g(bg);
           unsigned long int lb=pal_b(fg)-pal_b(bg);
-          char_dist=(sqr(lr) + sqr(lg) + sqr(lb))>>6;
+          char_dist=(sqr(lr) + sqr(lg) + sqr(lb))>>6; //magic shift?
+          //char_dist=(unsigned long int)(sqrtl(sqr(lr) + sqr(lg) + sqr(lb))) >>6;
           for( unsigned char region=0; region < 4 ; region ++) { // try all regions
             best_quad_dist=ULONG_MAX;
             for( unsigned char quad=0; quad < 4; quad++) { // with all 4 quad blocks
@@ -288,7 +302,7 @@ void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h,
               lg=img_g-avg_g;
               lb=img_b-avg_b;
               quad_dist=        sqr(lr) +      sqr(lg) +      sqr(lb);
-              //quad_dist=sqrtl(sqr(lr))+sqrtl(sqr(lg))+sqrtl(sqr(lb)); //precision+=minimal, time+=too much
+              //quad_dist=sqrtl(sqr(lr)+sqr(lg)+sqr(lb)); //precision+=minimal, time+=too much
               if(quad_dist<best_quad_dist) {
                  best_quad_dist=quad_dist;
                  best_quad[region]=quad;

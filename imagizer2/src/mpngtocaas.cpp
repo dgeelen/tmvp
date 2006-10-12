@@ -105,7 +105,8 @@ int main(int argc, char *argv[]) {
       unsigned char * prev    = new unsigned char [8000];
       unsigned char * output  = new unsigned char [2*8000];
       unsigned char * imgdata = new unsigned char [160*100*4];
-      unsigned char * palette = new unsigned char [3*16];
+      unsigned char * palette = new unsigned char [palettesize];
+      unsigned char * prevpalette = new unsigned char [palettesize];
       memset(b800h, 0, 8000);
       memset(prev, 0, 8000);
       int hax=0;
@@ -126,6 +127,7 @@ int main(int argc, char *argv[]) {
       if(!init_lzw()){
         return EXIT_FAILURE;
         }
+      get_default_palette(  prevpalette );
       while(!done) {
         FILE *ip = fopen(filename, "rb");
         if(ip!=NULL) {
@@ -136,14 +138,14 @@ int main(int argc, char *argv[]) {
             /* Transfrom the pngdata using libAA \/ libCaCa */
             //fwrite(imgdata,  1,  w*h*3,  op); // for t3h Simon
             if(mode==simon) {
-              find_opt_pal(imgdata, palette, w, h);
+              find_opt_pal(imgdata, palette, prevpalette,w, h);
               //********************************************
               //return EXIT_FAILURE;
 
               pixtotext( (unsigned long int *)imgdata, (unsigned short *)b800h,0);
               }
             else if (mode==thomas) {
-              find_opt_pal(imgdata, palette, w, h);
+              find_opt_pal(imgdata, palette, prevpalette, w, h);
               pixtotext( (unsigned long int *)imgdata, (unsigned short *)b800h,1);
               }
             else if (mode==dafox) {
@@ -153,7 +155,7 @@ int main(int argc, char *argv[]) {
              //pixtotext( (unsigned long int *)imgdata, (unsigned short *)b800h,0);
               }
             else if (mode==opt_pal_opt_charset) {
-              find_opt_pal(imgdata, palette, w, h);
+              find_opt_pal(imgdata, palette, prevpalette, w, h);
               //get_default_palette(palette);
               timeval tv_pre;
               timeval tv_post;
@@ -162,11 +164,11 @@ int main(int argc, char *argv[]) {
               gettimeofday(&tv_post, NULL);
               fprintf(stderr,"Rendering %s cost %0.4f seconds\n",filename,float((1000000*tv_post.tv_sec+tv_post.tv_usec)-(1000000*tv_pre.tv_sec+tv_pre.tv_usec))/1000000.0);
 
-              /*/outputpng
+              /* outputpng //*/
               gettimeofday(&tv_pre, NULL);
               texttopng(b800h,palette);
               gettimeofday(&tv_post, NULL);
-              fprintf(stderr,"output to png cost %0.4f seconds\n",float((1000000*tv_post.tv_sec+tv_post.tv_usec)-(1000000*tv_pre.tv_sec+tv_pre.tv_usec))/1000000.0); /*/
+              fprintf(stderr,"output to png cost %0.4f seconds\n",float((1000000*tv_post.tv_sec+tv_post.tv_usec)-(1000000*tv_pre.tv_sec+tv_pre.tv_usec))/1000000.0); //*/
 
               }
             unsigned long int outputlen;
@@ -176,6 +178,7 @@ int main(int argc, char *argv[]) {
 //            fwrite(output,  1,  outputlen,  debug);
             lzw(output,op,&outputlen);
             compressedbytes+=outputlen;
+            memcpy(prevpalette, palette, palettesize);
             palette6bit(palette);
             palettesize=48;
             uncompressedbytes+=palettesize;
