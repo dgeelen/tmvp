@@ -8,7 +8,7 @@
 
 #include "mystream.h"
 #include <string>
-#include <iostream>
+#include <stdio.h>
 /* LZ77 (Simple) */
 
 /*

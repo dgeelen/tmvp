@@ -4,9 +4,9 @@
 
 #include "mystream.h"
 
-const BUFSIZE = 0x20000;  // = 128k
-const BUFMASK = 0x1FFFF;
-const BUFREAD = 0x08000;  // = 32k
+const uint32 BUFSIZE = 0x20000;  // = 128k
+const uint32 BUFMASK = 0x1FFFF;
+const uint32 BUFREAD = 0x08000;  // = 32k
 
 MyInStream::MyInStream(FILE* file)
 {
