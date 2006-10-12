@@ -18,7 +18,10 @@
 
 using namespace std;
 
-typedef deque<uint32>* pdeque;
+/* hash should generate value from 0 to 0xFFFF from 4 bytes */
+#define lookuphash(a, b, c, d) (((a)<<0)^((b)<<2)^((c)<<6)^((d)<<8))
+//#define lookuphash(a, b, c, d) (((a)<<0)^((b)<<8)^((c)<<8)^((d)<<8))
+//#define lookuphash(a, b, c, d) (((a)<<0)|((b)<<8))
 
 int main(int argc, char* argv[])
 {
@@ -34,10 +37,7 @@ int main(int argc, char* argv[])
 
 	MyInStream instr(ifhandle);
 	MyOutStream outstr(ofhandle);
-	pdeque *lookup = new pdeque[0xFFFFFF];
-
-	for (int i = 0; i < 0xFFFFFF; ++i)
-		lookup[i] = NULL;
+	deque<uint32> *lookup = new deque<uint32>[0x10000];
 
 	uint16 ocode;
 
@@ -50,53 +50,51 @@ int main(int argc, char* argv[])
 	while (instr.check(ifpos))
 	{
 		mlen = 0;
+		uint32 lookupind = lookuphash(instr[ifpos], instr[ifpos+1], instr[ifpos+2], instr[ifpos+3]);
+		// check for a match (of at least length 4)
 		if (instr.check(ifpos+3)) {
-			uint32 lookupind = (instr[ifpos] << 0) | (instr[ifpos+1] << 8);// | (instr[ifpos+2] << 16);
-			if (lookup[lookupind] != NULL) {
-				deque<uint32> *clook = lookup[lookupind];
-				while ((clook->size() > 0) && ((*clook)[0]+0x7FFF < ifpos))
-					clook->pop_front();
-				for (uint i = 0; i < clook->size(); ++i)
-				{
-					uint32 lind = (*clook)[i];
-					uint32 clen = 2;
-					while (instr.check(ifpos+clen) && (clen < 255) && (instr[ifpos+clen] == instr[lind+clen]))
-						clen++;
-					if (clen > 3 && clen > mlen) {
-						mlen = clen;
-						mind = lind;
-					}
+			deque<uint32> *clook = &lookup[lookupind];
+			while ((clook->size() > 0) && (clook->front()+0x7FFF < ifpos))
+				clook->pop_front();
+			for (uint i = 0; i < clook->size(); ++i)
+			{
+				uint32 lind = (*clook)[i];
+				uint32 clen = 0;
+				while (instr.check(ifpos+clen) && (clen < 255) && (instr[ifpos+clen] == instr[lind+clen]))
+					clen++;
+				if (clen > 3 && clen > mlen) {
+					mlen = clen;
+					mind = lind;
 				}
 			}
 		}
 
+		// if no match increate nomatch count (and add lookup)
 		if (mlen==0)
 		{
-			if (instr.check(ifpos+2)) {
-				uint32 lookupind = (instr[ifpos] << 0) | (instr[ifpos+1] << 8);// | (instr[ifpos+2] << 16);
-				if (lookup[lookupind] == NULL) lookup[lookupind] = new deque<uint32>;
-				lookup[lookupind]->push_back(ifpos);
-			}
+			if (instr.check(ifpos+3))
+				lookup[lookupind].push_back(ifpos);
 			++nmlen;
 			++ifpos;
 		};
-		if ((mlen!=0 && nmlen!=0) || nmlen == 255)
+		// if match or nomatch limit exceeded, output nomatch (literal) codes
+		if ((mlen!=0 && nmlen!=0) || nmlen == 127)
 		{
 			outstr.write(nmlen + (1<<7));
 			for (uint i = ifpos-nmlen; i < ifpos; ++i)
 				outstr.write(instr[i]);
 			nmlen = 0;
 		}
+		// if match output codes for copy (and add lookups)
 		if (mlen!=0) {
 			mind = ifpos - mind;
 			outstr.write(mind >> 8);
 			outstr.write(mind & 0xFF);
 			outstr.write(mlen);
 			while (instr.check(ifpos) && (mlen > 0)) {
-				if (instr.check(ifpos+2)) {
-					uint32 lookupind = (instr[ifpos] << 0) | (instr[ifpos+1] << 8);// | (instr[ifpos+2] << 16);
-					if (lookup[lookupind] == NULL) lookup[lookupind] = new deque<uint32>;
-					lookup[lookupind]->push_back(ifpos);
+				if (instr.check(ifpos+3)) {
+					lookupind = lookuphash(instr[ifpos], instr[ifpos+1], instr[ifpos+2], instr[ifpos+3]);
+					lookup[lookupind].push_back(ifpos);
 				}
 				++ifpos;
 				--mlen;
@@ -105,9 +103,6 @@ int main(int argc, char* argv[])
 	}
 
 	outstr.flush();
-
-	for (int i = 0; i < 0xFFFFFF; ++i)
-		if (lookup[i] != NULL) delete lookup[i];
 
 	delete[] lookup;
 
