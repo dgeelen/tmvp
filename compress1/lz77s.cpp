@@ -42,7 +42,7 @@ int main(int argc, char* argv[])
 	uint16 ocode;
 
 	uint32 mind;
-	uint16 mlen;
+	uint32 mlen;
 
 	uint32 nmlen = 0;
 
