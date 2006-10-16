@@ -60,6 +60,130 @@ void get_default_palette(unsigned char *palette) {
     }
   }
 
+void random_sort( unsigned char *pal,unsigned char *prevpal ) {
+  #define sqr(x) ((x)*(x))
+  unsigned long max_dist=1024*16; //ULONG_MAX; // temperature
+  unsigned long int dist=0;
+  unsigned long int olddist=0;
+  unsigned long int best_dist=ULONG_MAX;
+  for(int i = 0 ; i<16; i++){
+    dist += sqr((((unsigned long int)(prevpal[3*i+0]))-((unsigned long int)(pal[3*i+0]))))+
+            sqr((((unsigned long int)(prevpal[3*i+1]))-((unsigned long int)(pal[3*i+1]))))+
+            sqr((((unsigned long int)(prevpal[3*i+2]))-((unsigned long int)(pal[3*i+2]))));
+    }
+  best_dist = dist;
+  FILE *rnd = fopen("/dev/urandom","r");
+  if(rnd==NULL) {
+    fprintf(stderr, "Error opening /dev/urandom!\n");
+    return;
+    }
+  unsigned char r=0;
+  #define randomize (fread(&r,1,1,rnd))
+  while(max_dist>0) {
+    //try a swap
+    unsigned char i=r&0xf; randomize;
+    unsigned char j=r&0xf; randomize;
+    unsigned char tmp_r, tmp_g, tmp_b;
+    if(i!=j) {
+      olddist=dist;
+      dist -= sqr((((unsigned long int)(prevpal[3*i+0]))-((unsigned long int)(pal[3*i+0]))))+
+              sqr((((unsigned long int)(prevpal[3*i+1]))-((unsigned long int)(pal[3*i+1]))))+
+              sqr((((unsigned long int)(prevpal[3*i+2]))-((unsigned long int)(pal[3*i+2]))))+
+              sqr((((unsigned long int)(prevpal[3*j+0]))-((unsigned long int)(pal[3*j+0]))))+
+              sqr((((unsigned long int)(prevpal[3*j+1]))-((unsigned long int)(pal[3*j+1]))))+
+              sqr((((unsigned long int)(prevpal[3*j+2]))-((unsigned long int)(pal[3*j+2]))));
+      tmp_r = pal[3*i+0];
+      tmp_g = pal[3*i+1];
+      tmp_b = pal[3*i+2];
+      pal[3*i+0]=pal[3*j+0];
+      pal[3*i+1]=pal[3*j+1];
+      pal[3*i+2]=pal[3*j+2];
+      pal[3*j+0]=tmp_r;
+      pal[3*j+1]=tmp_g;
+      pal[3*j+2]=tmp_b;
+      //we did a swap, now check the new temperature
+      dist += sqr((((unsigned long int)(prevpal[3*i+0]))-((unsigned long int)(pal[3*i+0]))))+
+              sqr((((unsigned long int)(prevpal[3*i+1]))-((unsigned long int)(pal[3*i+1]))))+
+              sqr((((unsigned long int)(prevpal[3*i+2]))-((unsigned long int)(pal[3*i+2]))))+
+              sqr((((unsigned long int)(prevpal[3*j+0]))-((unsigned long int)(pal[3*j+0]))))+
+              sqr((((unsigned long int)(prevpal[3*j+1]))-((unsigned long int)(pal[3*j+1]))))+
+              sqr((((unsigned long int)(prevpal[3*j+2]))-((unsigned long int)(pal[3*j+2]))));
+      if(dist<best_dist + (max_dist>>1) ) {
+        best_dist = dist;
+        }
+      else { //this is not better, let's undo the damage :p
+        tmp_r = pal[3*i+0];
+        tmp_g = pal[3*i+1];
+        tmp_b = pal[3*i+2];
+        pal[3*i+0]=pal[3*j+0];
+        pal[3*i+1]=pal[3*j+1];
+        pal[3*i+2]=pal[3*j+2];
+        pal[3*j+0]=tmp_r;
+        pal[3*j+1]=tmp_g;
+        pal[3*j+2]=tmp_b;
+        dist=olddist;
+        }
+//      max_dist>best_dist?max_dist-=best_dist:(max_dist>10?max_dist-=10:max_dist--); //lower the temperature a bit
+      max_dist--;
+      //fprintf(stderr, "temperature=%u, best_dist=%u\n",max_dist, best_dist);
+      }
+    }
+  fprintf(stderr, "best_dist=%u\n",best_dist);
+  fclose(rnd);
+  }
+
+void ryasa(unsigned char *pal,unsigned char *prevpal, unsigned char *bestpal, int pos, unsigned long int *best_dist) {
+  #define sqr(x) ((x)*(x))
+  if(pos<15) {
+    for(int i=pos; i<16; i++) { //swap [pos] with [i], i!=pos, recurse
+      //do the swap
+      unsigned char tmp_r = pal[3*i+0];
+      unsigned char tmp_g = pal[3*i+1];
+      unsigned char tmp_b = pal[3*i+2];
+      pal[3*i+0]=pal[3*pos+0];
+      pal[3*i+1]=pal[3*pos+1];
+      pal[3*i+2]=pal[3*pos+2];
+      pal[3*pos+0]=tmp_r;
+      pal[3*pos+1]=tmp_g;
+      pal[3*pos+2]=tmp_b;
+      //entries swapped, recurse
+      ryasa(pal, prevpal, bestpal, pos + 1, best_dist);
+      //undo swap
+      pal[3*pos+0]=pal[3*i+0];
+      pal[3*pos+1]=pal[3*i+1];
+      pal[3*pos+2]=pal[3*i+2];
+      pal[3*i+0]=tmp_r;
+      pal[3*i+1]=tmp_g;
+      pal[3*i+2]=tmp_b;
+      }
+    }
+  else { /*/ pos >= 16                      //blerg assume it verks
+    for(int i=0; i<16; i++) {
+      fprintf(stderr,"%x",pal[i*3]);
+      }
+    fprintf(stderr,"\n"); /**/
+    //now we should have a permutation, try it out!
+    unsigned long int dist = 0;
+    for(int i=0; i<16; i++) {
+      dist +=
+      sqr((((unsigned long int)(prevpal[3*i+0]))-((unsigned long int)(pal[3*i+0]))))+
+      sqr((((unsigned long int)(prevpal[3*i+1]))-((unsigned long int)(pal[3*i+1]))))+
+      sqr((((unsigned long int)(prevpal[3*i+2]))-((unsigned long int)(pal[3*i+2]))));
+      }
+    if(dist < *best_dist) {  // copy this permutation to bestpal
+      *best_dist = dist;
+      fprintf(stderr,"best_dist = %u, permutation=", *best_dist);
+      for(int i=0; i<16; i++) {
+        fprintf(stderr, "%x", pal[3*i]);
+        bestpal[3*i+0]=pal[3*i+0];
+        bestpal[3*i+1]=pal[3*i+1];
+        bestpal[3*i+2]=pal[3*i+2];
+        }
+      fprintf(stderr,"\n");
+      }
+    }
+  }
+
 void find_opt_pal(unsigned char * img, unsigned char *palette,unsigned char *prevpalette, unsigned long int width, unsigned long int height) {
 /*  for(unsigned long int i=0; i<width*height;i++){ //6bit precision
     img[i]=img[i]&0xfc;
@@ -73,8 +197,8 @@ void find_opt_pal(unsigned char * img, unsigned char *palette,unsigned char *pre
     iter->x[1]=(iter->x[1])&0xfc;
     iter->x[2]=(iter->x[2])&0xfc;
     } /*
-  /* Sort the palette according to distance from (0, 0, 0,) to reduce flikker * /
-  median_cut_palette.sort();
+  /* Sort the palette according to distance from (0, 0, 0,) to reduce flikker */
+  //median_cut_palette.sort();
   unsigned long int i=0;
   for (iter = median_cut_palette.begin() ; iter != median_cut_palette.end(); iter++) {
     palette[3*i+0]=(int)iter->x[0];
@@ -83,8 +207,27 @@ void find_opt_pal(unsigned char * img, unsigned char *palette,unsigned char *pre
     i++;
     } /**/
 
+  // Anneal sort
+  random_sort( palette,prevpalette );
 
-  /* Different sorting algo */ /* Yes this is a bit greedy */
+
+
+  /* YASA! (Yet Another Sorting Algo!) * /// Takes for fucking ever :(
+  for(int i=0; i<16; i++) { //Fill palette with test-pattern
+    palette[3*i+0]=i;
+    palette[3*i+1]=i;
+    palette[3*i+2]=i;
+    }
+  unsigned char *bestpal=new unsigned char[48];
+  unsigned long int best_dist=ULONG_MAX;
+  ryasa(palette,prevpalette,bestpal, 0, &best_dist );
+  for(int i=0; i<16; i++) {
+    palette[3*i+0]=bestpal[3*i+0];
+    palette[3*i+1]=bestpal[3*i+1];
+    palette[3*i+2]=bestpal[3*i+2];
+    }
+
+  /* Different sorting algo */ /* Yes this is a bit greedy * /
   char *unspalette = new char [3*16];
   unsigned long int i=0;
   for (iter = median_cut_palette.begin() ; iter != median_cut_palette.end(); iter++) {
@@ -93,6 +236,19 @@ void find_opt_pal(unsigned char * img, unsigned char *palette,unsigned char *pre
     unspalette[3*i+2]=(int)iter->x[2];
     i++;
     }
+
+  //provide a fixed palette
+  for(int i=0; i<16; i++) {
+  //  unspalette[3*i+0]=i<<3;
+  //  unspalette[3*i+1]=i<<3;
+  //  unspalette[3*i+2]=i<<3;
+  //  prevpalette[46-3*i+0]=i<<3;
+  //  prevpalette[46-3*i+1]=i<<3;
+  //  prevpalette[46-3*i+2]=i<<3;
+    prevpalette[3*i+0]=i<<3;
+    prevpalette[3*i+1]=i<<3;
+    prevpalette[3*i+2]=i<<3;
+    } /** /
 
   #define pal_r(p,x) ((unsigned long int)(p[3*(x)+0]))
   #define pal_g(p,x) ((unsigned long int)(p[3*(x)+1]))
@@ -148,16 +304,21 @@ void find_opt_pal(unsigned char * img, unsigned char *palette,unsigned char *pre
   delete idone;
   /**/
 
-  get_default_palette( prevpalette );
+  /*/get_default_palette( prevpalette );
+  for(int i=0; i<16; i++) {
+    palette[i*3+0]=unspalette[i*3+0];
+    palette[i*3+1]=unspalette[i*3+1];
+    palette[i*3+2]=unspalette[i*3+2];
+    } */
 
   //DEBUG PALETTE
   if(pal==NULL ) {
     pal = fopen("palette.raw","wb");
     }
   fprintf(stderr,"writing palette\n");
-  for(int a=0; a<64; a++) {
+  for(int a=0; a<32; a++) {
     for(int i=0; i<16; i++) {
-      for(int b=0; b<64; b++) {
+      for(int b=0; b<32; b++) {
         fputc(palette[3*i+0],pal);
         fputc(palette[3*i+1],pal);
         fputc(palette[3*i+2],pal);
