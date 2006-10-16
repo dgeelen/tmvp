@@ -18,7 +18,7 @@
   <kdevautoproject>
     <general>
       <activetarget>src/mpngtocaas</activetarget>
-      <useconfiguration>debug</useconfiguration>
+      <useconfiguration>optimized</useconfiguration>
     </general>
     <run>
       <mainprogram>src/mpngtocaas</mainprogram>

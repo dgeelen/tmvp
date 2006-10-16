@@ -98,10 +98,10 @@ void texttopng(unsigned char *textdata,unsigned char * palette) {
   unsigned char bg;
   unsigned char fc;
 
-  //wth
+  /*/wth
   for(int i=0; i<16; i++) {
     fprintf(stderr, "pal_%i = %i, %i, %i\n",i,palette[i*3+0],palette[i*3+1],palette[i*3+2]);
-    }
+    } /**/
 
   for(unsigned long int y=0; y<400;y++) {
     for(unsigned long int x=0; x<80;x++) {
@@ -183,7 +183,8 @@ void texttopng(unsigned char *textdata,unsigned char * palette) {
   delete img;
   }
 
-void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h, unsigned long int img_width,unsigned long int img_height) {
+unsigned long int skip_count = 0;
+void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h, unsigned char *prevb800h, unsigned long int img_width,unsigned long int img_height) {
 #define exhaustive_search
 //#define greedy
 #ifdef greedy
@@ -265,6 +266,14 @@ void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h,
   #define img_g (img[1+x*3+3*(region&1)+3*img_width*(y+(region>>1))])
   #define img_b (img[2+x*3+3*(region&1)+3*img_width*(y+(region>>1))])
   #define sqr(x) ((x)*(x))
+
+/*/DEBUG PALETTE
+  for(int i=0; i<16; i++) {
+    palette[3*i+0] = i << 3;
+    palette[3*i+1] = i << 3;
+    palette[3*i+2] = i << 3;
+    } /**/
+
   uint16_t * b800h_l = (uint16_t *)b800h;
   unsigned char * r_verh = new unsigned char[1024];
   unsigned char * g_verh = new unsigned char[1024];
@@ -321,6 +330,35 @@ void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h,
         }
       //b800h[x + 0 + 80*y]=best_char;
       //b800h[x + 1 + 80*y]=(best_fg&0x0f)|((best_bg<<4)&0xf0);
+
+      /*best_char, best_fg and best_bg represent the current 'best'
+        let's look at what it would look like to use the previous values
+      */
+      unsigned char old_char = prevb800h[ x + y*80 ];
+      unsigned char old_best_fg = prevb800h[ x + 1 + y*80 ]&0x0f;
+      unsigned char old_best_bg = (0x0f&prevb800h[x + 1 + y*80])>>4;
+      unsigned char *old_quad = new unsigned char [4];
+      old_quad[0]=old_char&0x03;
+      old_quad[1]=old_char&(0x03<<2);
+      old_quad[2]=old_char&(0x03<<4);
+      old_quad[3]=old_char&(0x03<<6);
+      unsigned long int old_dist = 0;
+      for(int region = 0 ; region<4;region++){
+        unsigned long int tr = ((unsigned long int)(img_r)) - ((unsigned long int)(r_verh[(old_best_fg|(old_best_bg<<4))+(old_quad[region]<<8)]));
+        unsigned long int tg = ((unsigned long int)(img_g)) - ((unsigned long int)(g_verh[(old_best_fg|(old_best_bg<<4))+(old_quad[region]<<8)]));
+        unsigned long int tb = ((unsigned long int)(img_b)) - ((unsigned long int)(b_verh[(old_best_fg|(old_best_bg<<4))+(old_quad[region]<<8)]));
+        old_dist+= sqr(tr) + sqr(tg) + sqr(tb);
+        }
+      if(old_dist < 1024*16) {
+        best_char = old_char;
+        best_fg = old_best_fg;
+        best_bg = old_best_bg;
+        skip_count++;
+
+        best_char=0;
+        best_fg=15;
+        best_bg=15;
+        }
       /**small compression optimalisation (may be slightly larger for lz77)**/
       if(best_char==0) {
         best_fg=best_bg;
@@ -331,8 +369,13 @@ void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h,
       b800h_l[(x + 80 * y)>>1] = (uint16_t)((((best_fg&0x0f)|((best_bg<<4)&0xf0))<<8)|(best_char));
       }
     }
+
+/*  for(int i=0; i<16; i++) {
+    b800h_l[i]=(i|(i<<4))<<8;
+    } /**/
   delete r_verh;
   delete g_verh;
   delete b_verh;
 #endif
+  fprintf(stderr,"skip_count=%u\n",skip_count);
   }

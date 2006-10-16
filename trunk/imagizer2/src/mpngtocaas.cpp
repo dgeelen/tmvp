@@ -160,7 +160,7 @@ int main(int argc, char *argv[]) {
               timeval tv_pre;
               timeval tv_post;
               gettimeofday(&tv_pre, NULL);
-              imagize(imgdata, palette,b800h,w, h);
+              imagize(imgdata, palette,b800h,prev,w, h);
               gettimeofday(&tv_post, NULL);
               fprintf(stderr,"Rendering %s cost %0.4f seconds\n",filename,float((1000000*tv_post.tv_sec+tv_post.tv_usec)-(1000000*tv_pre.tv_sec+tv_pre.tv_usec))/1000000.0);
 
@@ -178,9 +178,10 @@ int main(int argc, char *argv[]) {
 //            fwrite(output,  1,  outputlen,  debug);
             lzw(output,op,&outputlen);
             compressedbytes+=outputlen;
-            memcpy(prevpalette, palette, palettesize);
-            palette6bit(palette);
             palettesize=48;
+            memcpy(prevpalette, palette, palettesize);
+
+            palette6bit(palette);
             uncompressedbytes+=palettesize;
             lzw(palette,op,&palettesize); // Palette always follows frame
             compressedbytes+=palettesize;
