@@ -3,6 +3,7 @@ title tmvp
 .model flat, Cpp
 ideal
 include "globals.inc"
+include "macros.mac"
 
 codeseg
 proc tmvp
@@ -24,7 +25,8 @@ proc tmvp
   
   call UnInitialise
 
-  
+  lea  eax, [someChars]
+  push eax  
   mov  eax, 56789
   push eax
   mov  eax, 12345
@@ -33,7 +35,7 @@ proc tmvp
   push edx
   call _printf
   call _printf
-  add  esp, 12 ;fixup the stack
+  add  esp, 16 ;fixup the stack
 
   mov  eax, 112
   call int_print
@@ -49,7 +51,8 @@ dataseg
   strIntroMsg db 'tmvp v0.1 is loading...       [assembled: ',??date,'@',??time,']',0dh,0ah,'$'
   strPressKey db 'Press any key to exit...',0dh,0ah,'$'
   ; zero terminated for _vsprintf, dollar terminated for DOS
-  strTestsprintf db 'this is a number %i and this too %i',0dh,0ah,'$',0 
-  
+  strTestsprintf db 'this is a number %i and this too %i,',CrLf,'and a ''%s''',CrLf,'$',0
+;  strTestsprintf db 'this is a number %i and this too %i',0ah,0dh,'$',0  
+  someChars db 'asdasdasdadasd',0
 end tmvp ; needs entry point
 

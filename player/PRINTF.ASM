@@ -1,7 +1,7 @@
 TITLE printf
 .386
 .model flat, Cpp ; stdcall allows TASM to generate pro- and epi-log code
-                 ; in procedures (set up stackframe, save USEd variables etc
+                 ; in procedures (set up stackframe, save USEd variables etc)
 ideal
 include "globals.inc"
 
@@ -26,12 +26,11 @@ proc _printf nolanguage near
   ; actually call _vsprintf
   call _vsprintf               ;_vsprintf returns the #printed chars in eax
   ; Now we must undo the damage to the stack
-  pop  ebx                     ; output buffer
+  add  esp, 4                  ; output buffer
   pop  ebx                     ; FormatStringPtr
-  pop  esp                     ; argList
-  sub  esp, 8                  ; fix up Stack pointer
+  add  esp, 4                  ; argList
   push ebx                     ; FormatStringPtr
-  mov  ebx, [retaddr]
+  mov  ebx, [retaddr]          ; optimize to a singe push [dword ptr retadrr]
   push ebx
   ; stack is now back in order
   mov  ebx, eax                ; tmp store retval
@@ -46,6 +45,8 @@ proc _printf nolanguage near
   ret
 endp _printf
 dataseg
-strOutputBuf db 256 dup ('#') ;(?)
-retaddr dd 1 dup  (?)
+; no data here
+udataseg
+strOutputBuf db 256 dup (?)
+retaddr      dd 1   dup (?)
 end
