@@ -24,9 +24,9 @@ proc tmvp
   
 ;  call UnInitialise
   
-  mov  eax, 12345
-  push eax
   mov  eax, 56789
+  push eax
+  mov  eax, 12345
   push eax
   lea  edx, [strTestsprintf]
   push edx
