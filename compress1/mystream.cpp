@@ -22,6 +22,7 @@ MyInStream::~MyInStream()
 
 void MyInStream::DoRead()
 {
+	if (!fhandle) return;
 	uint32 readind = numread & BUFMASK;
 	uint32 toread = BUFSIZE - readind;
 
@@ -39,7 +40,6 @@ uint8 MyInStream::operator[](uint32 index)
 
 bool MyInStream::check(uint32 index)
 {
-	if (!fhandle) return false;
 	if (index < numread) return true;
 	DoRead();
 	return (index < numread);
