@@ -8,6 +8,7 @@
 #include <StdCtrls.hpp>
 #include <Forms.hpp>
 #include <ExtCtrls.hpp>
+#include "UImage.h"
 //---------------------------------------------------------------------------
 class TForm1 : public TForm
 {
@@ -35,6 +36,14 @@ __published:	// IDE-managed Components
 	TLabeledEdit *EditFrameNum;
 	TLabeledEdit *EditFrameCount;
 	TCheckBox *CheckBoxUpdateFrameNum;
+	TCheckBox *CheckBoxSpecial;
+	TEdit *EditR1;
+	TEdit *EditR2;
+	TEdit *EditR3;
+	TEdit *EditR4;
+	TEdit *EditSpecial;
+	TButton *ButtonSpecialReset;
+	TButton *ButtonSpecialEnd;
 	void __fastcall Button4Click(TObject *Sender);
 	void __fastcall Button5Click(TObject *Sender);
 	void __fastcall Button6Click(TObject *Sender);
@@ -45,6 +54,9 @@ __published:	// IDE-managed Components
 	void __fastcall ComboBoxCharsetChange(TObject *Sender);
 	void __fastcall FormCreate(TObject *Sender);
 	void __fastcall FormDestroy(TObject *Sender);
+	void __fastcall ButtonSpecialResetClick(TObject *Sender);
+	void __fastcall DoSpecialOutput(TextImage &textimage, RawRGBImage &rgbimage);
+	void __fastcall ButtonSpecialEndClick(TObject *Sender);
 private:	// User declarations
 public:		// User declarations
 	__fastcall TForm1(TComponent* Owner);

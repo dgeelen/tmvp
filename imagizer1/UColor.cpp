@@ -68,6 +68,19 @@ double RGBDistDouble(RGBColor c1, RGBColor c2)
 	return sqrt(result);
 }
 
+uint32 RGBDistLUVInt(RGBColor c1, RGBColor c2)
+{
+	uint32 r,g,b;
+	uint32 rmean;
+
+	rmean = ( (int)c1.c.r + (int)c2.c.r ) / 2;
+	r = (int)c1.c.r - (int)c1.c.r;
+	g = (int)c1.c.g - (int)c2.c.g;
+	b = (int)c1.c.b - (int)c2.c.b;
+	return (((512+rmean)*r*r)>>8) + 4*g*g + (((767-rmean)*b*b)>>8);
+}
+
+
 //---------------------------------------------------------------------------
 
 #pragma package(smart_init)

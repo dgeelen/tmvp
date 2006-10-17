@@ -5,7 +5,7 @@
     <VERSION value="BCB.06.00"/>
     <PROJECT value="AApp.exe"/>
     <OBJFILES value="AApp.obj main.obj UColor.obj UTypes.obj UImage.obj ULZ77.obj UHuffman.obj 
-      URender.obj median_cut.obj URenderSimAnn.obj"/>
+      URender.obj median_cut.obj URenderSimAnn.obj mystream.obj"/>
     <RESFILES value="AApp.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
@@ -31,14 +31,14 @@
     <USERDEFINES value="_DEBUG"/>
     <SYSDEFINES value="_RTLDLL;NO_STRICT;USEPACKAGES"/>
     <MAINSOURCE value="AApp.cpp"/>
-    <INCLUDEPATH value="..;$(BCB)\include;$(BCB)\include\vcl;$(BCB)\Projects\png"/>
-    <LIBPATH value="..;$(BCB)\lib\obj;$(BCB)\lib;$(BCB)\Projects\png"/>
+    <INCLUDEPATH value="&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;..;$(BCB)\include;$(BCB)\include\vcl;$(BCB)\Projects\png"/>
+    <LIBPATH value="&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;..;$(BCB)\lib\obj;$(BCB)\lib;$(BCB)\Projects\png"/>
     <WARNINGS value="-w-par"/>
     <OTHERFILES value=""/>
   </MACROS>
   <OPTIONS>
-    <IDLCFLAGS value="-I.. -I$(BCB)\include -I$(BCB)\include\vcl -I$(BCB)\Projects\png 
-      -src_suffix cpp -D_DEBUG -boa"/>
+    <IDLCFLAGS value="-I&quot;C:\Program Files\Borland\CBuilder6\Projects&quot; -I.. -I$(BCB)\include 
+      -I$(BCB)\include\vcl -I$(BCB)\Projects\png -src_suffix cpp -D_DEBUG -boa"/>
     <CFLAG1 value="-Od -H=$(BCB)\lib\vcl60.csm -Hc -Vx -Ve -X- -r- -a8 -6 -b- -k -y -v -vi- 
       -c -tW -tWM"/>
     <PFLAGS value="-$Y+ -$W -$R -$O- -$A8 -v -JPHNE -M"/>
@@ -67,6 +67,7 @@
       <FILE FILENAME="URender.cpp" FORMNAME="" UNITNAME="URender" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="median_cut.cpp" FORMNAME="" UNITNAME="median_cut" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
       <FILE FILENAME="URenderSimAnn.cpp" FORMNAME="" UNITNAME="URenderSimAnn" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="mystream.cpp" FORMNAME="" UNITNAME="mystream" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
   </FILELIST>
   <BUILDTOOLS>
   </BUILDTOOLS>
@@ -100,18 +101,20 @@ ProductVersion=1.0.0.0
 Comments=
 
 [HistoryLists\hlIncludePath]
-Count=4
-Item0=..;$(BCB)\include;$(BCB)\include\vcl;$(BCB)\Projects\png
-Item1=..;$(BCB)\include;$(BCB)\include\vcl;$(BCB\Projects\png
-Item2=..;AAPP;$(BCB)\include;$(BCB)\include\vcl
-Item3=..\;AAPP;$(BCB)\include;$(BCB)\include\vcl
+Count=5
+Item0=C:\Program Files\Borland\CBuilder6\Projects;..;$(BCB)\include;$(BCB)\include\vcl;$(BCB)\Projects\png
+Item1=..;$(BCB)\include;$(BCB)\include\vcl;$(BCB)\Projects\png
+Item2=..;$(BCB)\include;$(BCB)\include\vcl;$(BCB\Projects\png
+Item3=..;AAPP;$(BCB)\include;$(BCB)\include\vcl
+Item4=..\;AAPP;$(BCB)\include;$(BCB)\include\vcl
 
 [HistoryLists\hlLibraryPath]
-Count=4
-Item0=..;$(BCB)\lib\obj;$(BCB)\lib;$(BCB)\Projects\png
-Item1=..;$(BCB)\lib\obj;$(BCB)\lib;$(BCB\Projects\png
-Item2=..;AAPP;$(BCB)\lib\obj;$(BCB)\lib
-Item3=..\;AAPP;$(BCB)\lib\obj;$(BCB)\lib
+Count=5
+Item0=C:\Program Files\Borland\CBuilder6\Projects;..;$(BCB)\lib\obj;$(BCB)\lib;$(BCB)\Projects\png
+Item1=..;$(BCB)\lib\obj;$(BCB)\lib;$(BCB)\Projects\png
+Item2=..;$(BCB)\lib\obj;$(BCB)\lib;$(BCB\Projects\png
+Item3=..;AAPP;$(BCB)\lib\obj;$(BCB)\lib
+Item4=..\;AAPP;$(BCB)\lib\obj;$(BCB)\lib
 
 [HistoryLists\hlDebugSourcePath]
 Count=1

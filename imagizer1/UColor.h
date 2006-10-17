@@ -42,9 +42,13 @@ struct RGBAColor {
 RGBColor RGBAvg2(RGBColor c1, RGBColor c2, uint32 weight, uint32 total);
 double RGBDistDouble(RGBColor c1, RGBColor c2);
 uint32 RGBDistInt(RGBColor c1, RGBColor c2);
+uint32 RGBDistLUVInt(RGBColor c1, RGBColor c2);
 
 #define MSquare(x) ((x)*(x))
 #define MRGBDistInt(c1, c2) (MSquare(c1.c.r-c2.c.r) + MSquare(c1.c.g-c2.c.g) + MSquare(c1.c.b-c2.c.b))
 #define MRGBDistDouble(c1, c2) (sqrt(MSquare(c1.c.r-c2.c.r) + MSquare(c1.c.g-c2.c.g) + MSquare(c1.c.b-c2.c.b)))
+#define MRGBDistLUVInt(c1, c2) (((1024+c1.c.r+c2.c.r)*MSquare(c1.c.r-c2.c.r))>>9 + \
+																4*MSquare(c1.c.g-c2.c.g) + \
+																((1534-(c1.c.r+c2.c.r))*MSquare(c1.c.b-c2.c.b))>>9)
 //---------------------------------------------------------------------------
 #endif
