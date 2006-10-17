@@ -10,5 +10,5 @@ global DoBlink:proc
 global UnInitialise:proc
 global _vsprintf:proc
 global _printf:proc
-
+global int_print:proc
 

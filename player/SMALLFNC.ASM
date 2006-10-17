@@ -1,6 +1,6 @@
 TITLE smallfunctions
 .386
-.model flat
+.model flat, Cpp
 ideal
 include "globals.inc"
 
@@ -24,6 +24,7 @@ proc UpdateDisplay
   ; Pre: Pointer to [palette] and [framedata] are present on the stack
   ; Post: The screen and palette have been updated
   arg  framePtr:dword, palPtr:dword
+  uses ax cx
   push bp ax cx
   mov  bp, sp
   call setPalette              ; palPtr already on the stack
@@ -110,6 +111,45 @@ proc DoBlink ; Destroys none
  pop  ax bx
  ret
 endp DoBlink
+
+proc int_print ; Destroys none, but is t3h 3vil
+;int_print: ; ax==number
+pusha
+xor   cx,cx
+push  cx
+mov   ecx, 10
+whilenotdone:
+xor   edx,edx
+;idiv : div edx:eax, result = eax=quoti, edx=remain
+idiv  ecx
+; edx = eax mod 10 (?)
+add   edx, '0'
+push  dx
+cmp   eax,0
+jnz whilenotdone
+; hopefully we now have the sting on the stack, in reverse
+mov   bx,ds
+push  cs
+pop   ds
+lea   edx, [scratchpad]
+print_int_print:
+pop   ax
+cmp   ax, 0
+je    end_int_print
+mov   [cs:scratchpad],al
+mov   ah, 09h
+int   21h
+jmp   short print_int_print
+end_int_print:
+lea   dx,[crlf]
+mov   ah,09h
+int   21h
+mov   ds,bx
+popa 
+ret
+crlf db 10,13,36
+scratchpad db 0,36
+endp int_print
 dataseg
 
 end

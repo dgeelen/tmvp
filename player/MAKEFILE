@@ -29,7 +29,7 @@ $(NAME).exe : $(NAME).obj init.obj smallfnc.obj vsprintf.obj printf.obj
   tlink32 /Tpe /c $(LINKDEBUG) $(NAME)+init+smallfnc+vsprintf+printf,$(NAME),,, $(DEF)
 
 .ASM.OBJ :
-  tasm32 $(TASM_OPTIONS) $*
+  tasm32 /p /t /w+ /z $(TASM_OPTIONS) $*
 
 tmvp.obj     : $(NAME).asm globals.inc
 init.obj     : init.asm globals.inc
