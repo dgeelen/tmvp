@@ -13,7 +13,7 @@ macro getarg register
 endm
 
 codeseg
-proc _vsprintf ; C near uses ebx edi esi,
+proc _vsprintf
   arg a_output:dword, a_format:dword, a_argList:dword
 	local v_width:dword, v_prec:dword, v_zeroLen:dword, v_sign:dword, v_strbuf:byte:12, v_strLen:dword
   uses ebx, ebx, ecx, edx, esi, edi, es
