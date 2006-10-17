@@ -59,8 +59,9 @@ void TPalMedianCutSort::CalcPal(RawRGBImage* src, TextPal* dst)
 
 	TPalMedianCut::CalcPal(src, &medpal);
 
-	for (int i = 0; i < 16; ++i)
-		newpal.SetColor(i,dst->GetColor(i));
+//	for (int i = 0; i < 16; ++i) {
+//		newpal.SetColor(i,dst->GetColor(i));
+//	}
 
 	bool *old_done = new bool[16];
 	bool *med_done = new bool[16];
@@ -168,6 +169,8 @@ void TRenderBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 					}
 				}
 			}
+			if (best_char == 0) best_fg = best_bg;
+			if (best_bg == best_fg) best_char = (best_bg << 4) | best_bg;
 			dst->SetChar(x>>1, y>>1, best_char, best_fg, best_bg);
 		}
 	}

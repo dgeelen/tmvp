@@ -13,6 +13,7 @@
 #include <string>
 #include <dos>
 #include "assert.h"
+#include "mystream.cpp"
 
 using namespace std;
 
@@ -116,6 +117,9 @@ void DoOutPut(TextImage &textimage, int32 frame)
 	*/
 	if (Form1->CheckBoxSaveScreen->Checked || Form1->CheckBoxSavePng->Checked)
 		textimage.SaveToRawRGBImage(&image);
+
+	if (Form1->CheckBoxSpecial->Checked)
+		Form1->DoSpecialOutput(textimage, image);
 
 	if (Form1->CheckBoxSaveScreen->Checked)
 		DrawRGBImageToScreen(&image);
@@ -383,7 +387,7 @@ void __fastcall TForm1::ComboBoxPalleteMethodChange(TObject *Sender)
 		case 0: r_palcalc = new TPalStandard; break;
 		case 1: r_palcalc = new TPalMedianCut; break;
 		case 2: r_palcalc = new TPalMedianCutSort(0); break;
-		case 3: r_palcalc = new TPalMedianCutSort(750); break;
+		case 3: r_palcalc = new TPalMedianCutSort(500); break;
 		case 4: r_palcalc = new TPalMedianCutSort(1000); break;
 		case 5: r_palcalc = new TPalMedianCutSort(1250); break;
 		case 6: r_palcalc = new TPalMedianCutSort(1500); break;
@@ -423,6 +427,149 @@ void __fastcall TForm1::FormDestroy(TObject *Sender)
 		delete r_renderer;
 	if (r_palcalc != NULL)
 		delete r_palcalc;
+}
+//---------------------------------------------------------------------------
+
+/* hash should generate value from 0 to 0xFFFF from 4 bytes */
+#define lookuphash(a, b, c, d) (((a)<<0)^((b)<<2)^((c)<<6)^((d)<<8))
+//#define lookuphash(a, b, c, d) (((a)<<0)^((b)<<8)^((c)<<8)^((d)<<8))
+//#define lookuphash(a, b, c, d) (((a)<<0)|((b)<<8))
+
+FILE* ofhandle;
+MyInStream* instr;
+MyOutStream* outstr;
+MyOutStream* tststr;
+deque<uint32>* lookup;
+
+uint16 ocode;
+
+uint32 mind;
+uint32 mlen;
+
+uint32 nmlen;
+
+uint32 ifpos;
+uint32 ofpos;
+
+void __fastcall TForm1::ButtonSpecialResetClick(TObject *Sender)
+{
+	string ofname =  string(EditSpecial->Text.c_str());
+
+	FILE* ofhandle = fopen(ofname.c_str(), "wb");
+
+	instr = new MyInStream(NULL);
+	outstr = new MyOutStream(ofhandle);
+	tststr = new MyOutStream(NULL);
+	lookup = new deque<uint32>[0x10000];
+
+	nmlen = 0;
+	ifpos = 0;
+	ofpos = 0;
+}
+
+void DrawBorder(RawRGBImage &image, uint32 x, uint32 y, RGBColor col)
+{
+	for (uint i = 0; i<8; ++i) {
+		image.SetPixel(x*8+i,y*8  ,col);
+		image.SetPixel(x*8+i,y*8+8,col);
+		image.SetPixel(x*8  ,y*8+i,col);
+		image.SetPixel(x*8+8,y*8+i,col);
+	}
+}
+
+void __fastcall TForm1::DoSpecialOutput(TextImage &textimage, RawRGBImage &rgbimage)
+{
+	static RawRGBImage limage;
+
+	limage.SetSize(80*8, 50*8);
+	memcpy(rgbimage.data, limage.data, 80*8* 50*8* 3);
+	textimage.SaveToRawRGBImage(&limage);
+
+	instr->DoRead((uint8*)textimage.data, 8000);
+	instr->DoRead((uint8*)textimage.pal, 48);
+
+	if (!instr->check(ofpos+8000+48+512))
+		return;
+
+	while (instr->check(ifpos+512))
+	{
+		mlen = 0;
+		uint32 lookupind;
+		// check for a match (of at least length 4)
+		if (instr->check(ifpos+3)) {
+			lookupind = lookuphash((*instr)[ifpos], (*instr)[ifpos+1], (*instr)[ifpos+2], (*instr)[ifpos+3]);
+			deque<uint32> *clook = &lookup[lookupind];
+			while ((clook->size() > 0) && (clook->front()+0x7FFF < ifpos))
+				clook->pop_front();
+			for (uint i = 0; i < clook->size(); ++i)
+			{
+				uint32 lind = (*clook)[i];
+				uint32 clen = 0;
+				while (instr->check(ifpos+clen) && (clen < 255) && ((*instr)[ifpos+clen] == (*instr)[lind+clen]))
+					clen++;
+				if (clen > 3 && clen > mlen) {
+					mlen = clen;
+					mind = lind;
+				}
+			}
+		}
+
+		// if no match increase nomatch count (and add lookup)
+		if (mlen==0)
+		{
+			if (instr->check(ifpos+3))
+				lookup[lookupind].push_back(ifpos);
+			++nmlen;
+			++ifpos;
+		};
+		// if match or nomatch limit exceeded, output nomatch (literal) codes
+		if ((mlen!=0 && nmlen!=0) || nmlen == 127)
+		{
+			outstr->write(nmlen + (1<<7));
+			for (uint i = ifpos-nmlen; i < ifpos; ++i) {
+				outstr->write((*instr)[i]);
+				tststr->write(0);
+			}
+			nmlen = 0;
+		}
+		// if match output codes for copy (and add lookups)
+		if (mlen!=0) {
+			mind = ifpos - mind;
+			outstr->write(mind >> 8);
+			outstr->write(mind & 0xFF);
+			outstr->write(mlen);
+			while (instr->check(ifpos) && (mlen > 0)) {
+				tststr->write(1);
+				if (instr->check(ifpos+3)) {
+					lookupind = lookuphash((*instr)[ifpos], (*instr)[ifpos+1], (*instr)[ifpos+2], (*instr)[ifpos+3]);
+					lookup[lookupind].push_back(ifpos);
+				}
+				++ifpos;
+				--mlen;
+			}
+		}
+	}
+
+	for (uint i = 0; i < 4000; ++i) {
+		uint x = i % 80;
+		uint y = i / 80;
+
+		bool b1 = (*tststr)[ofpos++];
+		bool b2 = (*tststr)[ofpos++];
+		RGBColor col;
+		if (b1 && b2) col = 0xFF0000;
+		if (b1 ^  b2) col = 0xFF00FF;
+		if (!b1 && !b2) col = 0x0000FF;
+		DrawBorder(rgbimage, x,y, col);
+	}
+
+	ofpos += 48;
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::ButtonSpecialEndClick(TObject *Sender)
+{
+//
 }
 //---------------------------------------------------------------------------
 

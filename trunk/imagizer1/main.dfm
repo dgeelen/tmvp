@@ -1,7 +1,7 @@
 object Form1: TForm1
-  Left = 325
-  Top = 140
-  Width = 813
+  Left = 149
+  Top = 107
+  Width = 944
   Height = 659
   Caption = 'Form1'
   Color = clBtnFace
@@ -98,7 +98,7 @@ object Form1: TForm1
   end
   object Button4: TButton
     Left = 656
-    Top = 472
+    Top = 568
     Width = 75
     Height = 25
     Caption = 'Button4'
@@ -107,7 +107,7 @@ object Form1: TForm1
   end
   object Button5: TButton
     Left = 656
-    Top = 400
+    Top = 536
     Width = 75
     Height = 25
     Caption = 'Button5'
@@ -115,8 +115,8 @@ object Form1: TForm1
     OnClick = Button5Click
   end
   object Button6: TButton
-    Left = 664
-    Top = 328
+    Left = 656
+    Top = 600
     Width = 75
     Height = 25
     Caption = 'Button6'
@@ -240,5 +240,71 @@ object Form1: TForm1
     LabelSpacing = 3
     TabOrder = 11
     Text = '1'
+  end
+  object CheckBoxSpecial: TCheckBox
+    Left = 656
+    Top = 16
+    Width = 97
+    Height = 17
+    Caption = 'Special'
+    TabOrder = 13
+  end
+  object EditR1: TEdit
+    Left = 656
+    Top = 272
+    Width = 121
+    Height = 21
+    TabOrder = 14
+    Text = '0'
+  end
+  object EditR2: TEdit
+    Left = 784
+    Top = 272
+    Width = 121
+    Height = 21
+    TabOrder = 15
+    Text = '0'
+  end
+  object EditR3: TEdit
+    Left = 656
+    Top = 344
+    Width = 121
+    Height = 21
+    TabOrder = 16
+    Text = '0'
+  end
+  object EditR4: TEdit
+    Left = 784
+    Top = 344
+    Width = 121
+    Height = 21
+    TabOrder = 17
+    Text = '0'
+  end
+  object EditSpecial: TEdit
+    Left = 760
+    Top = 16
+    Width = 121
+    Height = 21
+    TabOrder = 18
+    Text = 'c:\special.l7s'
+  end
+  object ButtonSpecialReset: TButton
+    Left = 656
+    Top = 40
+    Width = 75
+    Height = 25
+    Caption = 'Reset'
+    TabOrder = 19
+    OnClick = ButtonSpecialResetClick
+  end
+  object ButtonSpecialEnd: TButton
+    Left = 656
+    Top = 72
+    Width = 75
+    Height = 25
+    Caption = 'End'
+    TabOrder = 20
+    OnClick = ButtonSpecialEndClick
   end
 end
