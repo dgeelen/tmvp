@@ -11,7 +11,7 @@ proc tmvp
   lea  edx, [strIntroMsg]
   mov  ah, 9
   int  21h
-;  call Initialise
+  call Initialise
   
   lea  edx, [strPressKey]
   mov  ah, 9
@@ -22,7 +22,8 @@ proc tmvp
 ;  call keypressed
 ;  jnz  @l1  
   
-;  call UnInitialise
+  call UnInitialise
+
   
   mov  eax, 56789
   push eax
@@ -31,7 +32,11 @@ proc tmvp
   lea  edx, [strTestsprintf]
   push edx
   call _printf
+  call _printf
   add  esp, 12 ;fixup the stack
+
+  mov  eax, 112
+  call int_print
   
   ; Terminate
   mov  eax, 4C00h
