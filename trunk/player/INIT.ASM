@@ -1,6 +1,6 @@
 TITLE Init
 .386
-.model flat
+.model flat, Cpp
 ideal
 include "globals.inc"
 ;global Initialise:proc  ; declare public proc

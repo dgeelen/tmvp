@@ -1,6 +1,6 @@
 title tmvp
 .386
-.model flat
+.model flat, Cpp
 ideal
 include "globals.inc"
 
@@ -24,10 +24,14 @@ proc tmvp
   
 ;  call UnInitialise
   
-  push 1234
-  push 5678
-  push dword offset strTestsprintf
+  mov  eax, 12345
+  push eax
+  mov  eax, 56789
+  push eax
+  lea  edx, [strTestsprintf]
+  push edx
   call _printf
+  add  esp, 12 ;fixup the stack
   
   ; Terminate
   mov  eax, 4C00h
@@ -37,7 +41,7 @@ endp tmvp
 ;---Data Section---------------------------------------------------------------
 
 dataseg
-  strIntroMsg db 'tmvp v0.1 is loading...',0dh,0ah,'$'
+  strIntroMsg db 'tmvp v0.1 is loading...       [assembled: ',??date,'@',??time,']',0dh,0ah,'$'
   strPressKey db 'Press any key to exit...',0dh,0ah,'$'
   ; zero terminated for _vsprintf, dollar terminated for DOS
   strTestsprintf db 'this is a number %i and this too %i',0dh,0ah,'$',0 
