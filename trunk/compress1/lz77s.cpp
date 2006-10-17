@@ -18,8 +18,14 @@
 
 using namespace std;
 
+const uint32 HASH_SIZE = (1 << 24);
+const uint32 WIND_SIZE = (1 << 15);
+
+const uint32 HASH_MASK = HASH_SIZE - 1;
+const uint32 WIND_MASK = WIND_SIZE - 1;
+
 /* hash should generate value from 0 to 0xFFFF from 4 bytes */
-#define lookuphash(a, b, c, d) (((a)<<0)^((b)<<2)^((c)<<6)^((d)<<8))
+#define lookuphash(a, b, c, d) (((a)<<0)^((b)<<5)^((c)<<11)^((d)<<16))
 //#define lookuphash(a, b, c, d) (((a)<<0)^((b)<<8)^((c)<<8)^((d)<<8))
 //#define lookuphash(a, b, c, d) (((a)<<0)|((b)<<8))
 
@@ -27,6 +33,14 @@ int main(int argc, char* argv[])
 {
 	string ifname = "-";
 	string ofname = "-";
+
+	uint32 tst;
+
+	tst = HASH_SIZE;
+	tst = HASH_MASK;
+
+	tst = WIND_SIZE;
+	tst = WIND_MASK;
 
 	// TODO: maybe read other cmd line params???
 	if (argc > 1) ifname = argv[1];
@@ -37,7 +51,13 @@ int main(int argc, char* argv[])
 
 	MyInStream instr(ifhandle);
 	MyOutStream outstr(ofhandle);
-	deque<uint32> *lookup = new deque<uint32>[0x10000];
+
+//	int32 hashhead[HASH_SIZE];
+	int32* hashhead = new int32[HASH_SIZE];
+	int32* hashprev = new int32[WIND_SIZE];
+
+	for (int i = 0; i < HASH_SIZE; ++i)
+		hashhead[i] = -WIND_SIZE;
 
 	uint16 ocode;
 
@@ -54,27 +74,27 @@ int main(int argc, char* argv[])
 		// check for a match (of at least length 4)
 		if (instr.check(ifpos+3)) {
 			lookupind = lookuphash(instr[ifpos], instr[ifpos+1], instr[ifpos+2], instr[ifpos+3]);
-			deque<uint32> *clook = &lookup[lookupind];
-			while ((clook->size() > 0) && (clook->front()+0x7FFF < ifpos))
-				clook->pop_front();
-			for (uint i = 0; i < clook->size(); ++i)
+
+			for (int32 lind = hashhead[lookupind]; ifpos < lind + WIND_SIZE; lind = hashprev[lind & WIND_MASK])
 			{
-				uint32 lind = (*clook)[i];
 				uint32 clen = 0;
 				while (instr.check(ifpos+clen) && (clen < 255) && (instr[ifpos+clen] == instr[lind+clen]))
 					clen++;
 				if (clen > 3 && clen > mlen) {
 					mlen = clen;
 					mind = lind;
+					if (mlen == 255) break;
 				}
 			}
 		}
 
-		// if no match increate nomatch count (and add lookup)
+		// if no match increase nomatch count (and add lookup)
 		if (mlen==0)
 		{
-			if (instr.check(ifpos+3))
-				lookup[lookupind].push_back(ifpos);
+			if (instr.check(ifpos+3)) {
+				hashprev[ifpos & WIND_MASK] = hashhead[lookupind];
+				hashhead[lookupind] = ifpos;
+			}
 			++nmlen;
 			++ifpos;
 		};
@@ -95,7 +115,8 @@ int main(int argc, char* argv[])
 			while (instr.check(ifpos) && (mlen > 0)) {
 				if (instr.check(ifpos+3)) {
 					lookupind = lookuphash(instr[ifpos], instr[ifpos+1], instr[ifpos+2], instr[ifpos+3]);
-					lookup[lookupind].push_back(ifpos);
+					hashprev[ifpos & WIND_MASK] = hashhead[lookupind];
+					hashhead[lookupind] = ifpos;
 				}
 				++ifpos;
 				--mlen;
@@ -113,7 +134,8 @@ int main(int argc, char* argv[])
 
 	outstr.flush();
 
-	delete[] lookup;
+	delete[] hashhead;
+	delete[] hashprev;
 
 	if (ifname != "-") fclose(ifhandle);
 	if (ofname != "-") fclose(ofhandle);
