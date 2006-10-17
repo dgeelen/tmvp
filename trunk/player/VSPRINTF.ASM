@@ -16,74 +16,10 @@ codeseg
 proc _vsprintf ; C near uses ebx edi esi,
   arg a_output:dword, a_format:dword, a_argList:dword
 	local v_width:dword, v_prec:dword, v_zeroLen:dword, v_sign:dword, v_strbuf:byte:12, v_strLen:dword
-  uses ebx, ecx, edx, esi, edi, es
-;--debug
-jmp @nodebug
-  push ebp
-  mov  ebp, esp
-  mov  ebx, esp
-  add  ebx, 12
-  mov  ebx, [dword ptr ebx]
-  mov  eax, ebx
-  call int_print
-  mov  edx, [a_format]
-  mov  eax, edx
-  call int_print
-  mov  ah, 9
-  int  21h
-
-  pop  ebp
-  ret
-  jmp   @noprint
-;  mov  edx, [dword ptr edx]
-  mov  ah, 9
-  int  21h
-@noprint:
-  pop  bp
-  ret
-@nodebug:
-  push ebp
-  mov  ebp, esp
-  
-  jmp @true_end_of_debug
-  mov	esi, [a_format]
-	mov	edi, [a_output]
-  mov ecx, 32
-  mov eax, '?ftw'
-  cld
-  push es
-  push ds
-  pop  es
-  repnz stosb
-  stosd
-  stosd
-  stosd
-  stosd
-  stosd
-  pop es
-	mov	edx, [a_output]
-  mov [edx], eax
-  
-	mov	edx, [a_output]
-	mov eax, edx
-	call int_print
-	mov edx, esp
-	add edx, 8
-	mov edx, [edx]
-	mov eax, edx
-	call int_print
-  mov  ah, 9
-  int  21h
-
-  ;argh wtf now
-  pop ebp
-  ret
-@true_end_of_debug:
-;--end-debug
+  uses ebx, ebx, ecx, edx, esi, edi, es
 
 		mov	esi, [a_format]
 		mov	edi, [a_output]
-		push es
     mov eax, ds
     mov es, eax
     cld
@@ -109,28 +45,8 @@ formatLoop:	xor	eax, eax
 		lodsb
 		cmp	al, ' '
 		jl	unknown_char			; char below ' '
-; BEGIN *FIXME*
-; The next two lines of code where converted to something which looks
-; like it might do something that was intended to be done with those two lines
-;    call int_print
 		movzx	edx, [byte ptr xxlat + eax - ' ']
-;		push eax
-;		mov eax, edx
-;		call int_print
-;		pop eax
-;		mov eax, [dword ptr jumptable +edx*4]
-;		call int_print
-;		mov eax, offset d_decimal
-;		call int_print
 		jmp	[dword ptr jumptable +edx*4]	; we jump with the char in AL
-;    xor  edx, edx
-;    mov  dl, al
-;    add  edx, offset xxlat
-;    movzx edx, [byte ptr edx]
-;    shl  edx,2
-;    mov  edx, [dword ptr offset jumptable + edx]
-;    jmp  edx
-; END *FIXME*
 ; ---------------------------------------------------------------------------
 n_CharsWritten:	getarg	eax
 		mov	edx, edi
@@ -342,16 +258,10 @@ skipzerolen:	mov	eax, [dword ptr v_sign]
 		jz	short finishint
 		dec	[v_width]
 
-finishint:  ; ACTUAL CODE
-    mov	eax, [v_zeroLen] ; ACTUAL CODE
-		add	[v_strLen], eax  ; ACTUAL CODE
-		xor eax, eax
-		mov	[v_strLen], eax 
-@wth:
-    mov eax, [v_strLen]
-    cmp eax, 0
-    je  @wth
-		jmp	printit  ; ACTUAL CODE
+finishint:
+    mov	eax, [v_zeroLen]
+		add	[v_strLen], eax
+		jmp	printit
 
 ; ---------------------------------------------------------------------------
 ; Pointer: same as %.8X
@@ -407,13 +317,6 @@ setLen:		mov	[v_strLen], eax
 
 	; left pad with spaces IF necessary
 printit:	
-;  	mov eax, [v_strLen];debug
-;    call int_print ; DEBUG
-;DEBUG
-;    mov ah,09h
-;    int 021h
-;    mov eax, [v_strLen]
-;    call int_print
     test	ebx, 2			; Is it left justified?
 		mov	ebx, [v_width]
 		jnz	short printPrefix	; if yes, don't pad left
@@ -470,8 +373,6 @@ copyrest:	lodsb
 EndOfString:	mov	eax, edi
 		sub	eax, [a_output]
 		dec	eax
-		pop es
-		pop ebp
 		ret
 endp
 

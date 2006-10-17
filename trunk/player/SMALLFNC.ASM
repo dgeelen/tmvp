@@ -24,7 +24,7 @@ proc UpdateDisplay
   ; Pre: Pointer to [palette] and [framedata] are present on the stack
   ; Post: The screen and palette have been updated
   arg  framePtr:dword, palPtr:dword
-  uses ax cx
+  uses ax, cx
   push bp ax cx
   mov  bp, sp
   call setPalette              ; palPtr already on the stack
