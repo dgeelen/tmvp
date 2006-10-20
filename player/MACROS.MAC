@@ -1,1 +1,2 @@
 CrLf EQU 0ah, 0dh
+newline EQU CrLf

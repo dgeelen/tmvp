@@ -6,12 +6,22 @@ include "globals.inc"
 
 codeseg
 
+proc InitVidBuf
+  ; Initialises the videobuffer with a pattern
+  uses  eax, ecx, edi
+  lea  edi, [VideoBuffer]
+  mov  ecx, 2000
+  mov  eax, 01234abcdh
+  repnz stosd
+  ret
+endp
 proc SetPalette
   ; Sets the palette from palPtr
   ; Pre: Pointer to [palette] is present on the stack
   ; Post: The palette has been set
   arg  palPtr:dword
   uses eax
+  ret
 endp SetPalette
 
 proc UpdateDisplay
@@ -106,10 +116,12 @@ endp DoBlink
 proc int_print nolanguage; Destroys none, but is t3h 3vil
 ;int_print: ; ax==number
 pusha
+push  eax
 lea   ebx, [int_print_warn]
 push  ebx
 call  _printf
 pop   ebx
+pop   eax
 xor   cx,cx
 push  cx
 mov   ecx, 10

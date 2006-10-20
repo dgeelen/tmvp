@@ -7,14 +7,15 @@ include "globals.inc"
 
 codeseg
 
-proc _printf nolanguage near
+proc _printf nolanguage near ; Destroys eax, ebx
   ; Pre: stack contains FormatStringPtr and arguments
   ; Post: The string has been printed to stdout
   ;        eax == ebx == num chars written
   ;       
-  ; Note:
+  ; Notes:
   ; We need nolanguage because we are going to do some nasty stack manipulation
-  
+  ; Since we can't save registers on the stack this function destroys
+  ; eax and ebx
   ; First we fixup the stack to make it look _vsprintf was called directly
   pop  eax                     ; eax = ret addr
   mov  [retaddr], eax          ; save the retaddr
@@ -30,8 +31,7 @@ proc _printf nolanguage near
   pop  ebx                     ; FormatStringPtr
   add  esp, 4                  ; argList
   push ebx                     ; FormatStringPtr
-  mov  ebx, [retaddr]          ; optimize to a singe push [dword ptr retadrr]
-  push ebx
+  push [dword retaddr]
   ; stack is now back in order
   mov  ebx, eax                ; tmp store retval
   push edx
