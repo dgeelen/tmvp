@@ -24,7 +24,7 @@ const uint32 WIND_SIZE = (1 << 15);
 const uint32 HASH_MASK = HASH_SIZE - 1;
 const uint32 WIND_MASK = WIND_SIZE - 1;
 
-/* hash should generate value from 0 to 0xFFFF from 4 bytes */
+/* hash should generate value from 0 to HASH_SIZE-1 from 4 bytes */
 #define lookuphash(a, b, c, d) (((a)<<0)^((b)<<5)^((c)<<11)^((d)<<16))
 //#define lookuphash(a, b, c, d) (((a)<<0)^((b)<<8)^((c)<<8)^((d)<<8))
 //#define lookuphash(a, b, c, d) (((a)<<0)|((b)<<8))
@@ -33,14 +33,6 @@ int main(int argc, char* argv[])
 {
 	string ifname = "-";
 	string ofname = "-";
-
-	uint32 tst;
-
-	tst = HASH_SIZE;
-	tst = HASH_MASK;
-
-	tst = WIND_SIZE;
-	tst = WIND_MASK;
 
 	// TODO: maybe read other cmd line params???
 	if (argc > 1) ifname = argv[1];
@@ -57,9 +49,7 @@ int main(int argc, char* argv[])
 	int32* hashprev = new int32[WIND_SIZE];
 
 	for (int i = 0; i < HASH_SIZE; ++i)
-		hashhead[i] = -WIND_SIZE;
-
-	uint16 ocode;
+		hashhead[i] = -(int32)WIND_SIZE;
 
 	uint32 mind;
 	uint32 mlen;
@@ -75,10 +65,14 @@ int main(int argc, char* argv[])
 		if (instr.check(ifpos+3)) {
 			lookupind = lookuphash(instr[ifpos], instr[ifpos+1], instr[ifpos+2], instr[ifpos+3]);
 
+			instr.check(ifpos+255);
+			uint32 bound = instr.getmax() - ifpos;
+			if (bound > 255) bound = 255;
+
 			for (int32 lind = hashhead[lookupind]; ifpos < lind + WIND_SIZE; lind = hashprev[lind & WIND_MASK])
 			{
 				uint32 clen = 0;
-				while (instr.check(ifpos+clen) && (clen < 255) && (instr[ifpos+clen] == instr[lind+clen]))
+				while ((clen < bound) && (instr[ifpos+clen] == instr[lind+clen]))
 					clen++;
 				if (clen > 3 && clen > mlen) {
 					mlen = clen;
@@ -101,7 +95,7 @@ int main(int argc, char* argv[])
 		// if match or nomatch limit exceeded, output nomatch (literal) codes
 		if ((mlen!=0 && nmlen!=0) || nmlen == 127)
 		{
-			outstr.write(nmlen + (1<<7));
+			outstr.write(nmlen | (1<<7));
 			for (uint i = ifpos-nmlen; i < ifpos; ++i)
 				outstr.write(instr[i]);
 			nmlen = 0;
@@ -129,7 +123,7 @@ int main(int argc, char* argv[])
 		outstr.write(nmlen + (1<<7));
 		for (uint i = ifpos-nmlen; i < ifpos; ++i)
 			outstr.write(instr[i]);
-		nmlen = 0;
+//		nmlen = 0;
 	}
 
 	outstr.flush();
