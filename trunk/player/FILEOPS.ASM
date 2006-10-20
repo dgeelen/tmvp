@@ -11,6 +11,28 @@ locals ;@@                     ; Use '@@' as local symbol prefix
 jumps                          ; Auto-convert out-of-range                       
 
 codeseg
+proc _fclose
+  ; pre : Valid filehandle on the stack
+  ; post: CF is clear on succes, and file is closed.
+  ;                              eax is preserved
+  ;       CF is set on failure, and file is in undetermined state
+  ;                             eax = error code
+  uses ebx
+  arg @@filehandle:dword
+  push eax
+  xor  eax, eax
+  mov  ah, 03Eh
+  mov  ebx, [dword ptr @@filehandle]
+  int  021h
+  jc    @@exit
+  mov  eax, [dword ptr esp]
+@@exit:
+  inc esp                      ; inc does not affect CF
+  inc esp                      ; (or so I have been told)
+  inc esp
+  inc esp
+  ret
+endp
 proc _fopen
   ; Pre: Stack contains 2 ptr to an asciiz string, the first pointing to a filename 
   ;      the second a mode char
