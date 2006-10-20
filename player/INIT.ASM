@@ -3,6 +3,7 @@ TITLE Init
 .model flat, Cpp
 ideal
 include "globals.inc"
+include "macros.mac"
 ;global Initialise:proc  ; declare public proc
 
 codeseg
@@ -36,19 +37,29 @@ proc UnInitialise ; Destroys ax
   ; This does any uninitialisation that needs doing
   ; Pre: -
   ; Post: Screen has been reset and cleared, interrupts vectors reset etc
-  ; always returns ax==0
+  ; always returns eax==0
+  uses ebx
   call DoBlink
 ;  call Set80x25
-  xor  ax, ax
+  
+  ; we need to close the filehandle 
+  push [dword ptr FileHandle]  ; will be zero when fopen has failed
+  call  _fclose                ; but DOS doesn't seem to care?
+  pop  ebx
+  jnc   @@NofcloseError
+  push eax
+  lea  eax, [strFileCloseError]
+  push eax
+  call _printf
+  add  esp, 2*4
+;  xor  eax, eax               ; --- Promised to always return '0' 
+;  dec  eax                    ;  /
+;  jmp  short @@exit           ; /
+@@NofcloseError:  
+  xor  eax, eax
+@@exit:
   ret
 endp UnInitialise
-;proc malloc   ; NOTE: Use 'uninitialised data'
-;  arg size:dword=ParamSize
-;  push bp
-;  mov  bp,sp
-;  
-;  pop  bp
-;  ret ParamSize
-;endp malloc
 dataseg
+strFileCloseError db 'Error while closing videofile! (error #%i)',newline,36,0
 end

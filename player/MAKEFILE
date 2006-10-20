@@ -25,8 +25,8 @@ TASM_OPTIONS = $(TASMDEBUG) /m $(THEINCLUDE)
 wdosx : $(NAME).exe
   stubit $(NAME).exe
    
-$(NAME).exe : $(NAME).obj init.obj smallfnc.obj vsprintf.obj printf.obj prscmdln.obj fopen.obj
-  tlink32 /Tpe /c $(LINKDEBUG) $(NAME)+init+smallfnc+vsprintf+printf+prscmdln+fopen,$(NAME),,, $(DEF)
+$(NAME).exe : $(NAME).obj init.obj smallfnc.obj vsprintf.obj printf.obj prscmdln.obj fileops.obj
+  tlink32 /Tpe /c $(LINKDEBUG) $(NAME)+init+smallfnc+vsprintf+printf+prscmdln+fileops,$(NAME),,, $(DEF)
 
 .ASM.OBJ :
   tasm32 /p /t /w+ /z $(TASM_OPTIONS) $*
@@ -37,4 +37,4 @@ smallfnc.obj : smallfnc.asm globals.inc
 printf.obj   : printf.asm globals.inc
 vsprintf.obj : vsprintf.asm globals.inc
 prscmdln.obj : prscmdln.asm globals.inc
-fopen.obj    : fopen.asm globals.inc
+fileops.obj    : fileops.asm globals.inc

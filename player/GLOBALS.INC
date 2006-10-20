@@ -15,6 +15,7 @@ global int_print:proc
 global InitVidBuf:proc
 global ParseCmdLineArgs:proc
 global _fopen:proc
+global _fclose:proc
 ;---Variables
 global VideoBuffer:byte:8000
 global Filehandle:dword
