@@ -9,7 +9,7 @@
 #include "UImage.h"
 #include "ULZ77.h"
 #include "UHuffman.h"
-#include <stdio>
+#include <stdio.h>
 #include <string>
 #include <dos>
 #include "assert.h"
@@ -138,10 +138,18 @@ void DoOutPut(TextImage &textimage, int32 frame)
 			loadnum = frame;
 		}
 		fname = CalcFName(fname, frame);
-		FILE *fp=fopen(fname.c_str(), "a+");
+		FILE *fp=fopen(fname.c_str(), "r+b");
 		if (fseek(fp, loadnum*(8000+48), SEEK_SET) == 0) {
-			fwrite(textimage.data, 8000, 1, fp);
-			fwrite(textimage.pal, 48, 1, fp);
+			fwrite(textimage.data, 1, 8000, fp);
+			uint8 oval;
+			for (int i=0; i<16; ++i) {
+				oval = textimage.pal->GetColor(i).c.r >> 2;
+				fwrite(&oval, 1, 1, fp);
+				oval = textimage.pal->GetColor(i).c.g >> 2;
+				fwrite(&oval, 1, 1, fp);
+				oval = textimage.pal->GetColor(i).c.b >> 2;
+				fwrite(&oval, 1, 1, fp);
+			}
 		}
 		fclose(fp);
 	}
@@ -387,7 +395,7 @@ void __fastcall TForm1::ComboBoxPalleteMethodChange(TObject *Sender)
 		case 0: r_palcalc = new TPalStandard; break;
 		case 1: r_palcalc = new TPalMedianCut; break;
 		case 2: r_palcalc = new TPalMedianCutSort(0); break;
-		case 3: r_palcalc = new TPalMedianCutSort(500); break;
+		case 3: r_palcalc = new TPalMedianCutSort(250); break;
 		case 4: r_palcalc = new TPalMedianCutSort(1000); break;
 		case 5: r_palcalc = new TPalMedianCutSort(1250); break;
 		case 6: r_palcalc = new TPalMedianCutSort(1500); break;
