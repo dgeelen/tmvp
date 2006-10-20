@@ -4,10 +4,6 @@
 
 #include "mystream.h"
 
-const uint32 BUFSIZE = 0x20000;  // = 128k
-const uint32 BUFMASK = 0x1FFFF;
-const uint32 BUFREAD = 0x08000;  // = 32k
-
 MyInStream::MyInStream(FILE* file)
 {
 	fhandle = file;
@@ -33,10 +29,12 @@ void MyInStream::DoRead()
 	numread += bread;
 }
 
+/* inlined in mystream.h
 uint8 MyInStream::operator[](uint32 index)
 {
 	return buffer[index & BUFMASK];
 }
+
 
 bool MyInStream::check(uint32 index)
 {
@@ -44,7 +42,7 @@ bool MyInStream::check(uint32 index)
 	DoRead();
 	return (index < numread);
 }
-
+*/
 
 MyOutStream::MyOutStream(FILE* file)
 {
@@ -64,10 +62,12 @@ void MyOutStream::DoWrite()
 	numwrite = 0;
 }
 
+/* inlined in mystream.h
 uint8 MyOutStream::operator[](uint32 index)
 {
 	return buffer[index & BUFMASK];
 }
+*/
 
 void MyOutStream::write(uint8 val)
 {

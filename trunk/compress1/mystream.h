@@ -37,6 +37,7 @@ class MyInStream {
 
 	uint8 operator[](uint32 index);
 	bool check(uint32 index);
+	uint32 getmax();
 };
 
 /**
@@ -75,5 +76,35 @@ class MyOutStream {
 	void write(uint8 val);
 	void flush();
 };
+
+
+
+/* const stuff */
+const uint32 BUFSIZE = 0x20000;  // = 128k
+const uint32 BUFMASK = 0x1FFFF;
+const uint32 BUFREAD = 0x08000;  // = 32k
+
+/* inlined stuff */
+inline uint8 MyInStream::operator[](uint32 index)
+{
+	return buffer[index & BUFMASK];
+}
+
+inline bool MyInStream::check(uint32 index)
+{
+	if (index < numread) return true;
+	DoRead();
+	return (index < numread);
+}
+
+inline uint32 MyInStream::getmax()
+{
+	return numread;
+}
+
+uint8 MyOutStream::operator[](uint32 index)
+{
+	return buffer[index & BUFMASK];
+}
 //---------------------------------------------------------------------------
 #endif
