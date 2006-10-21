@@ -25,9 +25,11 @@ const uint32 HASH_MASK = HASH_SIZE - 1;
 const uint32 WIND_MASK = WIND_SIZE - 1;
 
 /* hash should generate value from 0 to HASH_SIZE-1 from 4 bytes */
-#define lookuphash(a, b, c, d) (((a)<<0)^((b)<<5)^((c)<<11)^((d)<<16))
+//#define lookuphash(a, b, c, d) (((a)<<0)^((b)<<5)^((c)<<11)^((d)<<16))
 //#define lookuphash(a, b, c, d) (((a)<<0)^((b)<<8)^((c)<<8)^((d)<<8))
 //#define lookuphash(a, b, c, d) (((a)<<0)|((b)<<8))
+
+#define nexthash(new) lookupind = (((lookupind<<6)^(new))&HASH_MASK)
 
 int main(int argc, char* argv[])
 {
@@ -57,14 +59,19 @@ int main(int argc, char* argv[])
 	uint32 nmlen = 0;
 
 	uint32 ifpos = 0;
+
+	uint32 lookupind = 0;
+
+	nexthash(instr[0]);
+	nexthash(instr[1]);
+	nexthash(instr[2]);
+	nexthash(instr[3]);
+
 	while (instr.check(ifpos))
 	{
 		mlen = 0;
-		uint32 lookupind;
 		// check for a match (of at least length 4)
 		if (instr.check(ifpos+3)) {
-			lookupind = lookuphash(instr[ifpos], instr[ifpos+1], instr[ifpos+2], instr[ifpos+3]);
-
 			instr.check(ifpos+255);
 			uint32 bound = instr.getmax() - ifpos;
 			if (bound > 255) bound = 255;
@@ -91,6 +98,7 @@ int main(int argc, char* argv[])
 			}
 			++nmlen;
 			++ifpos;
+			nexthash(instr[ifpos+3]);
 		};
 		// if match or nomatch limit exceeded, output nomatch (literal) codes
 		if ((mlen!=0 && nmlen!=0) || nmlen == 127)
@@ -108,12 +116,12 @@ int main(int argc, char* argv[])
 			outstr.write(mlen);
 			while (instr.check(ifpos) && (mlen > 0)) {
 				if (instr.check(ifpos+3)) {
-					lookupind = lookuphash(instr[ifpos], instr[ifpos+1], instr[ifpos+2], instr[ifpos+3]);
 					hashprev[ifpos & WIND_MASK] = hashhead[lookupind];
 					hashhead[lookupind] = ifpos;
 				}
 				++ifpos;
 				--mlen;
+				nexthash(instr[ifpos+3]);
 			}
 		}
 	}
