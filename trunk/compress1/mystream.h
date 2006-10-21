@@ -102,7 +102,7 @@ inline uint32 MyInStream::getmax()
 	return numread;
 }
 
-uint8 MyOutStream::operator[](uint32 index)
+inline uint8 MyOutStream::operator[](uint32 index)
 {
 	return buffer[index & BUFMASK];
 }

@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
 
 	if (nmlen!=0)
 	{
-		outstr.write(nmlen + (1<<7));
+		outstr.write(nmlen | (1<<7));
 		for (uint i = ifpos-nmlen; i < ifpos; ++i)
 			outstr.write(instr[i]);
 //		nmlen = 0;
