@@ -8,10 +8,12 @@ codeseg
 
 proc InitVidBuf
   ; Initialises the videobuffer with a pattern
-  uses  eax, ecx, edi
+  uses  eax, ecx, edi, es
+  mov  eax, ds
+  mov  es, eax                 ; stosd uses es:edi
   lea  edi, [VideoBuffer]
-  mov  ecx, 2000
-  mov  eax, 01234abcdh
+  mov  ecx, large 2000         ; 4*2000 == 8000 == _sizeof(VideoBuffer)
+  xor  eax, eax
   repnz stosd
   ret
 endp

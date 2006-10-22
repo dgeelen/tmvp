@@ -11,6 +11,38 @@ locals ;@@                     ; Use '@@' as local symbol prefix
 jumps                          ; Auto-convert out-of-range                       
 
 codeseg
+proc _fread
+  ; Pre : Stack contains a ptr to a buffer of size at least size * nmemb
+  ;       bytes, the required size, the number of items to read and
+  ;       a file handle
+  ; Post: The buffer has been filled with no more than size * nmemb bytes
+  ;       CF clear indicates eax contains actual nr bytes read
+  ;                          eax == 0 => EOF
+  ;       CF set indicates an error occured
+  ;              eax == FFFFFFFFh indicates invalid input 
+  ;              other wise ax == DOS error nr.
+uses ebx, ecx, edx
+arg @@pbuf:dword, @@size:dword, @@nmemb:dword, @@filehandle:dword
+  mov  ecx, [dword ptr @@size]
+  cmp  ecx, 0ffffh             ; test if > 65535
+  ja   @@invalidinput
+  mov  edx, [dword ptr @@nmemb]
+  cmp  edx, 0ffffh             ; test if > 65535
+  ja   @@invalidinput
+  imul ecx, edx                ; ecx = Low(Result) = nr bytes to read <= 65535
+  mov  edx, [dword ptr @@pbuf]
+  mov  ebx, [dword ptr @@filehandle]
+  xor  eax, eax                ; clear eax in order to accurately show the 
+  mov  ah, 03Fh                ; number of bytes read
+  int  021h
+  ret
+@@invalidinput:
+  xor  eax, eax
+  dec  eax
+  stc                          ; indicate error condition
+  ret
+endp
+
 proc _fclose
   ; pre : Valid filehandle on the stack
   ; post: CF is clear on succes, and file is closed.

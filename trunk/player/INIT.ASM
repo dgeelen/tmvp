@@ -18,10 +18,11 @@ proc Initialise
   ; Everything else is set up, turn down the lights and switch on the screen ;)
 
   call ParseCmdLineArgs 
+  call InitVidBuf              ; Fill the videobuffer with '0' (or a test pat.)
   jmp  short @@exit_succes     ; *DEBUG*
   call Set80x50                ; Set highres Textmode
   call NoBlink                 ; Disable the blink bit
-  call InitVidBuf              ; Fill the videobuffer with '0' (or a test pat.)
+
 ;  call Flip
   jmp  short @@exit_succes
 @@exit_fail:
@@ -41,7 +42,6 @@ proc UnInitialise ; Destroys ax
   uses ebx
   call DoBlink
 ;  call Set80x25
-  
   ; we need to close the filehandle 
   push [dword ptr FileHandle]  ; will be zero when fopen has failed
   call  _fclose                ; but DOS doesn't seem to care?

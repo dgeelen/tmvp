@@ -14,17 +14,33 @@ codeseg
 proc tmvp
   EntryPoint:
 ;  int  3 no PM debugging ? 
-  call ParseCmdLineArgs
-  jmp @@Terminate
-  call Initialise
+;  call ParseCmdLineArgs
+;  jmp @@Terminate
   lea  eax, [strIntroMsg]
   push eax                     ; can't use extended call- >) NoLanguage proc.
   call _printf                 ; destroys eax, ebx 
-  
+  add  esp, 4*1
+  call Initialise  
   lea  eax, [strPressKey]
   push eax
   call _printf
- 
+  add  esp, 4*1
+; arg @@pbuf:dword, @@size:dword, @@nmemb:dword, @@filehandle:dword
+  push [dword ptr Filehandle]
+  push large 3
+  push large 7
+  lea  eax,[VideoBuffer]
+  push eax
+  call _fread                  ; eax == actual bytes read, carry on error
+  add  esp, 4*4
+  lea  eax, [VideoBuffer]
+  mov  [byte ptr eax + 252], 0ah
+  mov  [byte ptr eax + 253], 0dh
+  mov  [byte ptr eax + 254], '$'
+  mov  [byte ptr eax + 255], 0
+  push eax
+  call _printf
+  add  esp, 4*1
   ; Wait for a keypress
 @l1:
   call keypressed
@@ -36,6 +52,7 @@ proc tmvp
   lea  eax, [strExitMsg]
   push eax
   call _printf
+  add  esp, 4*1
   mov  eax, 4C00h
   int  21h
 endp tmvp
@@ -51,10 +68,10 @@ dataseg
   strTestsprintf db 'this is a number %i and this too %i,',CrLf,'and a ''%s''',CrLf,'$',0
 ;  strTestsprintf db 'this is a number %i and this too %i',0ah,0dh,'$',0  
   someChars db 'asdasdasdadasd',0
-  
+  strdbg db 'val=%u',newline,36,0
 ;---GLOBAL VARIABLES---
 udataseg
-VideoBuffer db 8000 dup (?)
-Filehandle dd ?
+VideoBuffer db 80*50*2 dup (?)
+Filehandle  dd ?
 end tmvp ; needs entry point
 
