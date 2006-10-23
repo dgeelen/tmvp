@@ -102,6 +102,12 @@ inline uint32 MyInStream::getmax()
 	return numread;
 }
 
+inline void MyOutStream::write(uint8 val)
+{
+	buffer[numwrite++] = val;
+	if (numwrite == BUFSIZE) DoWrite();
+}
+
 inline uint8 MyOutStream::operator[](uint32 index)
 {
 	return buffer[index & BUFMASK];

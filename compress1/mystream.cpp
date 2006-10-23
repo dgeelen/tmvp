@@ -56,6 +56,7 @@ MyOutStream::~MyOutStream()
 	delete [] buffer;
 }
 
+
 void MyOutStream::DoWrite()
 {
 	fwrite(buffer, 1, numwrite, fhandle);
@@ -67,13 +68,13 @@ uint8 MyOutStream::operator[](uint32 index)
 {
 	return buffer[index & BUFMASK];
 }
-*/
 
 void MyOutStream::write(uint8 val)
 {
 	buffer[numwrite++] = val;
 	if (numwrite == BUFSIZE) DoWrite();
 }
+*/
 
 void MyOutStream::flush()
 {
