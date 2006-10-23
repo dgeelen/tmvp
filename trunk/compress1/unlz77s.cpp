@@ -36,14 +36,14 @@ int main(int argc, char* argv[])
 
 	uint32 ifpos = 0;
 	uint32 ofpos = 0;
-	uint8 icode;
+	uint32 icode;
 	while (instr.check(ifpos))
 	{
 		icode = instr[ifpos++];
 
 		if (icode & (1<<7)) {
 			// 1xxx xxxx											-> copy x literals from encoded stream
-			uint8 nmlen = icode & ~(1<<7);
+			uint32 nmlen = icode & ~(1<<7);
 			if (!instr.check(ifpos+nmlen-1)) // has side-effects
 				assert(false);
 			ofpos += nmlen;
@@ -54,8 +54,9 @@ int main(int argc, char* argv[])
 			if (!instr.check(ifpos+2-1)) // has side-effects
 				assert(false);
 			uint32 offset = (icode << 8) | instr[ifpos++];
-			uint8 mlen = instr[ifpos++];
-			for (uint i = ofpos-offset; i < ofpos-offset+mlen; ++i)
+			uint32 mlen = instr[ifpos++];
+			uint32 bound = ofpos-offset+mlen;
+			for (uint i = ofpos-offset; i < bound; ++i)
 				outstr.write(outstr[i]);
 			ofpos += mlen;
 		}
