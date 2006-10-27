@@ -14,9 +14,9 @@ global _printf:proc
 global int_print:proc
 global InitVidBuf:proc
 global ParseCmdLineArgs:proc
-global _fopen:proc
 global _fclose:proc
 global _fread:proc
+global _fwrite:proc
 global RestoreOldVideoMode:proc
 global ClearScreen:proc
 global install_audio_interrupt:proc

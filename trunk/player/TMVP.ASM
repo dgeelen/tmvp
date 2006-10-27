@@ -35,9 +35,28 @@ proc tmvp
   call keypressed
   jnz  @l1
 
+
+  lea  eax, [strWriteTestFilename]
+  push  ecx
+  push  eax
+  ;call _fopen        ; eax==filehandle
+  _fopen eax, WRITEONLY
+  jc   @@WriteTestError
+  add esp,4*2
+  mov  ecx, eax
+  lea  ebx, [strWriteTest]
+  call _fwrite, ebx, 1, 100, ecx
+  jc   @@WriteTestError
+  add esp,4*2
+  jmp  short @@writetestsucces
+@@WriteTestError:
+  add esp,4*2
+  call int_print
 ;  Everything else is set up, turn down the lights and switch on the screen ;)
 ;  call Set80x50                ; Set highres Textmode
 ;  call NoBlink                 ; Disable the blink bit
+@@writetestsucces:
+  call _fclose, ecx
 
 ;while(!eof(FileHandle)) {
 ;mov  eax, size InputBuffer
@@ -96,6 +115,12 @@ dataseg
   strPressKey db 'Press any key to continue.',newline,36,0
   strFailedToOpenInput db 'Sorry, unable to open any input file.',newline,'Try something like `tmvp sample.aa''',newline,'$',0
   strUnknownError db 'Sorry, some error we did not anticipate occured.',newline,'$',0
+
+  strWriteTestFilename db 'hello.txt',0
+  strWriteTestMC db ' w', 0
+  strWriteTest db 'The time is now: ', ??date, ' .. ', ??time,newline, 36, 0
+
+
 ;---GLOBAL VARIABLES---
 udataseg
 VideoBuffer db 80*50*2 dup (?)

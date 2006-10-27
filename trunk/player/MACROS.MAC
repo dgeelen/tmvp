@@ -1,2 +1,56 @@
 CrLf EQU 0ah, 0dh
 newline EQU CrLf
+True EQU 1
+False EQU 0
+;DEBUG EQU True
+DEBUG EQU False
+
+;---File manipulation macros---
+
+;---_fopen()---
+READONLY  EQU 00000000b
+WRITEONLY EQU 00000001b
+READWRITE EQU 00000010b
+macro _fopen filenameptr, modechar
+  local exit, strfopen
+  ; Modifies eax, ebx, edx
+  ifb <filenameptr>
+    display "<MACROS.MAC> _fopen: Need a filenameptr"
+    err
+  endif
+  ifb <modechar>
+    display "<MACROS.MAC> _fopen: Warning, no modechar specified, assuming READONLY"
+    modechar EQU READONLY
+  endif
+
+if debug eq true
+  push ecx
+  mov  ecx, filenameptr
+
+  push modechar
+  push filenameptr
+  lea  eax, [strfopen]
+  push eax
+  call _printf                 ; destroys eax, ebx
+  add  esp, 3*4
+
+  mov  filenameptr, ecx
+  pop  ecx
+endif
+  ; delete above lines to disable dbg
+
+  mov  edx, filenameptr        ; ptr to filename
+  xor  eax, eax                ; clear eax
+  mov  ah, 03Dh                ; open existing file
+  mov  al, modechar            ; one of RO/WO/RW      ///FAIL??
+  int  021h                    ; try to open it
+  ; if succes eax=filehandle, else eax=error#
+if debug eq true
+  jmp short exit
+  strfopen db '_fopen(): Opening `%s'' with mode `%i''',newline,36,0
+endif
+exit:
+
+endm
+
+;------------------------------
