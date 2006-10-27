@@ -8,9 +8,16 @@ include "macros.mac"
 locals ;@@                     ; Use '@@' as local symbol prefix
                                ; '@@' is default
                                ; Must be 2 chars
-jumps                          ; Auto-convert out-of-range                       
+jumps                          ; Auto-convert out-of-range
 
 codeseg
+
+proc _fwrite
+
+
+
+endp
+
 proc _fread
   ; Pre : Stack contains a ptr to a buffer of size at least size * nmemb
   ;       bytes, the required size, the number of items to read and
@@ -19,7 +26,7 @@ proc _fread
   ;       CF clear indicates eax contains actual nr bytes read
   ;                          eax == 0 => EOF
   ;       CF set indicates an error occured
-  ;              eax == FFFFFFFFh indicates invalid input 
+  ;              eax == FFFFFFFFh indicates invalid input
   ;              other wise ax == DOS error nr.
 uses ebx, ecx, edx
 arg @@pbuf:dword, @@size:dword, @@nmemb:dword, @@filehandle:dword
@@ -32,7 +39,7 @@ arg @@pbuf:dword, @@size:dword, @@nmemb:dword, @@filehandle:dword
   imul ecx, edx                ; ecx = Low(Result) = nr bytes to read <= 65535
   mov  edx, [dword ptr @@pbuf]
   mov  ebx, [dword ptr @@filehandle]
-  xor  eax, eax                ; clear eax in order to accurately show the 
+  xor  eax, eax                ; clear eax in order to accurately show the
   mov  ah, 03Fh                ; number of bytes read
   int  021h
   ret
@@ -66,7 +73,7 @@ proc _fclose
   ret
 endp
 proc _fopen
-  ; Pre: Stack contains 2 ptr to an asciiz string, the first pointing to a filename 
+  ; Pre: Stack contains 2 ptr to an asciiz string, the first pointing to a filename
   ;      the second a mode char
   ; Post: CF is clear on succes, and a filehandle is returned in eax
   ;       CF is set on failure, and an error code is returned in eax (al?)
