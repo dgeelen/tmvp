@@ -21,6 +21,7 @@ global RestoreOldVideoMode:proc
 global ClearScreen:proc
 global install_audio_interrupt:proc
 global uninstall_audio_interrupt:proc
+global Decoder:proc
 
 ;---Variables
 global VideoBuffer:byte:8000
