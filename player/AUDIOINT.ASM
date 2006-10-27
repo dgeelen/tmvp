@@ -69,6 +69,8 @@ proc install_audio_interrupt
   ; CX:EDX == selector:offset
   mov  [dword ptr cs:old_protmode_int08    ], edx
   mov  [ word ptr cs:old_protmode_int08 + 4], cx
+  ; store DS for use in interrupt
+  mov  [word ptr cs:protmode_ds], ds
   ; set new interrupt vector
   mov   ax, 0205h
   mov   bl, 08h
@@ -76,15 +78,8 @@ proc install_audio_interrupt
   mov  edx, large offset audio_int_protmode_simpletest
   int  031h
   jc   @@pError
-  ; store DS for use in interrupt
-  mov  [word ptr cs:protmode_ds], ds
-  lea  eax, [strIntset]
-  push eax
-  call _printf
-  add  esp, 4
-  jmp  short @@exit
 
-;@@ProgramTimers:
+;ProgramTimers:
 ;{Timer 2, 1 byte values, generate 1 pulse}
 ;mov al, 10010000B {= $90}
 ;out $43, al
@@ -103,7 +98,11 @@ proc install_audio_interrupt
 ;out $40, al {need a high byte as well }
 
 
-
+  lea  eax, [strIntset]
+  push eax
+  call _printf
+  add  esp, 4
+  jmp  short @@exit
 @@pError:
   lea  eax, [strProtmodeInstallError]
   push eax
