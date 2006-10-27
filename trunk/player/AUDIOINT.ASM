@@ -61,7 +61,6 @@ proc install_audio_interrupt
   uses eax, ebx, ecx, edx, edi, es
   xor  eax, eax
   mov  [dword ptr NrServicedInts], eax
-  jmp  short @@protmode         ; this seems to Verk (TM)
   ; SET PROTECTED MODE INTERRUPT
   mov   ax, 0204h              ; get protected mode interrupt vector
   mov   bl, 08h                ; of int08
