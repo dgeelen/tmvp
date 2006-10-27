@@ -15,6 +15,11 @@ proc ParseCmdLineArgs
   ; Pre:  ESI == The number of command line arguments
   ;       EDI == Near pointer to an array of near pointers (argv)
   ;              Terminated by NULL pointer
+  ; Post: All commandline arguments have been parsed, appropriate actions
+  ;       haven been taken, and internal variables have been set to specified
+  ;       parameters
+  ;       If a filename was given and it was possible to open that file
+  ;       a filehandle has been placed in [FileHandle]
   uses eax, ebx, ecx, edx
   mov  ecx, esi                ; ecx = #arguments
   dec  ecx                     ; -> Not interested in own name

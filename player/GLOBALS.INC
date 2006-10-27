@@ -1,5 +1,5 @@
 ;---Procedures
-global Initialise:proc 
+global Initialise:proc
 global SetPalette:proc
 global UpdateDisplay:proc
 global KeyPressed:proc
@@ -17,6 +17,11 @@ global ParseCmdLineArgs:proc
 global _fopen:proc
 global _fclose:proc
 global _fread:proc
+global RestoreOldVideoMode:proc
+global ClearScreen:proc
+global install_audio_interrupt:proc
+global uninstall_audio_interrupt:proc
+
 ;---Variables
 global VideoBuffer:byte:8000
 global Filehandle:dword

@@ -8,70 +8,98 @@ include "macros.mac"
 locals ;@@                     ; Use '@@' as local symbol prefix
                                ; '@@' is default
                                ; Must be 2 chars
-;jumps                         ; Auto-convert out-of-range                       
+;jumps                         ; Auto-convert out-of-range
 
 codeseg
 proc tmvp
   EntryPoint:
-;  int  3 no PM debugging ? 
+;  int  3 no PM debugging ?
 ;  call ParseCmdLineArgs
 ;  jmp @@Terminate
   lea  eax, [strIntroMsg]
   push eax                     ; can't use extended call- >) NoLanguage proc.
-  call _printf                 ; destroys eax, ebx 
+  call _printf                 ; destroys eax, ebx
   add  esp, 4*1
-  call Initialise  
-  lea  eax, [strPressKey]
-  push eax
-  call _printf
-  add  esp, 4*1
-; arg @@pbuf:dword, @@size:dword, @@nmemb:dword, @@filehandle:dword
-  push [dword ptr Filehandle]
-  push large 3
-  push large 7
-  lea  eax,[VideoBuffer]
-  push eax
-  call _fread                  ; eax == actual bytes read, carry on error
-  add  esp, 4*4
-  lea  eax, [VideoBuffer]
-  mov  [byte ptr eax + 252], 0ah
-  mov  [byte ptr eax + 253], 0dh
-  mov  [byte ptr eax + 254], '$'
-  mov  [byte ptr eax + 255], 0
+  call Initialise
+  test  eax, eax
+  jnz   @@InitialisationError
+  lea  eax, [strInitOk]
   push eax
   call _printf
   add  esp, 4*1
   ; Wait for a keypress
 @l1:
+  mov  cx, 0ffffh
+  @l2:
+  loopnz @l2
   call keypressed
-;  jnz  @l1  
-  
-  ; Terminate
-@@Terminate:  
+  jnz  @l1
+
+;  Everything else is set up, turn down the lights and switch on the screen ;)
+;  call Set80x50                ; Set highres Textmode
+;  call NoBlink                 ; Disable the blink bit
+
+;while(!eof(FileHandle)) {
+;mov  eax, size InputBuffer
+;call int_print
+@@NotEof:
+;  call _fread, large offset InputBuffer, large 254,large 254, [dword ptr FileHandle] ; assume no errors
+;  test eax, eax
+;  jz @@Eof
+;  lea  ebx, [InputBuffer]
+;  mov  [byte ptr eax + ebx + 3], 36
+;  mov  [byte ptr eax + ebx + 4], 0
+;  push ebx
+;  call _printf
+;  add  esp, 4
+;  jmp  short @@NotEof
+@@Eof:
+  ;dbg
+;  xor  eax, eax
+;  dec  eax
+
+; Terminate
+@@Terminate:
   call UnInitialise
   lea  eax, [strExitMsg]
   push eax
   call _printf
   add  esp, 4*1
   mov  eax, 4C00h
-  int  21h
+  int  21h                     ; Does not return
+
+@@InitialisationError:         ; eax == error nr, print msg and jmp @@exit
+@@FailedToOpenInput:
+  cmp  eax, -2
+  jne  @@UnknownError
+  lea  edx, [strFailedToOpenInput]
+  mov  ah, 09h
+  int  021h
+  xor  eax, eax
+  dec  eax
+  jmp  short @@Terminate
+@@UnknownError:
+  lea  edx, [strUnknownError]
+  mov  ah, 09h
+  int  021h
+  jmp  short @@Terminate
 endp tmvp
 
 ;---Data Section---------------------------------------------------------------
 
 dataseg
-  strIntroMsg db '-[ TMVP v0.1, coding by Hackykid & Da ',159,'ox.    Assembled on ',??date,' @',??time, ' ]-','$',0
+;strings are zero terminated for _vsprintf, dollar terminated for DOS
+  strIntroMsg db '-[ TMVP v0.1, coding by Hackykid & Da ',159,'ox.   Assembled on ',??date,' @ ',??time, ' ]-','$',0
 ;  strExitMsg db 'Thank you for using this program, we hope you were impressed (We sure were ;)',newline,36,0
   strExitMsg db 'This is a WIP-build, use at your own risk!',newline,36,0
-  strPressKey db 'Press any key to exit...',newline,'$',0
-  ; zero terminated for _vsprintf, dollar terminated for DOS
-  strTestsprintf db 'this is a number %i and this too %i,',CrLf,'and a ''%s''',CrLf,'$',0
-;  strTestsprintf db 'this is a number %i and this too %i',0ah,0dh,'$',0  
-  someChars db 'asdasdasdadasd',0
-  strdbg db 'val=%u',newline,36,0
+  strInitOk db 'Initialisation complete, press any key to begin playback.',newline,'$',0
+  strPressKey db 'Press any key to continue.',newline,36,0
+  strFailedToOpenInput db 'Sorry, unable to open any input file.',newline,'Try something like `tmvp sample.aa''',newline,'$',0
+  strUnknownError db 'Sorry, some error we did not anticipate occured.',newline,'$',0
 ;---GLOBAL VARIABLES---
 udataseg
 VideoBuffer db 80*50*2 dup (?)
+InputBuffer db 64*1024 dup (?) ; 64k input buffer
 Filehandle  dd ?
 end tmvp ; needs entry point
 

@@ -1,3 +1,8 @@
+; NOTE:
+; This code was taken mostly unchanged from an article in the
+; 'Assembly Programming Journal', Issue 2. The article was
+; 'THE.C.STANDARD.LIBRARY.IN.ASSEMBLY' and was written by Xbios2.
+; Many thanks for the code :)
 ; sprintf.asm ============================================================
 title vsprintf
 .386
