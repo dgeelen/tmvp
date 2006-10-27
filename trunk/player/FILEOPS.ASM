@@ -69,7 +69,7 @@ proc _fopen
   ; Pre: Stack contains 2 ptr to an asciiz string, the first pointing to a filename 
   ;      the second a mode char
   ; Post: CF is clear on succes, and a filehandle is returned in eax
-  ;       CF is set on failure, and an error code is returned in eax
+  ;       CF is set on failure, and an error code is returned in eax (al?)
   uses ebx, edx
   arg @@filenameptr:dword, @@modecharptr:dword
   push [dword ptr @@modecharptr]

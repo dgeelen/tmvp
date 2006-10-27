@@ -11,13 +11,13 @@ proc _printf nolanguage near ; Destroys eax, ebx
   ; Pre: stack contains FormatStringPtr and arguments
   ; Post: The string has been printed to stdout
   ;        eax == ebx == num chars written
-  ;       
+  ;
   ; Notes:
   ; We need nolanguage because we are going to do some nasty stack manipulation
   ; Since we can't save registers on the stack this function destroys
   ; eax and ebx
   ; First we fixup the stack to make it look _vsprintf was called directly
-  pop  eax                     ; eax = ret addr
+  pop  eax                     ; eax = ret addr (4 bytes Near?)
   mov  [retaddr], eax          ; save the retaddr
   pop  eax                     ; eax = FormatStringPtr
   push esp                     ; argList
