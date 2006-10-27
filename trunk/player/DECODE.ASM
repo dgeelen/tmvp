@@ -8,15 +8,15 @@ include "macros.mac"
 locals ;@@                     ; Use '@@' as local symbol prefix
                                ; '@@' is default
                                ; Must be 2 chars
-;jumps            
+;jumps
 
 codeseg
-proc Decoder
-
+proc decoder
+  ret
 endp
 
 dataseg
 strFileCloseError db 'Error while closing videofile! (error #%i)',newline,36,0
 udataseg
-buffer db 1024*128 dup (?) 
+buffer db 1024*128 dup (?)
 end
