@@ -51,7 +51,7 @@ proc ParseCmdLineArgs
 ;  push ebx edx
 ;  call _fopen                  ; Can't call with extended syntax
 ;  pop  edx ebx                 ; actually order unimportant
-  _fopen eax, READONLY          ; fopen( &filehandle, READONLY) // Modifies eax, ebx, edx
+  _fopen edx, READONLY          ; fopen( &filename, READONLY) // Modifies eax, ebx, edx
   jc   @@fopenerror
   mov  [dword ptr Filehandle], eax
   jmp  short @@FileOpen
@@ -84,7 +84,7 @@ proc ParseCmdLineArgs
 ;  call _fopen                  ; eax == error code or filehandle
 ;  pop  ebx                     ; ebx=filename
 ;  pop  ecx                     ; mode char
-  _fopen eax, READONLY          ; fopen( &filehandle, READONLY ) // Modifies eax, ebx, edx
+  _fopen eax, READONLY          ; fopen( &filename, READONLY ) // Modifies eax, ebx, edx
   jc   @@DefaultFilenamefopenerror
   mov  [dword ptr Filehandle], eax
   jmp  short @@FileNameGiven

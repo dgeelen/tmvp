@@ -44,13 +44,21 @@ endif
   mov  ah, 03Dh                ; open existing file
   mov  al, modechar            ; one of RO/WO/RW      ///FAIL??
   int  021h                    ; try to open it
-  ; if succes eax=filehandle, else eax=error#
-if debug eq true
+  jnc  exit                    ; if succes eax=filehandle, else eax=error#
+  cmp  al, 2                   ; File not found
+  mov  ah, 03Ch                ; Create file
+  int  021h                    ;
+  jc   exit                    ; if failed to create exit
+  xor  eax, eax                ; clear eax
+  mov  ah, 03Dh                ; open existing file
+  mov  al, modechar            ; one of RO/WO/RW      ///FAIL??
+  int  021h                    ; try to open it
   jmp short exit
+
+if debug eq true
   strfopen db '_fopen(): Opening `%s'' with mode `%i''',newline,36,0
 endif
 exit:
-
 endm
 
 ;------------------------------
