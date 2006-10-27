@@ -83,6 +83,27 @@ proc install_audio_interrupt
   call _printf
   add  esp, 4
   jmp  short @@exit
+
+;@@ProgramTimers:
+;{Timer 2, 1 byte values, generate 1 pulse}
+;mov al, 10010000B {= $90}
+;out $43, al
+;{connect to speaker}
+;in  al, $61 { $61=speakerport}
+;or  al, $3
+;out $61,al
+;
+;{Timer 0}
+;mov al, 00110110B {= $36}
+;out $43, al
+;{1193180/X=hz} {hz=16000 => X=74.57 ~= 74 (slightly too slow) }
+;mov al, sndhzl
+;out $40,al
+;mov al, sndhzh
+;out $40, al {need a high byte as well }
+
+
+
 @@pError:
   lea  eax, [strProtmodeInstallError]
   push eax
