@@ -35,6 +35,8 @@ proc tmvp
   call keypressed
   jnz  @l1
 
+  ;// test decoder  
+  call decoder
 
   lea  eax, [strWriteTestFilename]
   push  ecx
