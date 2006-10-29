@@ -6,14 +6,108 @@ False EQU 0
 DEBUG EQU False
 
 ;---File manipulation macros---
+; Most of these look like they are really shorthands
+; for their DOS Function code ;)
+
+;---_fread()---
+macro _fread
+  local exit, strSkip, strfread
+  ; Pre : ebx == filehandle, ecx == nr bytes to read, edx == ptr to buffer
+  ;       size(buffer) >= ecx
+  ; Post: The buffer has been filled with no more than ecx bytes
+  ;       CF clear indicates eax contains actual nr bytes read
+  ;                          eax == 0 => EOF
+  ;       CF set indicates an error occured
+  ;                          eax == error code.
+  ; Modifies eax
+
+  if debug eq true
+  lea  eax, [strfread]
+  push ebx
+  push eax
+  call _printf                 ; destroys eax, ebx
+  pop  eax
+  pop  ebx
+  jmp  short strSkip
+  strfread db '_fread(): reading from filehandle %i',newline,36,0
+  strSkip:
+  endif                        ; delete above lines to disable dbg
+
+  xor  eax, eax                ; clear eax in order to accurately show the
+  mov  ah, 03Fh                ; number of bytes read
+  int  021h                    ; do it
+exit:
+endm
+
+
+;---_fwrite()---
+macro _fwrite
+  local exit, strSkip, strfwrite
+  ; Pre : ebx == filehandle, ecx == nr bytes to write, edx == ptr to buffer
+  ; Post: Carry is clear, and eax bytes have been written to file
+  ;       Carry set, and eax indicates an error code
+  ; Modifies eax
+
+  if debug eq true
+  lea  eax, [strfwrite]
+  push ebx
+  push eax
+  call _printf                 ; destroys eax, ebx
+  pop  eax
+  pop  ebx
+  jmp  short strSkip
+  strfwrite db '_fwrite(): writing to filehandle %i',newline,36,0
+  strSkip:
+  endif                        ; delete above lines to disable dbg
+
+  xor  eax, eax                ; clear eax in order to accurately show the
+  mov  ah, 040h                ; number of bytes written
+  int  021h
+exit:
+endm
+
+;---_fclose()---
+macro _fclose
+  local exit, strSkip, strfclose
+  ; pre : Valid filehandle is in ebx
+  ; post: CF is clear on succes, and file is closed.
+  ;       CF is set on failure, file is in undetermined state
+  ;                             eax = error code
+  ; Modifies eax on error
+
+  if debug eq true
+  lea  eax, [strfclose]
+  push ebx
+  push eax
+  call _printf                 ; destroys eax, ebx
+  pop  eax
+  pop  ebx
+  jmp  short strSkip
+  strfclose db '_fclose(): Closing filehandle %i',newline,36,0
+  strSkip:
+  endif                        ; delete above lines to disable dbg
+
+  push eax                     ; preserve eax
+  xor  eax, eax                ; clear in case of error
+  mov  ah, 03Eh                ; close file
+  int  021h                    ; on error set carry
+  jnc  exit
+  mov  [dword ptr esp], eax    ; replace old value of eax with error code
+exit:
+  pop  eax                     ; pop old value or error code
+endm
 
 ;---_fopen()---
 READONLY  EQU 00000000b
 WRITEONLY EQU 00000001b
 READWRITE EQU 00000010b
-macro _fopen filenameptr, modechar
-  local exit, strfopen
-  ; Modifies eax, ebx, edx
+macro _fopen modechar
+  local exit, strfopen, retry, strSkip ; this must be the first line in a macro ?
+  ; Pre: edx contains filenameptr
+  ; Post: If possible, file is opened and handle returned in EAX
+  ;       If file does not exist, it is created
+  ; Modifies: eax, ebx
+
   ifb <filenameptr>
     display "<MACROS.MAC> _fopen: Need a filenameptr"
     err
@@ -25,39 +119,33 @@ macro _fopen filenameptr, modechar
 
 if debug eq true
   push ecx
-  mov  ecx, filenameptr
+  mov  ecx, edx
 
   push modechar
-  push filenameptr
+  push edx
   lea  eax, [strfopen]
   push eax
   call _printf                 ; destroys eax, ebx
   add  esp, 3*4
 
-  mov  filenameptr, ecx
+  mov  edx, ecx
   pop  ecx
-endif
-  ; delete above lines to disable dbg
-
-  mov  edx, filenameptr        ; ptr to filename
-  xor  eax, eax                ; clear eax
-  mov  ah, 03Dh                ; open existing file
-  mov  al, modechar            ; one of RO/WO/RW      ///FAIL??
-  int  021h                    ; try to open it
-  jnc  exit                    ; if succes eax=filehandle, else eax=error#
-  cmp  al, 2                   ; File not found
-  mov  ah, 03Ch                ; Create file
-  int  021h                    ;
-  jc   exit                    ; if failed to create exit
-  xor  eax, eax                ; clear eax
-  mov  ah, 03Dh                ; open existing file
-  mov  al, modechar            ; one of RO/WO/RW      ///FAIL??
-  int  021h                    ; try to open it
-  jmp short exit
-
-if debug eq true
+  jmp  short strSkip
   strfopen db '_fopen(): Opening `%s'' with mode `%i''',newline,36,0
-endif
+  strSkip:
+  endif                        ; delete above lines to disable dbg
+
+                               ; edx already ptr to filename (Pre)
+  xor  eax, eax                ; clear eax
+  mov  ah, 03Dh                ; open existing file
+  mov  al, modechar            ; one of RO/WO/RW
+  int  021h                    ; try to open it
+  jnc  short exit              ; if succes eax=filehandle, else eax=error#
+  cmp  al, 2                   ; File not found, destroys carry
+  stc                          ; restore error condition
+  jne  short exit              ; exit with error
+  mov  ah, 03Ch                ; Create file
+  int  021h                    ; if file creation ok, ax==filehandle
 exit:
 endm
 

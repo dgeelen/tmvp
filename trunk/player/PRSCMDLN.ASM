@@ -47,11 +47,7 @@ proc ParseCmdLineArgs
   cmp  [dword ptr eax], 0
   jne  @@FileOpen
   ;Let's fopen() it             ; we try to fopen it as soon as here
-;  lea  ebx, [modechar_RO]      ; so that if one file fails an other may
-;  push ebx edx
-;  call _fopen                  ; Can't call with extended syntax
-;  pop  edx ebx                 ; actually order unimportant
-  _fopen edx, READONLY          ; fopen( &filename, READONLY) // Modifies eax, ebx, edx
+  _fopen READONLY               ; fopen() edx = filenameptr, modifies eax, ebx
   jc   @@fopenerror
   mov  [dword ptr Filehandle], eax
   jmp  short @@FileOpen
@@ -77,14 +73,8 @@ proc ParseCmdLineArgs
   push eax
   call _printf
   add  esp,4
-  lea eax, [ strDefaultFilename ]
-;  lea ebx, [ modechar_RO ]
-;  push ebx
-;  push eax
-;  call _fopen                  ; eax == error code or filehandle
-;  pop  ebx                     ; ebx=filename
-;  pop  ecx                     ; mode char
-  _fopen eax, READONLY          ; fopen( &filename, READONLY ) // Modifies eax, ebx, edx
+  lea edx, [ strDefaultFilename ]
+  _fopen READONLY          ; fopen( &filename, READONLY ) // Modifies eax, ebx, edx
   jc   @@DefaultFilenamefopenerror
   mov  [dword ptr Filehandle], eax
   jmp  short @@FileNameGiven

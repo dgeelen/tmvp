@@ -13,14 +13,53 @@ jumps                          ; Auto-convert out-of-range
 codeseg
 
 ; ****************************************************************************
-;                         B I G   F A T   W A R N I N G
-;  All these functions will (*soon*) be rewritten as macros and as such their
-;  implemtations and arguments may (will) be subject sudden, unexpected
-;  change so please don't use them (too much)...
-;                           C A V E A T   E M P T O R
+;                         I M P O R T A N T   N O T I C E :
+;  All the functions (currently) defined in this file (except the tests) are
+;  now deprecated and only listed for completeness, pending removal. Do not
+;  use these functions, use their macros instead. Do not attempt to use them
+;  as they _will_ be removed permanently very *soon*!
 ; ****************************************************************************
 
-proc _fwrite
+proc fileop_function_test
+  lea  edx, [strWriteTestFilename]
+  _fopen WRITEONLY             ; eax == filehandle
+  jc  @@write_fopen_error
+  mov  ebx, eax
+  mov  ecx, large 100
+  lea  edx, [strWriteTest]
+  _fwrite                      ; ebx == filehandle, ecx == nr bytes to write, edx == ptr to buffer
+  jc  @@fwrite_error
+  _fclose                      ; ebx == filehandle
+  jmp  short @@WriteTestOk
+@@fwrite_error:
+  call int_print
+@@write_fopen_error:
+  call int_print
+@@WriteTestOk:
+
+  lea edx, [strReadTestFilename]
+  _fopen READONLY
+  jc  @@read_fopen_error
+  mov  ebx, eax
+  mov  ecx, large 100
+  lea  edx, [strWriteTest]
+  _fread                       ; ebx == filehandle, ecx == nr bytes to write, edx == ptr to buffer
+  jc  @@fread_error
+  _fclose                      ; ebx == filehandle
+  jmp  short @@ReadTestOk
+@@fread_error:
+  call int_print
+@@read_fopen_error:
+  call int_print
+@@ReadTestOk:
+  lea  edx, [strWriteTest]
+  push edx
+  call _printf
+  add  esp, 4
+  ret
+endp
+
+proc _fwrite_DEPRECATED
   ; Pre : Stack contains a ptr to a buffer, the size of items, the number of
    ;      items to read and a file handle
   uses ebx, ecx, edx
@@ -44,7 +83,7 @@ proc _fwrite
   ret
 endp
 
-proc _fread
+proc _fread_DEPRECATED
   ; Pre : Stack contains a ptr to a buffer of size at least size * nmemb
   ;       bytes, the required size, the number of items to read and
   ;       a file handle
@@ -75,7 +114,7 @@ arg @@pbuf:dword, @@size:dword, @@nmemb:dword, @@filehandle:dword
   ret
 endp
 
-proc _fclose
+proc _fclose_DEPRECATED
   ; pre : Valid filehandle on the stack
   ; post: CF is clear on succes, and file is closed.
   ;                              eax is preserved
@@ -138,8 +177,11 @@ proc _fopen_DEPRECATED
   ret
 endp
 dataseg
-strOpeningFilename db '_fopen(): Opening `%s'' with mode `%s''',newline,36,0
-strfclose db '_fclose(): Closing filehandle %i',newline,36,0
-strfread db '_fread(): reading from filehandle %i',newline,36,0
-strfwrite db '_fwrite(): writing to filehandle %i',newline,36,0
+  strOpeningFilename db '_fopen(): Opening `%s'' with mode `%s''',newline,36,0
+  strfclose db '_fclose(): Closing filehandle %i',newline,36,0
+  strfread db '_fread(): reading from filehandle %i',newline,36,0
+  strfwrite db '_fwrite(): writing to filehandle %i',newline,36,0
+  strWriteTestFilename db 'hello.txt',0
+  strWriteTest db 'The time is now: ', ??date, ' .. ', ??time,newline, 36, 0
+  strReadTestFilename db 'output.aa',0
 end

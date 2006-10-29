@@ -14,14 +14,12 @@ global _printf:proc
 global int_print:proc
 global InitVidBuf:proc
 global ParseCmdLineArgs:proc
-global _fclose:proc
-global _fread:proc
-global _fwrite:proc
 global RestoreOldVideoMode:proc
 global ClearScreen:proc
 global install_audio_interrupt:proc
 global uninstall_audio_interrupt:proc
 global Decoder:proc
+global fileop_function_test: proc
 
 ;---Variables
 global VideoBuffer:byte:8000
