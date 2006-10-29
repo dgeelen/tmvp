@@ -43,9 +43,8 @@ proc UnInitialise ; Destroys ax
   call uninstall_audio_interrupt
 @@NoCLS:
   ; we need to close the filehandle
-  push [dword ptr FileHandle]  ; will be zero when fopen has failed
-  call  _fclose                ; but DOS doesn't seem to care?
-  pop  ebx
+  mov  ebx, [dword ptr FileHandle]  ; will be zero when fopen has failed
+  _fclose                           ; So we close stdin...
   jnc   @@NofcloseError
   push eax
   lea  eax, [strFileCloseError]
