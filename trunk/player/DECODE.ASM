@@ -28,11 +28,11 @@ proc decoder
   mov  ebx, [dword ptr Filehandle]
   mov  ecx, bufsize
   _fread                       ; ebx == filehandle, ecx == nr bytes to write, edx == ptr to buffer
-  test eax,eax
-  jz  @@done
   mov  ecx, eax
   mov  ebx, [dword ptr DebugFilehandle]
   _fwrite                      ; ebx == filehandle, ecx == nr bytes to write, edx == ptr to buffer
+  test eax,eax
+  jnz  @@loop1
 @@done:
   _fclose
   ret
