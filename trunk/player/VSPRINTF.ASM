@@ -9,6 +9,7 @@ title vsprintf
 .model flat, Cpp
 ideal
 include "globals.inc"
+include "macros.mac"
 
 macro getarg register
 	lea	eax, [a_argList]
@@ -28,10 +29,10 @@ proc _vsprintf
     mov eax, ds
     mov es, eax
     cld
-    
+
 mainLoop:	lodsb				; get character
 		cmp	al, '%'			; test if it is '%'
-		je	short controlChar	
+		je	short controlChar
 		stosb				; if not, just copy it
 		test	al, al
 		jnz	short mainLoop		; if char is not NULL, loop
@@ -69,7 +70,7 @@ fw_mainloop:	jmp	mainLoop
 Percent:	cmp	[byte ptr esi-2], al	; al='%'
 		jne	unknown_char
 		stosb
-		jmp	mainLoop		
+		jmp	mainLoop
 ; ---------------------------------------------------------------------------
 ; flag characters
 HashSign:	or	ebx, 1
@@ -162,7 +163,7 @@ x_Hexadecimal:	mov	ecx, 16			; radix
 		mov	[word ptr v_sign], ax
 		jmp	short integer
 
-d_decimal:	
+d_decimal:
     mov	ecx, 10			; radix
 		or	ebx, 32
 
@@ -202,7 +203,7 @@ ltoa:		push	edi
 		xor	esi, esi
 		mov	edi, edx
 		mov	[byte ptr edi], 0
- 		
+
 ltoaLoop:	xor	edx, edx
 		div	ecx			; ecx is the radix
 		xchg	eax, edx
@@ -232,7 +233,7 @@ ltoaLoop:	xor	edx, edx
 		sub	ecx, eax
 		jle	short skipzerolen
 		mov	[v_zeroLen], ecx	; if prec>digits then
-						; add (prec-digits) '0' 
+						; add (prec-digits) '0'
 		jmp	short skipzerolen
 
 noprec:		test	ebx, 8
@@ -321,7 +322,7 @@ setLen:		mov	[v_strLen], eax
 ; and it's length in [v_strLen]
 
 	; left pad with spaces IF necessary
-printit:	
+printit:
     test	ebx, 2			; Is it left justified?
 		mov	ebx, [v_width]
 		jnz	short printPrefix	; if yes, don't pad left
@@ -405,11 +406,11 @@ jumptable dd offset BlankOrPlus	; 0
           dd offset unknown_char	; 17 = Unknown char
           dd offset Percent	; 18
 
-	;       !   "   #   $   %   &   '   (   )   *   +   ,   -   .   /  
+	;       !   "   #   $   %   &   '   (   )   *   +   ,   -   .   /
 xxlat	db  0, 17, 17,  1, 17, 18, 17, 17, 17, 17,  2,  0, 17,  3,  4, 17
 	;   0   1   2   3   4   5   6   7   8   9   :   ;   <   =   >   ?
 	db  5,  5,  5,  5,  5,  5,  5,  5,  5, 17, 17, 17, 17, 17, 17, 17
-	;   @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O  
+	;   @   A   B   C   D   E   F   G   H   I   J   K   L   M   N   O
 	db 17, 17, 17, 17, 17, 12, 16, 12,  8, 17, 17, 17, 16, 17, 16, 17
 	;   P   Q   R   S   T   U   V   W   X   Y   Z   [   \   ]   ^   _
 	db 17, 17, 17, 17, 17, 17, 17, 17, 10, 17, 17, 17, 17, 17, 17, 17

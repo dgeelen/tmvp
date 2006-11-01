@@ -2,8 +2,36 @@ CrLf EQU 0ah, 0dh
 newline EQU CrLf
 True EQU 1
 False EQU 0
+
+FPS EQU 20
+
+AUDIO_INT_FREQ EQU 20000
+QUARTZ_TICKS EQU 1193180
+
+FRAME_SIZE EQU 80*50*2
+AUDSAMP_SIZE EQU (AUDIO_INT_FREQ/FPS)
+RENDER_AHEAD EQU 32
+DECBUF_SIZE EQU ((FRAME_SIZE + AUDSAMP_SIZE) * RENDER_AHEAD)
+
+
 ;DEBUG EQU True
 DEBUG EQU False
+
+macro vsync
+  local l1, l2
+  ; Pre: -
+  ; Post: Monitor is in VSync period
+  ; Modifies al, dx
+  mov  dx, 03dah
+l1:
+  in   al, dx
+  and  al, 8
+  jnz  l1
+l2:
+  in   al, dx
+  and  al, 8
+  jz   l2
+endm
 
 ;---File manipulation macros---
 ; Most of these look like they are really shorthands
