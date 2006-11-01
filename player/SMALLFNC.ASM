@@ -12,7 +12,7 @@ proc InitVidBuf
   uses  eax, ecx, edi, es
   mov  eax, ds
   mov  es, eax                 ; stosd uses es:edi
-  lea  edi, [VideoBuffer]
+  lea  edi, [DecodeBuffer]
   mov  ecx, large 2000         ; 4*2000 == 8000 == _sizeof(VideoBuffer)
   xor  eax, eax
   repnz stosd

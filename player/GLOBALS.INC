@@ -19,8 +19,10 @@ global ClearScreen:proc
 global install_audio_interrupt:proc
 global uninstall_audio_interrupt:proc
 global Decoder:proc
-global fileop_function_test: proc
+global fileop_function_test:proc
 
 ;---Variables
-global VideoBuffer:byte:8000
+global NextFramePtr:dword
+global DecodeBuffer:byte:DECBUF_SIZE
+global AudioBuffer:byte:AUDSAMP_SIZE * RENDER_AHEAD
 global Filehandle:dword

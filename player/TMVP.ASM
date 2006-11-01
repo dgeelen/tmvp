@@ -88,8 +88,6 @@ dataseg
 
 ;---GLOBAL VARIABLES---
 udataseg
-VideoBuffer db 80*50*2 dup (?)
-InputBuffer db 64*1024 dup (?) ; 64k input buffer
 Filehandle  dd ?
 end tmvp ; needs entry point
 

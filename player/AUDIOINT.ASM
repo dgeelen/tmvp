@@ -47,6 +47,12 @@ proc uninstall_audio_interrupt
   out 040h,al
   out 040h,al
 
+  ;debug
+  ;mov  al, 75                  ; 15909.066666667 hz
+  ;out 040h,al
+  ;mov  al, 0
+  ;out 040h,al
+
   ;finally print some stats
   lea  eax, [strNrServicedInts]
   push [dword ptr NrServicedInts]
@@ -75,6 +81,19 @@ proc install_audio_interrupt
   xor  eax, eax
   mov  [dword ptr NrServicedInts], eax
   mov  [dword ptr ChainTimer], eax
+  mov  [dword ptr FlipTimer], eax
+  mov  ebx, large 0b800h       ; SEG(video_ram)
+  inc  al                      ; al = 1
+  inc  al                      ; mov ax, 2
+  int  031h                    ; Segment to selector, ax = selector
+  jnc  @@GotVidSegSel
+  lea  eax, [strVidSegSelError]
+  push eax
+  call _printf
+  add  esp, 4
+  jmp  short @@pError
+@@GotVidSegSel:
+  mov  [word ptr cs:vidmem_selector], ax
   ; SET PROTECTED MODE INTERRUPT
   mov   ax, 0204h              ; get protected mode interrupt vector
   mov   bl, 08h                ; of int08
@@ -105,9 +124,14 @@ proc install_audio_interrupt
   mov al, 00110110B            ; == 036h
   out 043h, al
   ; 1193180/X=hz, hz=16000 => X=74.57 ~= 74 (slightly too slow)
-  mov al, 60                   ; should be 59.659=20000hz. 60=19886.333333333hz
+;  mov al, 60                   ; should be 59.659=20000hz. 60=19886.333333333hz
+;  out 040h,al                  ; this is a 0.005683333% difference
+;  mov al, 0
+;  out 040h, al                 ;need a high byte as well
+
+  mov  al, low(((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) ; round to the nearest int
   out 040h,al
-  mov al, 0
+  mov al, high(((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10)
   out 040h, al                 ;need a high byte as well
 
   lea  eax, [strIntset]
@@ -133,15 +157,52 @@ proc audio_int_protmode_simpletest nolanguage ; this is an interrupt, let's do o
   push ds
   mov  ds, [word ptr cs:protmode_ds]
   inc  [dword ptr NrServicedInts]
-;  jmp  short @@exit            ; debug
-  inc  [dword ptr ChainTimer]
-  cmp  [dword ptr ChainTimer], 1093 ; almost correct for 19886.333333333hz, should be 1092.6556776561092.655677656
-  jne  @@exit
-  mov  [dword ptr ChainTimer], 0
-  ;jmp:
+
+  inc  [dword ptr FlipTimer]  ; *FIXME* : Inc pre or post check?
+  cmp  [dword ptr FlipTimer], AUDIO_INT_FREQ/FPS
+  ;jmp  short @@NoFlip ; DEBUG
+  jne  @@NoFlip
+
+  ;DANGEROUS: RENTRY?
+  mov  al, 020h
+  out  020h, al
+  sti
+
+  mov  [dword ptr FlipTimer], 0
+  ; Flip videobuffer to the screen
+  push es edi esi ecx edx
+  mov  es, [word ptr vidmem_selector]
+  xor  edi, edi
+  mov  esi, [dword ptr NextFramePtr]
+  mov  ecx, large FRAME_SIZE shr 2 ; Bytes to dword
+  vsync                        ; modifies dx, al
+  repnz movsd                  ; Flip
+  add  esi, AUDSAMP_SIZE
+  ;cmp  esi,
+  mov  [dword ptr NextFramePtr], esi
+
+;  mov  ecx, [dword ptr NextFramePtr] ; \
+;  inc  ecx                           ;  > DEBUG
+;  inc  ecx                           ;  |
+;  mov  [dword ptr NextFramePtr], ecx ; /
+
+  pop  edx ecx esi edi es
   pop  ds
   pop  eax
-  db 0eah                      ; else we chain into original handler
+  iret
+
+@@NoFlip:
+  inc  [dword ptr ChainTimer]  ; *FIXME* : Inc pre or post check?
+  cmp  [dword ptr ChainTimer], (119318000/((((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) * 182) + 5)/10 ; call original handel every N times
+  jne  @@exit
+  mov  [dword ptr ChainTimer], 0
+  ;jmp: prepare for chain by clearing stack *SPEEDFIX*
+  ;pop  ds ;2b
+  ;pop  eax;4b
+  ;add esp, 4 + 2               ; eax, ds
+  pop  ds
+  add  esp, 4
+  db  0eah                     ; else we chain into original handler
   ;call:
   ;db 0ffh                     ; choose either one
   ;db 0e9h                     ; but not both
@@ -164,7 +225,12 @@ strNrServicedInts db 'Nr of interrupts serviced: %i',newline,36,0
 strProtmodeInstallError db 'Error while installing Protected mode interrupt',newline,36,0
 strProtmodeUninstallError db 'Error while uninstalling Protected mode interrupt',newline,36,0
 strNoIntUninstallError db 'uninstall_audio_interrupt(): Errr... no interrupt got installed?',newline,36,0
+strVidSegSelError db 'Error: could not get selector for video segment',newline, 36, 0
 udataseg
+AudioBuffer db AUDSAMP_SIZE * RENDER_AHEAD dup (?); interrupt consumes 1000 bytes / frame (1/20s)
+                                                  ; NOTE: If possible, we should read this also directly from [DecodeBuffer]
+vidmem_selector dw ?
 NrServicedInts dd ?
+FlipTimer dd ?
 ChainTimer dd ?
 end

@@ -18,6 +18,9 @@ proc decoder
   ; Post: File has been decoded/played
   uses eax,ebx,ecx,edx
 
+  ;initialise variables
+  lea  eax, [decodeBuffer]
+  mov  [dword ptr NextFramePtr], eax
 ;// open debug file
   lea  edx, [strDebugFileName]
   _fopen WRITEONLY
@@ -34,6 +37,7 @@ proc decoder
   test eax,eax
   jnz  @@loop1
 @@done:
+  mov  ebx, [dword ptr DebugFilehandle]
   _fclose
   ret
 endp
@@ -46,6 +50,8 @@ strOpenMsg db 'postopen, eax=%i',newline,'$',0
 modechar_WO db ' w',0
 
 udataseg
+DecodeBuffer db DECBUF_SIZE dup (?) ; (1 frame + 1/20s audio) * 32 == 268800bytes
+NextFramePtr dd ?
 buffer db bufsize dup (?)
 DebugFilehandle  dd ?
 end

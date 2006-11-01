@@ -3,7 +3,10 @@ TITLE printf
 .model flat, Cpp ; stdcall allows TASM to generate pro- and epi-log code
                  ; in procedures (set up stackframe, save USEd variables etc)
 ideal
+include "macros.mac"
 include "globals.inc"
+locals
+jumps
 
 codeseg
 
