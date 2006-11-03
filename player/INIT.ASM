@@ -21,6 +21,7 @@ proc Initialise
   mov  eax, -2                 ; Failed to open input
   jz   @@exit_fail
   call InitVidBuf              ; Fill the videobuffer with '0' (or a test pat.)
+  call NoBlink
   call install_audio_interrupt ; assume no failure
   jmp  short @@exit_succes
 @@exit_fail:
