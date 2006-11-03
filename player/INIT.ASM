@@ -22,6 +22,7 @@ proc Initialise
   jz   @@exit_fail
   call InitVidBuf              ; Fill the videobuffer with '0' (or a test pat.)
   call NoBlink
+  call Set80x50
   call install_audio_interrupt ; assume no failure
   jmp  short @@exit_succes
 @@exit_fail:
