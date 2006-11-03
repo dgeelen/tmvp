@@ -1,3 +1,7 @@
+;NOTES
+; 'Less' and 'greater' are for SIGNED ints
+; 'below' and 'above' are for UNSIGNED ints
+
 CrLf EQU 0ah, 0dh
 newline EQU CrLf
 True EQU 1
@@ -5,17 +9,31 @@ False EQU 0
 
 FPS EQU 20
 
-AUDIO_INT_FREQ EQU 20000
+AUDIO_INT_FREQ EQU 20000 ;8000 ;20000
 QUARTZ_TICKS EQU 1193180
 
 FRAME_SIZE EQU 80*50*2
 AUDSAMP_SIZE EQU (AUDIO_INT_FREQ/FPS)
 RENDER_AHEAD EQU 32
 DECBUF_SIZE EQU ((FRAME_SIZE + AUDSAMP_SIZE) * RENDER_AHEAD)
-
+DECWIN_SIZE EQU 32 * 1024
 
 ;DEBUG EQU True
 DEBUG EQU False
+
+macro BufferSpaceLeft Head, Tail, Size
+  local noadj
+  ; Pre: Head and Tail point to the adresses of the begin- and end-points of the buffer contents
+  ;      Size is the total size of the buffer
+  ; Post: Eax contains the ammount of space left in the buffer
+
+  mov  eax, [dword ptr Head]
+  cmp  [dword ptr Tail], eax
+  jb   noadj
+  add eax, Size
+noadj:
+  sub eax, [dword ptr Tail]
+endm
 
 macro vsync
   local l1, l2

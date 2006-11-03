@@ -22,7 +22,8 @@ global Decoder:proc
 global fileop_function_test:proc
 
 ;---Variables
-global NextFramePtr:dword
+global DecodeBufHead:dword
+global DecodeBufTail:dword
 global DecodeBuffer:byte:DECBUF_SIZE
 global AudioBuffer:byte:AUDSAMP_SIZE * RENDER_AHEAD
 global Filehandle:dword
