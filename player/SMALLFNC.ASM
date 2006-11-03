@@ -120,7 +120,6 @@ proc Set80x50 ; Destroys none
   ; Pre: -
   ; Post: Guess
   ; Note: I'm kind of hoping int10 only changes ax,bx
-  ret
   uses ax, bx
   mov  ah, 0fh                 ; get current video mode
   int  010h                    ; ah=#cols, al=mode, bh=active page
