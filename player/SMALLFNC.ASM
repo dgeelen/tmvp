@@ -10,12 +10,19 @@ codeseg
 proc InitVidBuf
   ; Initialises the videobuffer with a pattern
   uses  eax, ecx, edi, es
-  mov  eax, ds
-  mov  es, eax                 ; stosd uses es:edi
+  mov  ax, ds
+  mov  es, ax                 ; stosd uses es:edi
   lea  edi, [DecodeBuffer]
-  mov  ecx, large 2000         ; 4*2000 == 8000 == _sizeof(VideoBuffer)
+  mov  ecx, large DECBUF_SIZE shr 2
   xor  eax, eax
-  repnz stosd
+  mov  eax, '1111'
+@@l1:
+  mov  [dword ptr es:edi], eax
+  add  edi, 4
+  inc  al
+  dec  ecx
+  jnz  @@l1
+  ;repnz stosd
   ret
 endp
 proc SetPalette

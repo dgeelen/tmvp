@@ -27,6 +27,11 @@ proc tmvp
   push eax
   call _printf
   add  esp, 4*1
+
+;  call fileop_function_test
+  ;// test decoder
+  call decoder
+
   ; Wait for a keypress
 @l1:
   mov  cx, 0ffffh
@@ -34,10 +39,6 @@ proc tmvp
   loopnz @l2
   call keypressed
   jnz  @l1
-
-  call fileop_function_test
-  ;// test decoder
-  call decoder
 
 ;  Everything else is set up, turn down the lights and switch on the screen ;)
 ;  call Set80x50                ; Set highres Textmode
@@ -49,6 +50,21 @@ proc tmvp
 ; Terminate
 @@Terminate:
   call UnInitialise
+
+;more debugging
+;  mov  eax, offset DecodeBuffer
+;  call int_print
+;  lea  eax, [DecodeBuffer]
+;  call int_print
+;  mov  eax, (offset DecodeBuffer) + DECBUF_SIZE
+;  call int_print
+;  lea  eax, [DecodeBuffer]
+;  add  eax, DECBUF_SIZE
+;  call int_print
+;  mov  eax, DECBUF_SIZE
+;  call int_print
+
+
   lea  eax, [strExitMsg]
   push eax
   call _printf

@@ -78,10 +78,13 @@ proc install_audio_interrupt
   ;         program ends the Protected Mode environment will discarded anyway ?
   ;      A. *TODO*
   uses eax, ebx, ecx, edx, edi, es
+
   xor  eax, eax
   mov  [dword ptr NrServicedInts], eax
   mov  [dword ptr ChainTimer], eax
   mov  [dword ptr FlipTimer], eax
+  mov  [dword ptr DecodeBufHead], eax
+  mov  [dword ptr DecodeBufTail], eax
   mov  ebx, large 0b800h       ; SEG(video_ram)
   inc  al                      ; al = 1
   inc  al                      ; mov ax, 2
@@ -158,10 +161,16 @@ proc audio_int_protmode_simpletest nolanguage ; this is an interrupt, let's do o
   mov  ds, [word ptr cs:protmode_ds]
   inc  [dword ptr NrServicedInts]
 
-  inc  [dword ptr FlipTimer]  ; *FIXME* : Inc pre or post check?
+  inc  [dword ptr FlipTimer]   ; *FIXME* : Inc pre or post check?
   cmp  [dword ptr FlipTimer], AUDIO_INT_FREQ/FPS
-  ;jmp  short @@NoFlip ; DEBUG
   jne  @@NoFlip
+;  cmp  [byte ptr FlipFlag], 0
+  ; If we're not ready to flip we should ... ?
+  ;  a) Not flip ( What about audio? Repeat last sample? )
+  ;  b) Not flip and SlowDown Audio interrupt ?
+  ;  c) ??
+  ;
+
 
   ;DANGEROUS: RENTRY?
   mov  al, 020h
@@ -173,19 +182,19 @@ proc audio_int_protmode_simpletest nolanguage ; this is an interrupt, let's do o
   push es edi esi ecx edx
   mov  es, [word ptr vidmem_selector]
   xor  edi, edi
-  mov  esi, [dword ptr NextFramePtr]
+  mov  esi, [dword ptr DecodeBufHead]
+  cmp  esi, [dword ptr DecodeBufTail]
+  je   @@ExitFlip             ; If buffer empty do nothing
   mov  ecx, large FRAME_SIZE shr 2 ; Bytes to dword
   vsync                        ; modifies dx, al
   repnz movsd                  ; Flip
   add  esi, AUDSAMP_SIZE
-  ;cmp  esi,
-  mov  [dword ptr NextFramePtr], esi
-
-;  mov  ecx, [dword ptr NextFramePtr] ; \
-;  inc  ecx                           ;  > DEBUG
-;  inc  ecx                           ;  |
-;  mov  [dword ptr NextFramePtr], ecx ; /
-
+  cmp  esi, (offset DecodeBuffer) + DECBUF_SIZE
+  jb   @@NoResetFramePtr       ; Perhaps this should be JNA, but who knows?
+  mov  esi, offset DecodeBuffer
+@@NoResetFramePtr:
+  mov  [dword ptr DecodeBufHead], esi
+@@ExitFlip:
   pop  edx ecx esi edi es
   pop  ds
   pop  eax
@@ -226,6 +235,9 @@ strProtmodeInstallError db 'Error while installing Protected mode interrupt',new
 strProtmodeUninstallError db 'Error while uninstalling Protected mode interrupt',newline,36,0
 strNoIntUninstallError db 'uninstall_audio_interrupt(): Errr... no interrupt got installed?',newline,36,0
 strVidSegSelError db 'Error: could not get selector for video segment',newline, 36, 0
+
+esi_msg db 'ESI="%x"="%i"',newline, 36, 0
+
 udataseg
 AudioBuffer db AUDSAMP_SIZE * RENDER_AHEAD dup (?); interrupt consumes 1000 bytes / frame (1/20s)
                                                   ; NOTE: If possible, we should read this also directly from [DecodeBuffer]
