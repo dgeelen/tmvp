@@ -51,6 +51,9 @@ proc decoder
   test eax, eax
   jz  @@Done
 @@waitnextiter:
+  call keypressed
+  jz   @@done
+
   hlt
   jmp  short @@NextFrame
   ret
