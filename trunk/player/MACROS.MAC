@@ -9,13 +9,14 @@ False EQU 0
 
 FPS EQU 20
 
-AUDIO_INT_FREQ EQU 20000 ;8000 ;20000
+AUDIO_INT_FREQ EQU 8000 ;20000
 QUARTZ_TICKS EQU 1193180
 
 FRAME_SIZE EQU 80*50*2
 AUDSAMP_SIZE EQU (AUDIO_INT_FREQ/FPS)
+PALETTE_SIZE EQU 48
 RENDER_AHEAD EQU 32
-DECBUF_SIZE EQU ((FRAME_SIZE + AUDSAMP_SIZE) * RENDER_AHEAD)
+DECBUF_SIZE EQU ((FRAME_SIZE + PALETTE_SIZE + AUDSAMP_SIZE) * RENDER_AHEAD)
 DECWIN_SIZE EQU 32 * 1024
 
 ;DEBUG EQU True
@@ -33,6 +34,79 @@ macro BufferSpaceLeft Head, Tail, Size
   add eax, Size
 noadj:
   sub eax, [dword ptr Tail]
+endm
+
+macro setpalette
+  local l1, l2, exit
+  ; uses al, cl, dx
+  ; updates esi
+  ; May be very slow due to accessing ports. *TODO* : VERIFY THIS
+  ;
+  ; Note on the palette structure:
+  ; indexes 0-6 are colors 0 - 5 and 7
+  ; indexes 7-14 are colors 8-15
+  ; index 15 is color 6
+  mov cl, 0                    ; first 8 palette entries
+  xor cx, cx
+  mov dx, 03C9h
+l1:
+  mov al,cl                    ; al = color#
+  dec dx                       ; dx = 03C8h = select color
+  out dx, al                   ; select color
+  inc dx                       ; dx = 03C9h = modify color
+  ;Note: l00p unrolled for t3h sp33d
+  lodsb                        ; get a palette byte into al
+  out dx, al                   ; output R
+  lodsb                        ; get a palette byte into al
+  out dx, al                   ; output G
+  lodsb                        ; get a palette byte into al
+  out dx, al                   ; output B
+  inc cl
+  cmp cl, 6
+  jne short l1
+
+  mov al,20                    ; al = color#
+  dec dx                       ; dx = 03C8h = select color
+  out dx, al                   ; select color
+  inc dx                       ; dx = 03C9h = modify color
+  ;Note: l00p unrolled for t3h sp33d
+  lodsb                        ; get a palette byte into al
+  out dx, al                   ; output R
+  lodsb                        ; get a palette byte into al
+  out dx, al                   ; output G
+  lodsb                        ; get a palette byte into al
+  out dx, al                   ; output B
+
+  inc cl
+  mov al,cl                    ; al = color#
+  dec dx                       ; dx = 03C8h = select color
+  out dx, al                   ; select color
+  inc dx                       ; dx = 03C9h = modify color
+  ;Note: l00p unrolled for t3h sp33d
+  lodsb                        ; get a palette byte into al
+  out dx, al                   ; output R
+  lodsb                        ; get a palette byte into al
+  out dx, al                   ; output G
+  lodsb                        ; get a palette byte into al
+  out dx, al                   ; output B
+  inc cl
+  add cl, 48                   ; next 8 palette entries
+l2:
+  mov al,cl                    ; al = color#
+  dec dx                       ; dx = 03C8h = select color
+  out dx, al                   ; select color
+  inc dx                       ; dx = 03C9h = modify color
+  ;Note: l00p unrolled for t3h sp33d
+  lodsb                        ; get a palette byte into al
+  out dx, al                   ; output R
+  lodsb                        ; get a palette byte into al
+  out dx, al                   ; output G
+  lodsb                        ; get a palette byte into al
+  out dx, al                   ; output B
+  inc cl
+  cmp cl, 64
+  jne short l2
+exit:
 endm
 
 macro vsync

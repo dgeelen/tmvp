@@ -30,6 +30,7 @@ proc tmvp
 
 ;  call fileop_function_test
   ;// test decoder
+
   call decoder
 
   ; Wait for a keypress
@@ -49,6 +50,7 @@ proc tmvp
 
 ; Terminate
 @@Terminate:
+  ;inc  eax                     ; make sure we CLS and Set80x25
   call UnInitialise
 
 ;more debugging
@@ -101,6 +103,8 @@ dataseg
   strFailedToOpenInput db 'Sorry, unable to open any input file.',newline,'Try something like `tmvp sample.aa''',newline,'$',0
   strUnknownError db 'Sorry, some error we did not anticipate occured.',newline,'$',0
 
+  strDebugMsg1 db 'Paused player, press any key', newline, 36,0
+  strDebugMsg2 db 'Resuming play...', newline, 36,0
 
 ;---GLOBAL VARIABLES---
 udataseg

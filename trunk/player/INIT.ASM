@@ -21,8 +21,9 @@ proc Initialise
   mov  eax, -2                 ; Failed to open input
   jz   @@exit_fail
   call InitVidBuf              ; Fill the videobuffer with '0' (or a test pat.)
-  call NoBlink
   call Set80x50
+  call SetFont
+  call NoBlink
   call install_audio_interrupt ; assume no failure
   jmp  short @@exit_succes
 @@exit_fail:
@@ -41,9 +42,10 @@ proc UnInitialise ; Destroys ax
   inc  eax
   jz   @@NoCLS
   call DoBlink                 ;
-  call Set80x25                ;
-  call uninstall_audio_interrupt
+;  call Set80x25                ;
+  call RestoreOldVideoMode
 @@NoCLS:
+  call uninstall_audio_interrupt
   ; we need to close the filehandle
   mov  ebx, [dword ptr FileHandle]  ; will be zero when fopen has failed
   _fclose                           ; So we close stdin...
