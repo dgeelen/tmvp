@@ -25,29 +25,6 @@ proc InitVidBuf
   ;repnz stosd
   ret
 endp
-proc SetPalette
-  ; Sets the palette from palPtr
-  ; Pre: Pointer to [palette] is present on the stack
-  ; Post: The palette has been set
-  arg  palPtr:dword
-  uses eax
-  ret
-endp SetPalette
-
-proc UpdateDisplay
-  ; Outputs the current frame to the frame buffer and sets the palette
-  ; Pre: Pointer to [palette] and [framedata] are present on the stack
-  ; Post: The screen and palette have been updated
-  arg  framePtr:dword, palPtr:dword
-  uses ax, cx
-  mov  bp, sp
-  call setPalette              ; palPtr already on the stack
-  mov  cx, 2000                ; 8000 bytes / 2000 dwords
-
-  ;Do stuff with ProtectedMode
-
-  ret
-endp UpdateDisplay
 
 proc KeyPressed nolanguage ; Destroys ax, nolanguage == faster
   ; Pre: -
@@ -63,14 +40,57 @@ proc KeyPressed nolanguage ; Destroys ax, nolanguage == faster
   xor  ax, ax
   cmp  al, 1
   ret
-endp KeyPressed
+endp
 
 proc GetKey
   ; Read a keystroke from the keybuffer
-
+  xor  eax, eax
+;  mov  ah, 10h
+;  int  016h
+  ;mov  ah, 06h                 ; Direct Console Input
+  ;mov  ah ,07h                 ; direct char input
+  mov  ah, 08h                 ; Read key from stdin w/o echo
+  int  021h
+  and  ax, 00ffh
   ret
+endp
 
-endp GetKey
+proc SetFont
+  ; Reads the first 2k of the INPUTFILE and sets the DOS Font with that data
+  ; Pre: File is open, readable and Size(FILE) >= 2k
+  ; Post: The DOS font has been set
+  uses eax, ebx, ecx, bp, es
+  ;First we read the font data
+  lea  edx, [FontData]         ; ptr to buffer
+  mov  ebx, [dword ptr FileHandle] ; FileHandle is global
+  mov  ecx, 8*256
+  _fread                       ; ebx == filehandle, ecx == nr bytes to read, edx == ptr to buffer
+  ; now we need to get the 16bit address of FontData for the bios call
+  mov  ax, 0100h               ; INT 31 P - DPMI 0.9+ - ALLOCATE DOS MEMORY BLOCK
+  mov  bx, 2048/16             ; BX = number of paragraphs (16 byte blocks) to allocate
+  int  031h                    ; Return: CF clear if successful AX = real mode segment of allocated block,  DX = first selector for allocated block
+  jc   @@exit
+
+  ; Now we copy the fontdata to Dos memory
+  mov  es, dx                  ; set selector for Dos Segment
+  mov  ecx, 2048 / 4           ; copy dwords
+  mov  esi, large offset FontData ; from
+  xor  edi, edi                ; to
+  repnz movsd                  ;
+
+  mov  es, ax                  ; point to realmode segment *FIXME* AX is not a valid Selector
+jmp  short @@exit
+  xor  ebp, ebp                  ; es:bp points to realmode data
+jmp  short @@exit
+  mov  ax, 01100h              ; load user font
+  mov  bh, 8                   ; bytes per char
+  mov  bl, 0                   ; block 0
+  mov  cx, 0100h               ; all chars
+  mov  dx, 0000h               ; magic?
+  int  010h                    ; set it
+@@exit:
+  ret
+endp
 
 proc Set80x25 ; Destroys none
   ; Sets DOS textmode 80x50
@@ -78,7 +98,6 @@ proc Set80x25 ; Destroys none
   ; Post: Old video mode has been stored and current mode switched to 80x50x4
   ; Note: I'm kind of hoping int10 only changes ax
   uses eax
-  ret
   mov  ax, 0083h               ; setting high bit of al prevents CLS
   int  010h
   mov  ax, 01114h              ; load 8x16 font
@@ -88,14 +107,13 @@ proc Set80x25 ; Destroys none
 endp Set80x25
 
 proc RestoreOldVideoMode
-  ret
   xor  ax, ax
   mov  al, [byte ptr OldVideoMode]
   or   al, 080h                ; do not cls
   int  010h                    ; restore old video mode
-  mov  ax, 01112h              ; Reload 8x8 font
-  xor  bx, bx                  ; block 0?
-  int  010h
+;  mov  ax, 01142h              ; Reload 8x16 font
+;  xor  bx, bx                  ; block 0?
+;  int  010h
   ret
 endp
 
@@ -219,4 +237,5 @@ endp int_print
 dataseg
 udataseg
 OldVideoMode db ?
+FontData db 8*256 dup (?)
 end

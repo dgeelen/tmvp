@@ -8,7 +8,7 @@ include "macros.mac"
 locals ;@@                     ; Use '@@' as local symbol prefix
                                ; '@@' is default
                                ; Must be 2 chars
-;jumps
+jumps
 
 bufsize equ 1024*128
 
@@ -51,13 +51,32 @@ proc decoder
   test eax, eax
   jz  @@Done
 @@waitnextiter:
-  call keypressed
-  jz   @@done
-
+  call keypressed              ; TODO: LESS CHECKING ?
+  jz   @@ProcessKeypress
   hlt
   jmp  short @@NextFrame
+@@ProcessKeypress:
+  call getkey
+  cmp  al, 27                  ; ESC
+  je   @@done
+  cmp  al, 32                  ; Spatie
+  jne  @@NextFrame
+  cli
+  mov  eax, [dword ptr DecodeBufHead] ; save head
+  mov [dword ptr DecodeBufHead], edx  ; 'empty' buffer
+  sti
+  push eax                            ; eax used in following
+@@paused:
+  hlt
+  call keypressed
+  jnz  @@paused
+  call getkey                  ; read and discard key
+  pop  eax
+  mov  [dword ptr DecodeBufHead], eax
+  jmp  @@NextFrame
   ret
 @@done:
+  hlt
   mov  eax, [dword ptr DecodeBufHead]
   test eax, [dword ptr DecodeBufTail]
   je   @@done
