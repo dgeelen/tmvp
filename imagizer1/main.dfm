@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 149
-  Top = 107
+  Left = 460
+  Top = 303
   Width = 944
   Height = 659
   Caption = 'Form1'
@@ -68,10 +68,10 @@ object Form1: TForm1
       'Standard Dos Colors'
       'Median Cut'
       'Median Cut + sort'
+      'Median Cut + sort (250)'
+      'Median Cut + sort (500)'
       'Median Cut + sort (750)'
-      'Median Cut + sort (1000)'
-      'Median Cut + sort (1250)'
-      'Median Cut + sort (1500)')
+      'Median Cut + sort (1000)')
   end
   object ComboBoxCharset: TComboBox
     Left = 656
