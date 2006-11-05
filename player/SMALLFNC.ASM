@@ -58,36 +58,58 @@ endp
 proc SetFont
   ; Reads the first 2k of the INPUTFILE and sets the DOS Font with that data
   ; Pre: File is open, readable and Size(FILE) >= 2k
-  ; Post: The DOS font has been set
-  uses eax, ebx, ecx, bp, es
-  ;First we read the font data
-  lea  edx, [FontData]         ; ptr to buffer
-  mov  ebx, [dword ptr FileHandle] ; FileHandle is global
-  mov  ecx, 8*256
-  _fread                       ; ebx == filehandle, ecx == nr bytes to read, edx == ptr to buffer
-  ; now we need to get the 16bit address of FontData for the bios call
+  ; Post: ax == 0 => The DOS font has been set
+  ;       else ax == error
+  uses ebx, ecx, edx, es, ds
+
+  ; allocate some DOS memory to hold the font data
   mov  ax, 0100h               ; INT 31 P - DPMI 0.9+ - ALLOCATE DOS MEMORY BLOCK
   mov  bx, 2048/16             ; BX = number of paragraphs (16 byte blocks) to allocate
   int  031h                    ; Return: CF clear if successful AX = real mode segment of allocated block,  DX = first selector for allocated block
   jc   @@exit
+  mov [ word ptr RMCallStruct + 022h], ax  ; 22h  WORD  ES
 
-  ; Now we copy the fontdata to Dos memory
-  mov  es, dx                  ; set selector for Dos Segment
-  mov  ecx, 2048 / 4           ; copy dwords
-  mov  esi, large offset FontData ; from
-  xor  edi, edi                ; to
-  repnz movsd                  ;
+  ; read the fontdata into memory
+  mov  ebx, [dword ptr FileHandle] ; FileHandle is global
+  mov  ecx, 8*256              ; read 256 chars of 8 bytes each
+  mov  ax, ds                  ; save ds
+  mov  es, ax                  ;
+  mov  ds, dx                  ; set ds == selector of DOS memory block
+  xor  edx, edx
+  _fread                       ; ebx == filehandle, ecx == nr bytes to read, ds:edx == ptr to buffer
+  mov  dx, ds                  ; dx == selector of DOS memory block
+  mov  ecx, 0ffffffffh
+  jc   @@FreeMemory            ; if error
+  test eax, eax
+  jz   @@FreeMemory             ; or no bytes read (EOF)
 
-  mov  es, ax                  ; point to realmode segment *FIXME* AX is not a valid Selector
-jmp  short @@exit
-  xor  ebp, ebp                  ; es:bp points to realmode data
-jmp  short @@exit
-  mov  ax, 01100h              ; load user font
-  mov  bh, 8                   ; bytes per char
-  mov  bl, 0                   ; block 0
-  mov  cx, 0100h               ; all chars
-  mov  dx, 0000h               ; magic?
-  int  010h                    ; set it
+  ; fill out the RealMode Call Struct
+  mov  ax, es                  ; ax == dataseg
+  mov  ds, ax                  ; reset ds
+  mov [dword ptr RMCallStruct + 008h], 00h ; 08h  DWORD EBP
+  mov [dword ptr RMCallStruct + 00ch], 00h ; 0Ch  DWORD reserved (00h)
+  mov [dword ptr RMCallStruct + 010h], 000000800h ; 10h  DWORD EBX / bytes per char, block 0
+  mov [dword ptr RMCallStruct + 014h], 000000000h ; 14h  DWORD EDX / magic ?
+  mov [dword ptr RMCallStruct + 018h], 000000100h ; 18h  DWORD ECX / all chars
+  mov [dword ptr RMCallStruct + 01ch], 000001100h ; 1Ch  DWORD EAX / load user font
+
+  ; Simulate the RealMode BIOS SetFont interrupt call
+  lea  edi, [RMCallStruct]     ; es:edi -> realmode call struct
+  mov  ax, 0300h               ; SIMULATE REAL MODE INTERRUPT
+  mov  bx, 0010h               ; int 10
+  mov  cx, 0                   ; don't need anything on the stack
+  int  031h                    ; this actually copies the fontdata into video ram
+  mov  ecx, 0ffffffffh
+  jc   @@FreeMemory
+  inc  ecx                     ; everything is ok
+@@FreeMemory:                  ; Clear the DOS memory
+  mov  ax, 0101h               ; FREE DOS MEMORY BLOCK
+  int  031h
+  jc   @@exit
+  xor  eax, eax                ; eax == 0 => everything ok
+  inc  ecx                     ; why are we freeing memory?
+  jnz   @@exit
+  dec  eax                     ; set error
 @@exit:
   ret
 endp
@@ -238,4 +260,5 @@ dataseg
 udataseg
 OldVideoMode db ?
 FontData db 8*256 dup (?)
+RMCallStruct db 32 dup (?)  ; Real mode call struct
 end
