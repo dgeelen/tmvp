@@ -21,7 +21,7 @@ proc decoder
 
 
 ;--- LOAD AND 'PLAY' A _RAW_ FILE ---
-  ; Simon says:
+  ; Simon sais:
   ; blah
   mov  ebx, [dword ptr Filehandle]
   lea  edx, [DecodeBuffer]
@@ -31,22 +31,33 @@ proc decoder
   sti
 @@NextFrame:
   BufferSpaceLeft DecodeBufHead, DecodeBufTail, DECBUF_SIZE ; eax == empty bytes left in buffer
+  ; dont refill if the buffer is still >50% full
   cmp  eax, DECBUF_SIZE shr 1
   jbe  @@waitnextiter
+  
+  ; dont refill if there is less than DECWIN_SIZE free space 
+  ; ( and cap the amount of bytes to refill at freespace-DECWIN_SIZE )
   sub  eax, DECWIN_SIZE
   js   @@waitnextiter
-  mov  ecx, large (offset DecodeBuffer) + DECBUF_SIZE
-  sub  ecx, edx
+  
+  ; cap amount of bytes to refill to not go past the end of our circular buffer
+  mov  ecx, large (offset DecodeBuffer) + DECBUF_SIZE   ; ecx == end of buffer
+  sub  ecx, edx                                         ; ecx == amount of bytes from tail to end of buffer
   cmp  eax, ecx
   ja   @@NoMinMax
   mov  ecx, eax
 @@NoMinMax:
+
+  ; do the read
   _fread
+  ; increase the tail ptr, and wrap it if needed
   add  edx, eax
-  cmp  edx, large (offset DecodeBuffer) + DECBUF_SIZE
-  jne  @@NoWrap
-  mov  edx, large offset DecodeBuffer
+  cmp  edx, large (offset DecodeBuffer) + DECBUF_SIZE   ; because we cap to not go past the end of the buffer
+  jne  @@NoWrap                                         ; we only need to wrap when we are exactly at the end
+  mov  edx, large offset DecodeBuffer                   ; and also always wrap to the start of the buffer
 @@NoWrap:
+
+  ; move tail ptr back into memory
   mov  [dword ptr DecodeBufTail], edx
   test eax, eax
   jz  @@Done
