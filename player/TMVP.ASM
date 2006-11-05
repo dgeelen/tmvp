@@ -30,43 +30,12 @@ proc tmvp
 
 ;  call fileop_function_test
   ;// test decoder
-
   call decoder
-
-  ; Wait for a keypress
-@l1:
-  mov  cx, 0ffffh
-  @l2:
-  loopnz @l2
-  call keypressed
-  jnz  @l1
-
-;  Everything else is set up, turn down the lights and switch on the screen ;)
-;  call Set80x50                ; Set highres Textmode
-;  call NoBlink                 ; Disable the blink bit
-
-   ; * DO STUFF *
-   ; Like call Decoder or smurfin
 
 ; Terminate
 @@Terminate:
   ;inc  eax                     ; make sure we CLS and Set80x25
   call UnInitialise
-
-;more debugging
-;  mov  eax, offset DecodeBuffer
-;  call int_print
-;  lea  eax, [DecodeBuffer]
-;  call int_print
-;  mov  eax, (offset DecodeBuffer) + DECBUF_SIZE
-;  call int_print
-;  lea  eax, [DecodeBuffer]
-;  add  eax, DECBUF_SIZE
-;  call int_print
-;  mov  eax, DECBUF_SIZE
-;  call int_print
-
-
   lea  eax, [strExitMsg]
   push eax
   call _printf
