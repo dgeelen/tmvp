@@ -10,13 +10,14 @@ locals ;@@                     ; Use '@@' as local symbol prefix
                                ; Must be 2 chars
 jumps
 
-bufsize equ 1024*128
-
-DM_RAW      EQU 1
+DM_RAW      EQU 1	; implemented and working
 DM_LZ77S    EQU 2
 DM_DEFLATE  EQU 3
 
 DECODE_MODE EQU DM_RAW
+;DECODE_MODE EQU DM_LZ77S
+
+INPBUF_SIZE EQU 64*1024
 
 codeseg
 proc decoder
@@ -29,6 +30,10 @@ proc decoder
 ;--- LOAD AND 'PLAY' A _RAW_ FILE ---
   ; Simon sais:
   ; blah
+  mov ax, ds
+  mov es, ax
+  cld
+  
   mov  ebx, [dword ptr Filehandle]
   lea  edx, [DecodeBuffer]
   lea  eax, [edx + FRAME_SIZE + PALETTE_SIZE]
@@ -37,6 +42,11 @@ proc decoder
   mov  [dword ptr DecodeBufTail], edx ; head == tail ==> Buffer Empty, head == tail - 1 ==> Buffer Full
   mov  [dword ptr AudioDataPtr] , eax
   sti
+  
+if DECODE_MODE eq DM_LZ77S  
+  mov  [dword ptr InputBufHead], offset InputBuffer	
+  mov  [dword ptr InputBufTail], offset InputBuffer	
+endif
 @@NextFrame:
 ;----------------------------------------------------------------
 if DECODE_MODE eq DM_RAW        ;******* Start Raw Player *******
@@ -74,13 +84,101 @@ if DECODE_MODE eq DM_RAW        ;******* Start Raw Player *******
 endif                           ;******* End Raw Player *******
 ;----------------------------------------------------------------
 if DECODE_MODE eq DM_LZ77S      ;******* Start LZ77S Player *******
+  BufferSpaceLeft DecodeBufHead, DecodeBufTail, DECBUF_SIZE ; eax == empty bytes left in buffer
+  ; do crappy refill for now....
+  cmp eax, 0FFh
+  jbe @@waitnextiter
+  BufferSpaceLeft InputBufHead, InputBufTail, INPBUF_SIZE;
+  sub eax, INPBUF_SIZE
+  neg eax
+  cmp eax, 0FFh + 4
+  ja @@nofread
+  ; yeah... crappy here
+  mov ecx, eax
+  mov esi, [dword ptr InputBufHead]
+  mov edi, offset InputBuffer
+  rep movsb
+  
+  lea ecx, [INPBUF_SIZE]
+  sub ecx, eax
+  
+  lea edx, [offset InputBuffer + eax]
+  
+  push eax
+  mov  ebx, [dword ptr Filehandle]
+  _fread
+  pop ecx
+  
+  add eax, ecx
+  add eax, offset InputBuffer
+  mov [dword ptr InputBufTail], eax
+  mov [dword ptr InputBufHead], offset InputBuffer
+  
+@@nofread:
+
+  mov esi, [dword ptr InputBufHead]
+  
+  lodsb
+  
+  cmp al, 080h
+  jae @@literalcopy
+  
+  ; LZ77 Copy
+  mov edi, [dword ptr DecodeBufTail]
+  
+  lodsb
+  lodsb
+  movzx ecx, al
+  add edi, ecx
+  cmp edi, offset DecodeBuffer + DECBUF_SIZE
+  jb @@noediwrap
+  sub edi, DECBUF_SIZE
+@@noediwrap:
+  
+  mov [dword ptr DecodeBufTail], edi
+  mov [dword ptr InputBufHead], esi
+
+  jmp @@NextFrame  
+  
+@@literalcopy:
+  mov cl, al
+  and ecx, 07Fh
+  mov edi, [dword ptr DecodeBufTail]
+  
+  ;{ edx := #bytes left till buffer end }
+  mov edx, offset DecodeBuffer + DECBUF_SIZE
+  sub edx, edi
+
+  cmp ecx, edx
+  jb @@golitcopy
+  
+  ;{ ecx, edx := edx, ecx-edx }        // !whoa, multiple assignment!!
+  sub edx, ecx
+  add ecx, edx
+  neg edx
+  
+  rep movsb
+  
+  mov ecx, edx
+  mov edi, offset DecodeBuffer
+  
+@@golitcopy:
+  rep movsb
+  
+  mov [dword ptr DecodeBufTail], edi
+  mov [dword ptr InputBufHead], esi
+
+  jmp @@NextFrame
+  
+  
+  
 endif                           ;******* End LZ77S Player *******
 ;----------------------------------------------------------------
 @@waitnextiter:
   call keypressed              ; TODO: LESS CHECKING ?
   jz   @@ProcessKeypress
   hlt
-  jmp  short @@NextFrame
+  jmp @@NextFrame
 @@ProcessKeypress:
   call getkey
   cmp  al, 27                  ; ESC
@@ -121,7 +219,9 @@ udataseg
 DecodeBuffer db DECBUF_SIZE dup (?) ; (1 frame + 1/20s audio) * 32 == 268800bytes
 DecodeBufHead dd ?             ; HEAD points to the first unread element in the buffer
 DecodeBufTail dd ?             ; TAIL points one past the element last added to the buffer
+InputBuffer db INPBUF_SIZE dup (?); data is read into this buffer from input file
+InputBufHead dd ?             ; HEAD points to the first unread element in the buffer
+InputBufTail dd ?             ; TAIL points one past the element last added to the buffer
 AudioDataPtr dd ?              ; AudioDataPtr points to the next-to-be-played sample of audio data
-buffer db bufsize dup (?)
 DebugFilehandle  dd ?
 end
