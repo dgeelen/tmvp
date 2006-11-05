@@ -12,6 +12,12 @@ jumps
 
 bufsize equ 1024*128
 
+DM_RAW      EQU 1
+DM_LZ77S    EQU 2
+DM_DEFLATE  EQU 3
+
+DECODE_MODE EQU DM_RAW
+
 codeseg
 proc decoder
   ; Pre:  global Filehandle:dword == File opened for reading
@@ -32,6 +38,8 @@ proc decoder
   mov  [dword ptr AudioDataPtr] , eax
   sti
 @@NextFrame:
+;----------------------------------------------------------------
+if DECODE_MODE eq DM_RAW        ;******* Start Raw Player *******
   BufferSpaceLeft DecodeBufHead, DecodeBufTail, DECBUF_SIZE ; eax == empty bytes left in buffer
   ; dont refill if the buffer is still >50% full
   cmp  eax, DECBUF_SIZE shr 1
@@ -63,6 +71,11 @@ proc decoder
   mov  [dword ptr DecodeBufTail], edx
   test eax, eax
   jz  @@Done
+endif                           ;******* End Raw Player *******
+;----------------------------------------------------------------
+if DECODE_MODE eq DM_LZ77S      ;******* Start LZ77S Player *******
+endif                           ;******* End LZ77S Player *******
+;----------------------------------------------------------------
 @@waitnextiter:
   call keypressed              ; TODO: LESS CHECKING ?
   jz   @@ProcessKeypress
@@ -93,79 +106,7 @@ proc decoder
   mov  eax, [dword ptr DecodeBufHead]
   test eax, [dword ptr DecodeBufTail]
   je   @@done
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ; Rationale:
-  ; Audio interrupt Updates 'HEAD', decoder adjusts 'TAIL'
-  ; Only refill buffer if EMPTY > 0.33 * SIZE
 
-  mov  ebx, [dword ptr Filehandle]
-  lea  edx, [DecodeBuffer]
-  cli                          ; Prevent FLIP from occurring to early
-  mov  [dword ptr DecodeBufHead], edx
-  mov  [dword ptr DecodeBufTail], edx ; head == tail ==> Buffer Empty, head == tail - 1 ==> Buffer Full
-  sti
-;;@@NextFrame: ; INV: EDX == TAIL
-  BufferSpaceLeft DecodeBufHead, DecodeBufTail, DECBUF_SIZE ; eax == bytes left
-  cmp  eax, DECBUF_SIZE shr 2  ; if only 25% left it's time to refill
-  ja   @@DontRefillJustYet
-  mov  ecx, [dword ptr DecodeBufHead]
-  cmp  ecx, edx                ; edx points to Tail
-  jbe  @@HeadBeforeTail
-  add  ecx, edx                ; ecx == tail + head
-  neg  ecx
-  add  ecx, large DECBUF_SIZE  ; ecx == space left until end of buffer
-  _fread
-  mov  edx, large (offset DecodeBuffer) ; reset tail pointer
-@@HeadBeforeTail:
-  ; ecx == DecodeBufHead, edx == DecodeBufTail
-  sub  ecx, edx
-  _fread
-  add  edx, eax
-  mov  [dword ptr DecodeBufTail], edx
-@@DontRefillJustYet:
-  hlt
-  ret
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  mov  ebx, [dword ptr Filehandle]
-  mov  ecx, FRAME_SIZE + AUDSAMP_SIZE ; Read precisely 1 frame
-  lea  edx, [DecodeBuffer]
-  mov  [dword ptr DecodeBufHead], edx
-  mov  [dword ptr DecodeBufTail], edx ; head == tail ==> Buffer Empty, head == tail - 1 ==> Buffer Full
-;@@NextFrame:
-  BufferSpaceLeft DecodeBufHead, DecodeBufTail, DECBUF_SIZE ; eax == bytes left
-  _fread                       ; ebx == filehandle, ecx == nr bytes to read, edx == ptr to buffer
-  add  edx, ecx
-  cmp  edx, (offset DecodeBuffer) + DECBUF_SIZE
-  jb   @@skip1                 ; Perhaps this should be JNA, but who knows?
-  mov  esi, offset DecodeBuffer
-@@skip1:
-  mov  [dword ptr DecodeBufHead], edx
-
-  test eax, eax
-  jnz  @@NextFrame
-  ret
-;--- END _RAW_ PLAY ---
-
-
-  ;initialise variables
-;// open debug file
-  lea  edx, [strDebugFileName]
-  _fopen WRITEONLY
-  mov [dword ptr DebugFilehandle], eax
-  lea  edx, [buffer]
-;// test copy loop
-@@loop1:
-  mov  ebx, [dword ptr Filehandle]
-  mov  ecx, bufsize
-  _fread                       ; ebx == filehandle, ecx == nr bytes to write, edx == ptr to buffer
-  mov  ecx, eax
-  mov  ebx, [dword ptr DebugFilehandle]
-  _fwrite                      ; ebx == filehandle, ecx == nr bytes to write, edx == ptr to buffer
-  test eax,eax
-  jnz  @@loop1
-;@@done:
-  mov  ebx, [dword ptr DebugFilehandle]
-  _fclose
   ret
 endp
 
