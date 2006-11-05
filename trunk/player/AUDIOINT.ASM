@@ -186,9 +186,9 @@ proc audio_int_protmode_simpletest nolanguage ; this is an interrupt, let's do o
   cmp  esi, [dword ptr DecodeBufTail]
   je   @@ExitFlip              ; If buffer empty do nothing
   vsync                        ; modifies dx, al
-  setpalette                   ; ds:esi -> Palette data, uses al, cl, dx
   mov  ecx, large FRAME_SIZE shr 2 ; Bytes to dword
-  repnz movsd                  ; Flip
+  rep movsd                  ; Flip
+  setpalette                   ; ds:esi -> Palette data, uses al, cl, dx
   add  esi, AUDSAMP_SIZE       ; We don't decode any audio yet
   cmp  esi, (offset DecodeBuffer) + DECBUF_SIZE
   jb   @@NoResetFramePtr       ; Perhaps this should be JNA, but who knows?
