@@ -25,9 +25,11 @@ proc decoder
   ; blah
   mov  ebx, [dword ptr Filehandle]
   lea  edx, [DecodeBuffer]
+  lea  eax, [edx + FRAME_SIZE + PALETTE_SIZE]
   cli                          ; Prevent FLIP from occurring to early
   mov  [dword ptr DecodeBufHead], edx
   mov  [dword ptr DecodeBufTail], edx ; head == tail ==> Buffer Empty, head == tail - 1 ==> Buffer Full
+  mov  [dword ptr AudioDataPtr] , eax
   sti
 @@NextFrame:
   BufferSpaceLeft DecodeBufHead, DecodeBufTail, DECBUF_SIZE ; eax == empty bytes left in buffer
@@ -178,6 +180,7 @@ udataseg
 DecodeBuffer db DECBUF_SIZE dup (?) ; (1 frame + 1/20s audio) * 32 == 268800bytes
 DecodeBufHead dd ?             ; HEAD points to the first unread element in the buffer
 DecodeBufTail dd ?             ; TAIL points one past the element last added to the buffer
+AudioDataPtr dd ?              ; AudioDataPtr points to the next-to-be-played sample of audio data
 buffer db bufsize dup (?)
 DebugFilehandle  dd ?
 end

@@ -85,6 +85,8 @@ proc install_audio_interrupt
   mov  [dword ptr FlipTimer], eax
   mov  [dword ptr DecodeBufHead], eax
   mov  [dword ptr DecodeBufTail], eax
+  mov  [dword ptr AudioDataPtr], eax
+  mov  [dword ptr SampleTimer], eax
   mov  ebx, large 0b800h       ; SEG(video_ram)
   inc  al                      ; al = 1
   inc  al                      ; mov ax, 2
@@ -153,76 +155,78 @@ endp
 
 proc audio_int_protmode_simpletest nolanguage ; this is an interrupt, let's do our own push-ups!
   cli                          ; disable any other interrupts
-  push  eax                    ; save registers we use
-  ; do stuff
-  ; ...
-  ; Should set DS to prevent writing to random memory
-  push ds
+  push ds                      ; save ds
+  push eax                     ; and eax
+  push esi                     ; and esi
   mov  ds, [word ptr cs:protmode_ds]
   inc  [dword ptr NrServicedInts]
+
+  ; first check that the buffer is non-empty
+  mov  esi, [dword ptr DecodeBufHead]
+  cmp  esi, [dword ptr DecodeBufTail]
+  je   @@NoFlip               ; if empty do nothing
+  ; Play a sample of audio    ; ** MAYOR TODO: Figure out if A/V Sync is neccesary and how to implement it **
+  mov  esi, [dword ptr AudioDataPtr] ; load pointer
+  lodsb                        ; get data byte
+  out  042h, al                ; 042h = timer 2 counter
+  inc  [dword ptr SampleTimer]
+  cmp  [dword ptr SampleTimer], AUDSAMP_SIZE ; *FIXME* : Inc pre or post check?
+  jne  @@StillInAudioDataBlock
+  add  esi, PALETTE_SIZE + FRAME_SIZE ;Select next audiodata block
+  mov  [dword ptr SampleTimer], 0 ; reset timer
+@@StillInAudioDataBlock:
+  cmp  esi, (offset DecodeBuffer) + DECBUF_SIZE
+  jb   @@StillInBuffer
+  mov  esi, (offset DecodeBuffer) + PALETTE_SIZE + FRAME_SIZE
+@@StillInBuffer:
+  mov  [dword ptr AudioDataPtr], esi
 
   inc  [dword ptr FlipTimer]   ; *FIXME* : Inc pre or post check?
   cmp  [dword ptr FlipTimer], AUDIO_INT_FREQ/FPS
   jne  @@NoFlip
-;  cmp  [byte ptr FlipFlag], 0
-  ; If we're not ready to flip we should ... ?
-  ;  a) Not flip ( What about audio? Repeat last sample? )
-  ;  b) Not flip and SlowDown Audio interrupt ?
-  ;  c) ??
-  ;
-
-
-  ;DANGEROUS: RENTRY?
-  mov  al, 020h
-  out  020h, al
-  sti
-
-  mov  [dword ptr FlipTimer], 0
+  ;Flip, DANGEROUS: RENTRY?
+  mov  al, 020h                ;
+  out  020h, al                ; signal End of Interrupt
+  sti                          ; renable interrupts
+  mov  [dword ptr FlipTimer], 0; reset FlipTimer
   ; Flip videobuffer to the screen
-  push es edi esi ecx edx
-  mov  es, [word ptr vidmem_selector]
-  xor  edi, edi
   mov  esi, [dword ptr DecodeBufHead]
-  cmp  esi, [dword ptr DecodeBufTail]
-  je   @@ExitFlip              ; If buffer empty do nothing
+  push es edi ecx edx          ; save registers needed to flip
+  mov  es, [word ptr vidmem_selector]; selector for the video_ram
+  xor  edi, edi                ; start filling ram from address 0 (b800h:0000h)
   vsync                        ; modifies dx, al
   mov  ecx, large FRAME_SIZE shr 2 ; Bytes to dword
-  rep movsd                  ; Flip
+  repnz movsd                  ; Flip
   setpalette                   ; ds:esi -> Palette data, uses al, cl, dx
-  add  esi, AUDSAMP_SIZE       ; We don't decode any audio yet
+  add  esi, AUDSAMP_SIZE       ; We don't want to display audiodata
   cmp  esi, (offset DecodeBuffer) + DECBUF_SIZE
-  jb   @@NoResetFramePtr       ; Perhaps this should be JNA, but who knows?
+  jb   @@NoResetFramePtr       ; If we've exceeded the buffer size, reset
   mov  esi, offset DecodeBuffer
 @@NoResetFramePtr:
-  mov  [dword ptr DecodeBufHead], esi
+  mov  [dword ptr DecodeBufHead], esi; update head pointer
+  pop  edx ecx edi es
 @@ExitFlip:
-  pop  edx ecx esi edi es
-  pop  ds
+  pop  esi
   pop  eax
+  pop  ds
   iret
 
 @@NoFlip:
   inc  [dword ptr ChainTimer]  ; *FIXME* : Inc pre or post check?
-  cmp  [dword ptr ChainTimer], (119318000/((((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) * 182) + 5)/10 ; call original handel every N times
+  cmp  [dword ptr ChainTimer], (119318000/((((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) * 182) + 5)/10 ; call original handler every N times
   jne  @@exit
-  mov  [dword ptr ChainTimer], 0
-  ;jmp: prepare for chain by clearing stack *SPEEDFIX*
-  ;pop  ds ;2b
-  ;pop  eax;4b
-  ;add esp, 4 + 2               ; eax, ds
-  pop  ds
-  add  esp, 4
-  db  0eah                     ; else we chain into original handler
-  ;call:
-  ;db 0ffh                     ; choose either one
-  ;db 0e9h                     ; but not both
+  mov  [dword ptr ChainTimer], 0; reset ChainTimer
+  pop  esi
+  pop  eax
+  pop  ds                      ; restore ds and eax
+  db  0eah                     ; else we chain into original handler with a far jmp
   old_protmode_int08 db 6 dup (0)
-  ; profit?
 @@exit:
-  pop  ds
   mov  al, 020h
   out  020h, al
+  pop  esi
   pop  eax
+  pop  ds
   sti
   iret
   protmode_ds dw 0
@@ -246,4 +250,5 @@ vidmem_selector dw ?
 NrServicedInts dd ?
 FlipTimer dd ?
 ChainTimer dd ?
+SampleTimer dd ?
 end

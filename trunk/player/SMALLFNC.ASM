@@ -131,7 +131,8 @@ endp Set80x25
 proc RestoreOldVideoMode
   xor  ax, ax
   mov  al, [byte ptr OldVideoMode]
-  or   al, 080h                ; do not cls
+  ;or   al, 080h                ; do not cls
+  and  al, 7Fh                 ; DO cls
   int  010h                    ; restore old video mode
 ;  mov  ax, 01142h              ; Reload 8x16 font
 ;  xor  bx, bx                  ; block 0?
