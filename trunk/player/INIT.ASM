@@ -23,13 +23,27 @@ proc Initialise
   call InitVidBuf              ; Fill the videobuffer with '0' (or a test pat.)
   call Set80x50
   call SetFont
+  test eax, eax
+  jz   @@FontSetOK
+  push eax
+  lea  eax, [strFontLoadFail]
+  push eax
+  call _printf
+  add  esp, 4*2
+@@l1:
+  hlt
+  call keypressed
+  jnz  @@l1
+  call getkey
+  xor  eax, eax
+  dec  eax
+  jmp  short @@exit_fail
+@@FontSetOK:
   call NoBlink
   call install_audio_interrupt ; assume no failure
-  jmp  short @@exit_succes
-@@exit_fail:
-  ret
 @@exit_succes:
   xor  eax, eax
+@@exit_fail:
   ret
 endp Initialise
 
@@ -65,4 +79,5 @@ proc UnInitialise ; Destroys ax
 endp UnInitialise
 dataseg
 strFileCloseError db 'Error while closing videofile! (error #%i)',newline,36,0
+strFontLoadFail db 'Error while loading font! (error #%i)', newline, 'press any key to quit.',newline, 36, 0
 end
