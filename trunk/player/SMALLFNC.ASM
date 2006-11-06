@@ -84,9 +84,8 @@ proc SetFont
   test eax, eax
   jz   @@FreeMemory            ; or no bytes read (EOF)
 
-  ;xor eax, eax                 ; or if you just don't like the blocks
-  ;jmp  @@exit
-
+;  xor eax, eax                 ; or if you just don't like the blocks
+;  jmp  @@exit
 
   ; fill out the RealMode Call Struct
   mov  ax, es                  ; ax == dataseg
