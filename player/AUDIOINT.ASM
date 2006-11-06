@@ -53,12 +53,6 @@ proc uninstall_audio_interrupt
   ;mov  al, 0
   ;out 040h,al
 
-  ;finally print some stats
-  lea  eax, [strNrServicedInts]
-  push [dword ptr NrServicedInts]
-  push eax
-  call _printf
-  add  esp, 4*2
   jmp short @@exit
 @@NoInt:
   lea  eax, [strNoIntUninstallError]
@@ -80,7 +74,6 @@ proc install_audio_interrupt
   uses eax, ebx, ecx, edx, edi, es
 
   xor  eax, eax
-  mov  [dword ptr NrServicedInts], eax
   mov  [dword ptr ChainTimer], (119318000/((((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) * 182) + 5)/10
   mov  [dword ptr FlipTimer], AUDIO_INT_FREQ/FPS
   mov  [dword ptr DecodeBufHead], eax
@@ -159,35 +152,47 @@ proc audio_int_protmode_simpletest nolanguage ; this is an interrupt, let's do o
   push eax                     ; and eax
   push esi                     ; and esi
   mov  ds, [word ptr cs:protmode_ds]
-  inc  [dword ptr NrServicedInts]
-
   ; first check that the buffer is non-empty
   mov  esi, [dword ptr DecodeBufHead]
-  cmp  esi, [dword ptr DecodeBufTail]
-  je   @@NoFlip               ; if empty do nothing
-  ; Play a sample of audio    ; ** MAYOR TODO: Figure out if A/V Sync is neccesary and how to implement it **
+  cmp  [dword ptr DecodeBufTail], esi ; CMP MEM, REG is 1 clock faster than CMP REG,MEM?!
+  je   short @@NoFlip          ; if empty do nothing
+  ; Play a sample of audio     ; ** TODO: Figure out if A/V Sync is neccesary and how to implement it **
   mov  esi, [dword ptr AudioDataPtr] ; load pointer
   lodsb                        ; get data byte
   out  042h, al                ; 042h = timer 2 counter
   dec  [dword ptr SampleTimer]
-  jnz  @@StillInAudioDataBlock
+  jnz  short @@StillInBuffer   ; We're still in the current datablock, thus certainly in the buffer
   add  esi, PALETTE_SIZE + FRAME_SIZE ;Select next audiodata block
   mov  [dword ptr SampleTimer], AUDSAMP_SIZE ; reset timer
-@@StillInAudioDataBlock:
   cmp  esi, (offset DecodeBuffer) + DECBUF_SIZE
-  jb   @@StillInBuffer
+  jb   short @@StillInBuffer   ; if we've selected a datablock outside the buffer we must wrap
   mov  esi, (offset DecodeBuffer) + PALETTE_SIZE + FRAME_SIZE
 @@StillInBuffer:
   mov  [dword ptr AudioDataPtr], esi
-
   dec  [dword ptr FlipTimer]   ; *FIXME* : Inc pre or post check?
-  jnz  @@NoFlip
-  ;Flip, DANGEROUS: RENTRY?
+  jz   short @@Flipper         ; time to display the next frame
+@@NoFlip:
+  dec  [dword ptr ChainTimer]  ; *FIXME* : Inc pre or post check?
+  jnz  short @@exit            ; time to call the original handler (update system clock etc)
+  mov  [dword ptr ChainTimer], (119318000/((((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) * 182) + 5)/10; reset ChainTimer
+  pop  esi                     ; clear the stack
+  pop  eax                     ; of the registers
+  pop  ds                      ; that we used
+  db  0eah                     ; and we chain into original handler with a far jmp
+  old_protmode_int08 db 6 dup (0)
+@@exit:
+  mov  al, 020h
+  out  020h, al
+  pop  esi
+  pop  eax
+  pop  ds
+  sti
+  iret
+@@Flipper:                     ; we put flip at the _very end_ of the interrupt, because setpalette is rather large
   mov  al, 020h                ;
   out  020h, al                ; signal End of Interrupt
-  sti                          ; renable interrupts
+  sti                          ; renable interrupts   DANGEROUS: RENTRY?
   mov  [dword ptr FlipTimer], AUDIO_INT_FREQ/FPS; reset FlipTimer
-  ; Flip videobuffer to the screen
   mov  esi, [dword ptr DecodeBufHead]
   push es edi ecx edx          ; save registers needed to flip
   mov  es, [word ptr vidmem_selector]; selector for the video_ram
@@ -198,7 +203,7 @@ proc audio_int_protmode_simpletest nolanguage ; this is an interrupt, let's do o
   setpalette                   ; ds:esi -> Palette data, uses al, cl, dx
   add  esi, AUDSAMP_SIZE       ; We don't want to display audiodata
   cmp  esi, (offset DecodeBuffer) + DECBUF_SIZE
-  jb   @@NoResetFramePtr       ; If we've exceeded the buffer size, reset
+  jb   short @@NoResetFramePtr ; If we've exceeded the buffer size, reset
   mov  esi, offset DecodeBuffer
 @@NoResetFramePtr:
   mov  [dword ptr DecodeBufHead], esi; update head pointer
@@ -208,31 +213,12 @@ proc audio_int_protmode_simpletest nolanguage ; this is an interrupt, let's do o
   pop  eax
   pop  ds
   iret
-
-@@NoFlip:
-  dec  [dword ptr ChainTimer]  ; *FIXME* : Inc pre or post check?
-  jnz  @@exit
-  mov  [dword ptr ChainTimer], (119318000/((((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) * 182) + 5)/10; reset ChainTimer
-  pop  esi
-  pop  eax
-  pop  ds                      ; restore ds and eax
-  db  0eah                     ; else we chain into original handler with a far jmp
-  old_protmode_int08 db 6 dup (0)
-@@exit:
-  mov  al, 020h
-  out  020h, al
-  pop  esi
-  pop  eax
-  pop  ds
-  sti
-  iret
   protmode_ds dw 0
 endp
 
 endp
 dataseg
 strIntset db 'interrupt installed!',newline,36,0
-strNrServicedInts db 'Nr of interrupts serviced: %i',newline,36,0
 strProtmodeInstallError db 'Error while installing Protected mode interrupt',newline,36,0
 strProtmodeUninstallError db 'Error while uninstalling Protected mode interrupt',newline,36,0
 strNoIntUninstallError db 'uninstall_audio_interrupt(): Errr... no interrupt got installed?',newline,36,0
@@ -244,7 +230,6 @@ udataseg
 AudioBuffer db AUDSAMP_SIZE * RENDER_AHEAD dup (?); interrupt consumes 1000 bytes / frame (1/20s)
                                                   ; NOTE: If possible, we should read this also directly from [DecodeBuffer]
 vidmem_selector dw ?
-NrServicedInts dd ?
 FlipTimer dd ?
 ChainTimer dd ?
 SampleTimer dd ?

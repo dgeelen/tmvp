@@ -112,7 +112,7 @@ endm
 macro vsync
   local l1, l2
   ; Pre: -
-  ; Post: Monitor is in VSync period
+  ; Post: Monitor is in VSync period, ZF=0
   ; Modifies al, dx
   mov  dx, 03dah
 l1:
