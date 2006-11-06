@@ -23,7 +23,7 @@ codeseg
 proc decoder
   ; Pre:  global Filehandle:dword == File opened for reading
   ; Post: File has been decoded/played
-  uses eax,ebx,ecx,edx
+  uses eax,ebx,ecx,edx,esi,edi,es
 
 
 
@@ -125,18 +125,63 @@ if DECODE_MODE eq DM_LZ77S      ;******* Start LZ77S Player *******
   
   ; LZ77 Copy
   mov edi, [dword ptr DecodeBufTail]
+    
+  shl ax, 8
+  lodsb
+  movzx edx, ax
+  lodsb
   
-  lodsb
-  lodsb
+  mov [dword ptr InputBufHead], esi
+  mov esi, edi
+  sub esi, edx
   movzx ecx, al
-  add edi, ecx
-  cmp edi, offset DecodeBuffer + DECBUF_SIZE
-  jb @@noediwrap
-  sub edi, DECBUF_SIZE
-@@noediwrap:
+  
+  cmp esi, offset DecodeBuffer
+  jae @@nosign
+  add esi, DECBUF_SIZE
+  @@nosign:  
+  
+  push ebx
+  
+        mov ebx,esi
+        cmp ebx,edi
+        jae @@higher
+        mov ebx,edi
+       @@higher:
+
+        ;{ edx := #words left in buffer }
+        mov edx, offset DecodeBuffer + DECBUF_SIZE
+        sub edx, ebx
+
+        ;{ if ecx < edx then goto @go }
+        cmp ecx, edx
+        jb @@golz77copy
+
+        ;{ ecx, edx := edx, ecx-edx }        // !whoa, multiple assignment!!
+        sub edx, ecx
+        add ecx, edx
+        neg edx
+
+        rep movsb
+
+        mov ecx, edx
+        cmp esi, offset DecodeBuffer + DECBUF_SIZE
+        jne @@noesi
+        mov esi, offset DecodeBuffer
+       @@noesi:
+        cmp edi, offset DecodeBuffer + DECBUF_SIZE
+        jne @@noedi
+        mov edi, offset DecodeBuffer
+        jmp @@nosign ;TODO: figure out when this happens and what it does
+       @@noedi:
+        jmp @@nosign
+       @@golz77copy:
+
+        rep movsb
+
+  pop ebx
   
   mov [dword ptr DecodeBufTail], edi
-  mov [dword ptr InputBufHead], esi
 
   jmp @@NextFrame  
   
