@@ -23,7 +23,7 @@
 void initialize_imagizer(unsigned char * biosfont);
 void uninitialize_imagizer();
 void texttopng(unsigned char * textdata, unsigned char * palette);
-void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h,unsigned char *prevb800h, unsigned long int img_width,unsigned long int img_height);
+void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h,unsigned char *prevb800h, unsigned long int img_width,unsigned long int img_height, unsigned long int max_char_dist);
 
 class RGBColor {
   public:

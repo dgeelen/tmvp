@@ -28,6 +28,13 @@ proc tmvp
   call _printf
   add  esp, 4*1
 
+  ; now we *should* wait for the user to press any key
+;@@WaitUserPressKey:
+;  hlt
+;  call keypressed
+;  jnz  @@WaitUserPressKey
+;  call getkey                  ; read and discard key
+
 ;  call fileop_function_test
   ;// test decoder
   call decoder

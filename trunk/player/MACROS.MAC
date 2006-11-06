@@ -10,7 +10,7 @@ False EQU 0
 FPS EQU 20
 
 AUDIO_INT_FREQ EQU 8000 ;20000
-QUARTZ_TICKS EQU 1193180
+QUARTZ_TICKS EQU 01234DDh ; 1193181hz
 
 FRAME_SIZE EQU 80*50*2
 AUDSAMP_SIZE EQU (AUDIO_INT_FREQ/FPS)
@@ -264,7 +264,11 @@ if debug eq true
   cmp  al, 2                   ; File not found, destroys carry
   stc                          ; restore error condition
   jne  short exit              ; exit with error
-  mov  ah, 03Ch                ; Create file
+  mov  bl, modechar            ; are we opening this file RO or also W
+  cmp  bl, READONLY            ;
+  stc                          ; again restore error
+  je   short exit              ; if file is being opened in READONLY exit
+  mov  ah, 03Ch                ; Otherwise create a new file
   int  021h                    ; if file creation ok, ax==filehandle
 exit:
 endm

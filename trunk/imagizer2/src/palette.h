@@ -21,5 +21,5 @@
 #define PALETTE_H
 void palette6bit(unsigned char *palette) ;
 void get_default_palette(unsigned char *palette);
-void find_opt_pal(unsigned char * img, unsigned char *palette,unsigned char *prevpalette,unsigned long int width, unsigned long int heigth);
+void find_opt_pal(unsigned char * img, unsigned char *palette,unsigned char *prevpalette,unsigned long int width, unsigned long int heigth, unsigned long int max_pal_dist);
 #endif

@@ -4,6 +4,8 @@ TITLE smallfunctions
 ideal
 include "globals.inc"
 include "macros.mac"
+locals
+jumps
 
 codeseg
 
@@ -61,7 +63,6 @@ proc SetFont
   ; Post: ax == 0 => The DOS font has been set
   ;       else ax == error
   uses ebx, ecx, edx, es, ds
-
   ; allocate some DOS memory to hold the font data
   mov  ax, 0100h               ; INT 31 P - DPMI 0.9+ - ALLOCATE DOS MEMORY BLOCK
   mov  bx, 2048/16             ; BX = number of paragraphs (16 byte blocks) to allocate
@@ -81,7 +82,11 @@ proc SetFont
   mov  ecx, 0ffffffffh
   jc   @@FreeMemory            ; if error
   test eax, eax
-  jz   @@FreeMemory             ; or no bytes read (EOF)
+  jz   @@FreeMemory            ; or no bytes read (EOF)
+
+  xor eax, eax                 ; or if you just don't like the blocks
+  jmp  @@exit
+
 
   ; fill out the RealMode Call Struct
   mov  ax, es                  ; ax == dataseg

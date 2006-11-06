@@ -184,7 +184,7 @@ void texttopng(unsigned char *textdata,unsigned char * palette) {
   }
 
 unsigned long int skip_count = 0;
-void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h, unsigned char *prevb800h, unsigned long int img_width,unsigned long int img_height) {
+void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h, unsigned char *prevb800h, unsigned long int img_width,unsigned long int img_height, unsigned long int max_char_dist) {
 #define exhaustive_search
 //#define greedy
 #ifdef greedy
@@ -334,38 +334,40 @@ void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h,
       /*best_char, best_fg and best_bg represent the current 'best'
         let's look at what it would look like to use the previous values
       */
-      unsigned char old_char = prevb800h[ x + y*80 ];
-      unsigned char old_best_fg = prevb800h[ x + 1 + y*80 ]&0x0f;
-      unsigned char old_best_bg = (0x0f&prevb800h[x + 1 + y*80])>>4;
-      unsigned char *old_quad = new unsigned char [4];
-      old_quad[0]=old_char&0x03;
-      old_quad[1]=old_char&(0x03<<2);
-      old_quad[2]=old_char&(0x03<<4);
-      old_quad[3]=old_char&(0x03<<6);
-      unsigned long int old_dist = 0;
-      for(int region = 0 ; region<4;region++){
-        unsigned long int tr = ((unsigned long int)(img_r)) - ((unsigned long int)(r_verh[(old_best_fg|(old_best_bg<<4))+(old_quad[region]<<8)]));
-        unsigned long int tg = ((unsigned long int)(img_g)) - ((unsigned long int)(g_verh[(old_best_fg|(old_best_bg<<4))+(old_quad[region]<<8)]));
-        unsigned long int tb = ((unsigned long int)(img_b)) - ((unsigned long int)(b_verh[(old_best_fg|(old_best_bg<<4))+(old_quad[region]<<8)]));
-        old_dist+= sqr(tr) + sqr(tg) + sqr(tb);
-        }
-      if(old_dist < 1024*16) {
-        best_char = old_char;
-        best_fg = old_best_fg;
-        best_bg = old_best_bg;
-        skip_count++;
+      if(max_char_dist>0) {
+        unsigned char old_char = prevb800h[ x + y*80 ];
+        unsigned char old_best_fg = prevb800h[ x + 1 + y*80 ]&0x0f;
+        unsigned char old_best_bg = (0x0f&prevb800h[x + 1 + y*80])>>4;
+        unsigned char old_quad[4];
+        old_quad[0]=old_char&0x03;
+        old_quad[1]=old_char&(0x03<<2);
+        old_quad[2]=old_char&(0x03<<4);
+        old_quad[3]=old_char&(0x03<<6);
+        unsigned long int old_dist = 0;
+        for(int region = 0 ; region<4;region++){
+          unsigned long int tr = ((unsigned long int)(img_r)) - ((unsigned long int)(r_verh[(old_best_fg|(old_best_bg<<4))+(old_quad[region]<<8)]));
+          unsigned long int tg = ((unsigned long int)(img_g)) - ((unsigned long int)(g_verh[(old_best_fg|(old_best_bg<<4))+(old_quad[region]<<8)]));
+          unsigned long int tb = ((unsigned long int)(img_b)) - ((unsigned long int)(b_verh[(old_best_fg|(old_best_bg<<4))+(old_quad[region]<<8)]));
+          old_dist+= sqr(tr) + sqr(tg) + sqr(tb);
+          }
+        if(old_dist < max_char_dist) { //16) {
+          best_char = old_char;
+          best_fg = old_best_fg;
+          best_bg = old_best_bg;
+          skip_count++;
 
-        best_char=0;
-        best_fg=15;
-        best_bg=15;
+  /*        best_char=0;
+          best_fg=15;
+          best_bg=15;  */
+          } /*/
+        /**small compression optimalisation (may be slightly larger for lz77)**/
+        if(best_char==0) {
+          best_fg=best_bg;
+          }
+        if(best_fg==best_bg) {
+          best_char=((best_fg&0x0f)|((best_bg<<4)&0xf0));
+          } /**/
         }
-      /**small compression optimalisation (may be slightly larger for lz77)**/
-      if(best_char==0) {
-        best_fg=best_bg;
-        }
-      if(best_fg==best_bg) {
-        best_char=((best_fg&0x0f)|((best_bg<<4)&0xf0));
-        } /**/
       b800h_l[(x + 80 * y)>>1] = (uint16_t)((((best_fg&0x0f)|((best_bg<<4)&0xf0))<<8)|(best_char));
       }
     }
@@ -377,5 +379,5 @@ void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h,
   delete g_verh;
   delete b_verh;
 #endif
-  fprintf(stderr,"skip_count=%u\n",skip_count);
+  //fprintf(stderr,"reuse=%08u   ",skip_count);
   }
