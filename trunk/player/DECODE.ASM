@@ -124,6 +124,9 @@ if DECODE_MODE eq DM_LZ77S      ;******* Start LZ77S Player *******
   jae @@literalcopy
   
   ; LZ77 Copy
+  
+  push ebx
+
   mov edi, [dword ptr DecodeBufTail]
     
   shl ax, 8
@@ -140,8 +143,6 @@ if DECODE_MODE eq DM_LZ77S      ;******* Start LZ77S Player *******
   jae @@nosign
   add esi, DECBUF_SIZE
   @@nosign:  
-  
-  push ebx
   
         mov ebx,esi
         cmp ebx,edi
