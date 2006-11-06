@@ -273,7 +273,7 @@ void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h,
     palette[3*i+1] = i << 3;
     palette[3*i+2] = i << 3;
     } /**/
-
+  skip_count = 0;
   uint16_t * b800h_l = (uint16_t *)b800h;
   unsigned char * r_verh = new unsigned char[1024];
   unsigned char * g_verh = new unsigned char[1024];
@@ -335,9 +335,46 @@ void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h,
         let's look at what it would look like to use the previous values
       */
       if(max_char_dist>0) {
-        unsigned char old_char = prevb800h[ x + y*80 ];
-        unsigned char old_best_fg = prevb800h[ x + 1 + y*80 ]&0x0f;
-        unsigned char old_best_bg = (0x0f&prevb800h[x + 1 + y*80])>>4;
+        unsigned char old_char    =  prevb800h[x +     y*80];
+        //unsigned char old_best_fg =  prevb800h[x + 1 + y*80]    &0x0f;
+        //unsigned char old_best_bg = (prevb800h[x + 1 + y*80]>>4)&0x0f;
+        unsigned char old_color = prevb800h[x + 1 + y*80];
+        unsigned char old_quad[4];
+        old_quad[0]=old_char&0x03;
+        old_quad[1]=(old_char>>2)&0x03;
+        old_quad[2]=(old_char>>4)&0x03;
+        old_quad[3]=(old_char>>6)&0x03;
+        //Iff all dists with old char and fg-bg color < max_char_dist
+        bool keepme=true;
+        char_dist=0;
+        for(int region = 0 ; region<4;region++){
+          unsigned long int tr = ((unsigned long int)(img_r)) - ((unsigned long int)(r_verh[(old_color)+(old_quad[region]<<8)]));
+          unsigned long int tg = ((unsigned long int)(img_g)) - ((unsigned long int)(g_verh[(old_color)+(old_quad[region]<<8)]));
+          unsigned long int tb = ((unsigned long int)(img_b)) - ((unsigned long int)(b_verh[(old_color)+(old_quad[region]<<8)]));
+          keepme = keepme && ((sqr(tr) + sqr(tg) + sqr(tb)) < max_char_dist );
+//          char_dist+=sqr(tr) + sqr(tg) + sqr(tb);
+          }
+        if(keepme){
+/*            if(char_dist >= max_char_dist * 2){
+            fprintf(stderr,"dist = %i:",char_dist);
+            for(int region = 0 ; region<4;region++){
+              unsigned long int tr = ((unsigned long int)(img_r)) - ((unsigned long int)(r_verh[(old_best_fg|(old_best_bg<<4))+(old_quad[region]<<8)]));
+              unsigned long int tg = ((unsigned long int)(img_g)) - ((unsigned long int)(g_verh[(old_best_fg|(old_best_bg<<4))+(old_quad[region]<<8)]));
+              unsigned long int tb = ((unsigned long int)(img_b)) - ((unsigned long int)(b_verh[(old_best_fg|(old_best_bg<<4))+(old_quad[region]<<8)]));
+              fprintf(stderr," %i,",sqr(tr) + sqr(tg) + sqr(tb));
+              }
+            fprintf(stderr,"\n");
+            } /**/
+          skip_count++;
+          best_char = old_char;
+          best_fg = old_color&0x0f;//old_best_fg;
+          best_bg = (old_color>>4)&0x0f;//old_best_bg;
+          }
+#ifdef undefined
+        fprintf(stderr,"WRONG!! \n")
+        unsigned char old_char    =  prevb800h[x +     y*80];
+        unsigned char old_best_fg =  prevb800h[x + 1 + y*80]    &0x0f;
+        unsigned char old_best_bg = (prevb800h[x + 1 + y*80]>>4)&0x0f;
         unsigned char old_quad[4];
         old_quad[0]=old_char&0x03;
         old_quad[1]=old_char&(0x03<<2);
@@ -359,7 +396,8 @@ void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h,
   /*        best_char=0;
           best_fg=15;
           best_bg=15;  */
-          } /*/
+          } /**/
+#endif
         /**small compression optimalisation (may be slightly larger for lz77)**/
         if(best_char==0) {
           best_fg=best_bg;
@@ -379,5 +417,5 @@ void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h,
   delete g_verh;
   delete b_verh;
 #endif
-  //fprintf(stderr,"reuse=%08u   ",skip_count);
+  fprintf(stderr,"reuse=%08u   ",skip_count);
   }
