@@ -81,12 +81,12 @@ proc install_audio_interrupt
 
   xor  eax, eax
   mov  [dword ptr NrServicedInts], eax
-  mov  [dword ptr ChainTimer], eax
-  mov  [dword ptr FlipTimer], eax
+  mov  [dword ptr ChainTimer], (119318000/((((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) * 182) + 5)/10
+  mov  [dword ptr FlipTimer], AUDIO_INT_FREQ/FPS
   mov  [dword ptr DecodeBufHead], eax
   mov  [dword ptr DecodeBufTail], eax
   mov  [dword ptr AudioDataPtr], eax
-  mov  [dword ptr SampleTimer], eax
+  mov  [dword ptr SampleTimer], AUDSAMP_SIZE
   mov  ebx, large 0b800h       ; SEG(video_ram)
   inc  al                      ; al = 1
   inc  al                      ; mov ax, 2
@@ -135,9 +135,9 @@ proc install_audio_interrupt
 ;  out 040h, al                 ;need a high byte as well
 
   mov  al, low(((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) ; round to the nearest int
-  out 040h,al
-  mov al, high(((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10)
-  out 040h, al                 ;need a high byte as well
+  out  040h,al
+  mov  al, high(((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10)
+  out  040h, al                 ;need a high byte as well
 
   lea  eax, [strIntset]
   push eax
@@ -169,11 +169,10 @@ proc audio_int_protmode_simpletest nolanguage ; this is an interrupt, let's do o
   mov  esi, [dword ptr AudioDataPtr] ; load pointer
   lodsb                        ; get data byte
   out  042h, al                ; 042h = timer 2 counter
-  inc  [dword ptr SampleTimer]
-  cmp  [dword ptr SampleTimer], AUDSAMP_SIZE ; *FIXME* : Inc pre or post check?
-  jne  @@StillInAudioDataBlock
+  dec  [dword ptr SampleTimer]
+  jnz  @@StillInAudioDataBlock
   add  esi, PALETTE_SIZE + FRAME_SIZE ;Select next audiodata block
-  mov  [dword ptr SampleTimer], 0 ; reset timer
+  mov  [dword ptr SampleTimer], AUDSAMP_SIZE ; reset timer
 @@StillInAudioDataBlock:
   cmp  esi, (offset DecodeBuffer) + DECBUF_SIZE
   jb   @@StillInBuffer
@@ -181,22 +180,21 @@ proc audio_int_protmode_simpletest nolanguage ; this is an interrupt, let's do o
 @@StillInBuffer:
   mov  [dword ptr AudioDataPtr], esi
 
-  inc  [dword ptr FlipTimer]   ; *FIXME* : Inc pre or post check?
-  cmp  [dword ptr FlipTimer], AUDIO_INT_FREQ/FPS
-  jne  @@NoFlip
+  dec  [dword ptr FlipTimer]   ; *FIXME* : Inc pre or post check?
+  jnz  @@NoFlip
   ;Flip, DANGEROUS: RENTRY?
   mov  al, 020h                ;
   out  020h, al                ; signal End of Interrupt
   sti                          ; renable interrupts
-  mov  [dword ptr FlipTimer], 0; reset FlipTimer
+  mov  [dword ptr FlipTimer], AUDIO_INT_FREQ/FPS; reset FlipTimer
   ; Flip videobuffer to the screen
   mov  esi, [dword ptr DecodeBufHead]
   push es edi ecx edx          ; save registers needed to flip
   mov  es, [word ptr vidmem_selector]; selector for the video_ram
   xor  edi, edi                ; start filling ram from address 0 (b800h:0000h)
-  vsync                        ; modifies dx, al
   mov  ecx, large FRAME_SIZE shr 2 ; Bytes to dword
-  repnz movsd                  ; Flip
+  vsync                        ; modifies dx, al
+  rep  movsd                   ; Flip
   setpalette                   ; ds:esi -> Palette data, uses al, cl, dx
   add  esi, AUDSAMP_SIZE       ; We don't want to display audiodata
   cmp  esi, (offset DecodeBuffer) + DECBUF_SIZE
@@ -212,10 +210,9 @@ proc audio_int_protmode_simpletest nolanguage ; this is an interrupt, let's do o
   iret
 
 @@NoFlip:
-  inc  [dword ptr ChainTimer]  ; *FIXME* : Inc pre or post check?
-  cmp  [dword ptr ChainTimer], (119318000/((((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) * 182) + 5)/10 ; call original handler every N times
-  jne  @@exit
-  mov  [dword ptr ChainTimer], 0; reset ChainTimer
+  dec  [dword ptr ChainTimer]  ; *FIXME* : Inc pre or post check?
+  jnz  @@exit
+  mov  [dword ptr ChainTimer], (119318000/((((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) * 182) + 5)/10; reset ChainTimer
   pop  esi
   pop  eax
   pop  ds                      ; restore ds and eax

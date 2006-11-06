@@ -60,7 +60,7 @@ void get_default_palette(unsigned char *palette) {
     }
   }
 
-void random_sort( unsigned char *pal,unsigned char *prevpal ) {
+unsigned long int random_sort( unsigned char *pal,unsigned char *prevpal ) {
   #define sqr(x) ((x)*(x))
   unsigned long max_dist=1024*16; //ULONG_MAX; // temperature
   unsigned long int dist=0;
@@ -75,7 +75,7 @@ void random_sort( unsigned char *pal,unsigned char *prevpal ) {
   FILE *rnd = fopen("/dev/urandom","r");
   if(rnd==NULL) {
     fprintf(stderr, "Error opening /dev/urandom!\n");
-    return;
+    return -1;
     }
   unsigned char r=0;
   #define randomize (fread(&r,1,1,rnd))
@@ -128,8 +128,9 @@ void random_sort( unsigned char *pal,unsigned char *prevpal ) {
       //fprintf(stderr, "temperature=%u, best_dist=%u\n",max_dist, best_dist);
       }
     }
-  fprintf(stderr, "best_dist=%u\n",best_dist);
+  //fprintf(stderr, "best_dist=%u\n",best_dist);
   fclose(rnd);
+  return best_dist;
   }
 
 void ryasa(unsigned char *pal,unsigned char *prevpal, unsigned char *bestpal, int pos, unsigned long int *best_dist) {
@@ -184,7 +185,7 @@ void ryasa(unsigned char *pal,unsigned char *prevpal, unsigned char *bestpal, in
     }
   }
 
-void find_opt_pal(unsigned char * img, unsigned char *palette,unsigned char *prevpalette, unsigned long int width, unsigned long int height) {
+void find_opt_pal(unsigned char * img, unsigned char *palette,unsigned char *prevpalette, unsigned long int width, unsigned long int height, unsigned long int max_pal_dist) {
 /*  for(unsigned long int i=0; i<width*height;i++){ //6bit precision
     img[i]=img[i]&0xfc;
     } */
@@ -208,8 +209,17 @@ void find_opt_pal(unsigned char * img, unsigned char *palette,unsigned char *pre
     } /**/
 
   // Anneal sort
-  random_sort( palette,prevpalette );
-
+  unsigned long int dist=random_sort( palette,prevpalette );
+  if(  dist< max_pal_dist) {
+    //fprintf(stderr,"dist=%08u->old   ",dist);
+    for(int i = 0 ; i < 48; i++) {
+      palette[i] = prevpalette[i];
+      }
+    }
+  else {
+    //fprintf(stderr,"dist=%08u->new   ",dist);
+    }
+  delete points;
 
 
   /* YASA! (Yet Another Sorting Algo!) * /// Takes for fucking ever :(
@@ -311,7 +321,7 @@ void find_opt_pal(unsigned char * img, unsigned char *palette,unsigned char *pre
     palette[i*3+2]=unspalette[i*3+2];
     } */
 
-  //DEBUG PALETTE
+  /*/DEBUG PALETTE
   if(pal==NULL ) {
     pal = fopen("palette.raw","wb");
     }

@@ -34,6 +34,11 @@
 #include "palette.h"
 #include "imagizer.h"
 
+#define AUDIO_BYTES_PER_FRAME 400
+#define RawOutput
+//#define FullLZW
+
+
 using namespace std;
 enum mode { dafox,  /* `Original' AA: Dark Grey/Light Grey/White text on Black background */
             thomas, /* Simulated 80x100 pixels, color */
@@ -43,9 +48,9 @@ enum mode { dafox,  /* `Original' AA: Dark Grey/Light Grey/White text on Black b
             };
 #include <iostream>
 int main(int argc, char *argv[]) {
-  if(argc>5) {
-    enum mode mode=dafox;
-    if (argc>6) {  // select a mode
+  if(argc>2) {
+    enum mode mode=opt_pal_opt_charset;
+    /*if (argc>6) {  // select a mode
       switch(*(argv[6])) {
         case 'd':
           mode=dafox;
@@ -71,7 +76,7 @@ int main(int argc, char *argv[]) {
           fprintf(stderr, "Unrecognized mode, defaulting to 'Da Fox'\n");
           break;
         }
-      }
+      } */
     char * filename = new char [14];
     unsigned long int uncompressedbytes=0;
     unsigned long int rlecompressedbytes=0;
@@ -79,6 +84,7 @@ int main(int argc, char *argv[]) {
     memcpy(filename, "00000001.png",13);
     bool done=false;
     FILE *op = fopen(argv[1], "wb");
+    FILE *raw_wav_file = fopen(argv[2], "rb");
     //FILE *debug = fopen("debug", "wb");
     unsigned long int palettesize=48;
     unsigned long int frames=0;
@@ -101,14 +107,24 @@ int main(int argc, char *argv[]) {
       fwrite(font,1,2048,op);
       fclose(ffont);
       //extern unsigned long int totals;  //Total bytes
+      unsigned long int max_pal_dist = 0;
+      if(argc > 3) {
+        max_pal_dist = atol(argv[3]);
+        }
+      unsigned long int max_char_dist = 0;
+      if(argc > 4) {
+        max_char_dist = atol(argv[4]);
+        }
       unsigned char * b800h   = new unsigned char [8000];
       unsigned char * prev    = new unsigned char [8000];
       unsigned char * output  = new unsigned char [2*8000];
       unsigned char * imgdata = new unsigned char [160*100*4];
       unsigned char * palette = new unsigned char [palettesize];
       unsigned char * prevpalette = new unsigned char [palettesize];
+      unsigned char * wavdata = new unsigned char [AUDIO_BYTES_PER_FRAME];
       memset(b800h, 0, 8000);
       memset(prev, 0, 8000);
+      memset(wavdata, 0, AUDIO_BYTES_PER_FRAME);
       int hax=0;
       switch(mode){
         case thomas:
@@ -121,15 +137,16 @@ int main(int argc, char *argv[]) {
           initialize_imagizer(font);
           break;
         }
-      if(do_init_aalib( argv, argc )==EXIT_FAILURE || !init_caca( argv, 80, 50, 160, 100, hax)) {
+/*      if(do_init_aalib( argv, argc )==EXIT_FAILURE || !init_caca( argv, 80, 50, 160, 100, hax)) {
         return EXIT_FAILURE;
-        }
+        } */
       if(!init_lzw()){
         return EXIT_FAILURE;
         }
       get_default_palette(  prevpalette );
       while(!done) {
         FILE *ip = fopen(filename, "rb");
+
         if(ip!=NULL) {
           //fprintf(stderr, "Processing %s\n",filename);
           /* Get the image data from the PNG. RGB, 24bbp */
@@ -138,14 +155,14 @@ int main(int argc, char *argv[]) {
             /* Transfrom the pngdata using libAA \/ libCaCa */
             //fwrite(imgdata,  1,  w*h*3,  op); // for t3h Simon
             if(mode==simon) {
-              find_opt_pal(imgdata, palette, prevpalette,w, h);
+              find_opt_pal(imgdata, palette, prevpalette,w, h,max_pal_dist);
               //********************************************
               //return EXIT_FAILURE;
 
               pixtotext( (unsigned long int *)imgdata, (unsigned short *)b800h,0);
               }
             else if (mode==thomas) {
-              find_opt_pal(imgdata, palette, prevpalette, w, h);
+              find_opt_pal(imgdata, palette, prevpalette, w, h,max_pal_dist);
               pixtotext( (unsigned long int *)imgdata, (unsigned short *)b800h,1);
               }
             else if (mode==dafox) {
@@ -155,16 +172,16 @@ int main(int argc, char *argv[]) {
              //pixtotext( (unsigned long int *)imgdata, (unsigned short *)b800h,0);
               }
             else if (mode==opt_pal_opt_charset) {
-              find_opt_pal(imgdata, palette, prevpalette, w, h);
+              find_opt_pal(imgdata, palette, prevpalette, w, h, max_pal_dist);
               //get_default_palette(palette);
               timeval tv_pre;
               timeval tv_post;
               gettimeofday(&tv_pre, NULL);
-              imagize(imgdata, palette,b800h,prev,w, h);
+              imagize(imgdata, palette,b800h,prev,w, h, max_char_dist);
               gettimeofday(&tv_post, NULL);
               fprintf(stderr,"Rendering %s cost %0.4f seconds\n",filename,float((1000000*tv_post.tv_sec+tv_post.tv_usec)-(1000000*tv_pre.tv_sec+tv_pre.tv_usec))/1000000.0);
 
-              /* outputpng //*/
+              /* outputpng //* /
               gettimeofday(&tv_pre, NULL);
               texttopng(b800h,palette);
               gettimeofday(&tv_post, NULL);
@@ -173,6 +190,19 @@ int main(int argc, char *argv[]) {
               }
             unsigned long int outputlen;
             outputlen=0;
+
+#ifdef RawOutput
+            memcpy(prevpalette, palette, palettesize);
+            palette6bit(palette);
+            fwrite(b800h,  1,  8000,  op);
+            fwrite(palette, 1, 48, op);
+            if(raw_wav_file!=NULL) {
+              fread(wavdata, 1,  AUDIO_BYTES_PER_FRAME, raw_wav_file);
+              }
+            fwrite(wavdata, 1, AUDIO_BYTES_PER_FRAME, op);
+#endif
+
+#ifdef FullLZW
             diff(op,b800h,prev,output,&outputlen); uncompressedbytes+=8000; rlecompressedbytes+=outputlen;
 //            fwrite(b800h,  1,  8000,  debug);
 //            fwrite(output,  1,  outputlen,  debug);
@@ -190,6 +220,7 @@ int main(int argc, char *argv[]) {
             /** NOTE: Early abort ** /
             finalize_lzw(op);
             return EXIT_FAILURE; /**/
+#endif
 
             unsigned char *tmp = b800h;
             b800h=prev;
@@ -218,8 +249,11 @@ int main(int argc, char *argv[]) {
           delete imgdata;
           delete b800h;
           delete output;
-          uninit_caca();
-          do_uninit_aalib();
+          delete palette;
+          delete prevpalette;
+          delete wavdata;
+//          uninit_caca();
+//          do_uninit_aalib();
           uninitialize_imagizer();
           done=true;
           }
@@ -228,6 +262,9 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "Frames written : %lu = %lu bytes\nAfter RLE : %lu = %.2f%% of original\nAfter LZW : %i bytes = %.2f%% of original\n",\
               frames, uncompressedbytes,rlecompressedbytes, float(rlecompressedbytes)/(float(uncompressedbytes)/100.0), compressedbytes, float(compressedbytes)/(float(uncompressedbytes)/100.0));
       fclose(op);
+      if(raw_wav_file!=NULL) {
+         fclose(raw_wav_file);
+         }
       delete filename;
       }
     else {
@@ -235,7 +272,7 @@ int main(int argc, char *argv[]) {
       }
     }
   else {
-    fprintf(stderr,"Usage: mpngtocaas file bright gamma contrast dither [modechar]\nWith dither none, ordered2,ordered4, ordered8,random, fstein\n");
+    fprintf(stderr,"Usage: mpngtocaas output_file raw_wav_file [max_pal_dist] [max_char_dist]\n");
     }
   return EXIT_SUCCESS;
   }
