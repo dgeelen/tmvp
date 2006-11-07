@@ -1,34 +1,40 @@
 <?xml version = '1.0' encoding = 'UTF-8'?>
 <!DOCTYPE KDevPrjSession>
 <KDevPrjSession>
- <DocsAndViews NumberOfDocuments="9" >
+ <DocsAndViews NumberOfDocuments="11" >
   <Doc0 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/mpngtocaas.cpp" >
-   <View0 line="37" Type="Source" />
+   <View0 line="207" Type="Source" />
   </Doc0>
-  <Doc1 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/aadiff.cpp" >
-   <View0 line="0" Type="Source" />
+  <Doc1 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/lz77s.cpp" >
+   <View0 line="65" Type="Source" />
   </Doc1>
-  <Doc2 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/aadiff.h" >
-   <View0 line="0" Type="Source" />
+  <Doc2 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/lz77s.h" >
+   <View0 line="25" Type="Source" />
   </Doc2>
-  <Doc3 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/palette.cpp" >
-   <View0 line="313" Type="Source" />
+  <Doc3 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/compress1/lz77s.cpp" >
+   <View0 line="15" Type="Source" />
   </Doc3>
-  <Doc4 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/imagizer.cpp" >
-   <View0 line="365" Type="Source" />
+  <Doc4 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/compress1/mystream.cpp" >
+   <View0 line="54" Type="Source" />
   </Doc4>
-  <Doc5 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/palette.h" >
+  <Doc5 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/compress1/mystream.h" >
    <View0 line="0" Type="Source" />
   </Doc5>
-  <Doc6 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/imagizer.h" >
+  <Doc6 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/compress1/UTypes.h" >
    <View0 line="0" Type="Source" />
   </Doc6>
-  <Doc7 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/lzw.h" >
-   <View0 line="0" Type="Source" />
+  <Doc7 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/UTypes.h" >
+   <View0 line="17" Type="Source" />
   </Doc7>
-  <Doc8 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/lzw.cpp" >
-   <View0 line="42" Type="Source" />
+  <Doc8 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/mystream.cpp" >
+   <View0 line="0" Type="Source" />
   </Doc8>
+  <Doc9 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/mystream.h" >
+   <View0 line="116" Type="Source" />
+  </Doc9>
+  <Doc10 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/lzw.h" >
+   <View0 line="28" Type="Source" />
+  </Doc10>
  </DocsAndViews>
  <pluginList>
   <kdevdebugger>
@@ -36,7 +42,7 @@
     <breakpoint0 location="/home/dafox/Projects/tmvp/imagizer2/src/colorize.cpp:109" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
      <tracedExpressions/>
     </breakpoint0>
-    <breakpoint1 location="/home/dafox/Projects/tmvp/imagizer2/src/palette.cpp:267" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
+    <breakpoint1 location="/home/dafox/Projects/tmvp/imagizer2/src/mpngtocaas.cpp:264" type="1" tracingFormatString="" traceFormatStringEnabled="0" condition="" tracingEnabled="0" enabled="1" >
      <tracedExpressions/>
     </breakpoint1>
    </breakpointList>

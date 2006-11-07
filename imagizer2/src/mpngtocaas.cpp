@@ -37,6 +37,7 @@
 #define AUDIO_BYTES_PER_FRAME 400
 #define RawOutput
 //#define FullLZW
+#define lz77s
 
 
 using namespace std;
@@ -200,6 +201,19 @@ int main(int argc, char *argv[]) {
               fread(wavdata, 1,  AUDIO_BYTES_PER_FRAME, raw_wav_file);
               }
             fwrite(wavdata, 1, AUDIO_BYTES_PER_FRAME, op);
+#endif
+
+#ifdef lz77s
+            uncompressedbytes+=8000; lz77s(output, op, &outputlen); compressedbytes+=outputlen;
+            memcpy(prevpalette, palette, palettesize);
+            palette6bit(palette);
+            palettesize=48;
+            uncompressedbytes+=palettesize; lz77s(palette, op, &outputlen); compressedbytes+=palettesize;
+            if(raw_wav_file!=NULL) {
+              fread(wavdata, 1,  AUDIO_BYTES_PER_FRAME, raw_wav_file);
+              }
+            outputlen=AUDIO_BYTES_PER_FRAME;
+            uncompressedbytes+=outputlen; lz77s(wavdata, op, &outputlen); compressedbytes+=outputlen;
 #endif
 
 #ifdef FullLZW
