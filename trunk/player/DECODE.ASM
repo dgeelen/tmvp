@@ -14,8 +14,8 @@ DM_RAW      EQU 1	; implemented and working
 DM_LZ77S    EQU 2
 DM_DEFLATE  EQU 3
 
-DECODE_MODE EQU DM_RAW
-;DECODE_MODE EQU DM_LZ77S
+;DECODE_MODE EQU DM_RAW
+DECODE_MODE EQU DM_LZ77S
 
 INPBUF_SIZE EQU 64*1024
 
@@ -28,11 +28,35 @@ proc decoder
 
 
 ;--- LOAD AND 'PLAY' A _RAW_ FILE ---
-  ; Simon sais:
+  ; Simon says:
   ; blah
   mov ax, ds
   mov es, ax
   cld
+
+  ;first we need to zero out the buffer or we get a nasty 'glitch' on startup
+;  if DECODE_MODE eq DM_RAW1
+;    xor  eax, eax
+;    lea  esi, [DecodeBuffer]
+;    mov  ecx, DECBUF_SIZE shr 2
+;    rep  stosd                        ; mov [es:esi], eax
+;  endif
+  if DECODE_MODE eq DM_LZ77S
+    xor  eax, eax
+    lea  edi, [DecodeBuffer]
+    mov  ecx, DECBUF_SIZE shr 2
+    rep  stosd                        ; mov [es:esi], eax
+    xor  eax, eax
+    lea  edi, [InputBuffer]
+    mov  ecx, INPBUF_SIZE shr 2
+    rep  stosd                        ; mov [es:esi], eax
+  endif
+  if DECODE_MODE eq DM_DEFLATE
+    display TODO: XOR  EAX, EAX
+    display TODO: LEA  ESI, [DEFLATE_BUFFER]
+    display TODO: MOV  ECX, DEFLATE_BUFFER_SIZE
+    display TODO: REP  STOSD
+  endif
 
   mov  ebx, [dword ptr Filehandle]
   lea  edx, [DecodeBuffer]
@@ -233,6 +257,7 @@ endif                           ;******* End LZ77S Player *******
   jne  @@NextFrame
   cli
   mov  eax, [dword ptr DecodeBufHead] ; save head
+  mov  edx, [dword ptr DecodeBufTail] ; FIXME: LZ77 DECODER DOES NOT OBEY LOOP INVARIANT
   mov [dword ptr DecodeBufHead], edx  ; 'empty' buffer
   sti
   push eax                            ; eax used in following
