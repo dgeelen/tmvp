@@ -22,6 +22,18 @@ DECWIN_SIZE EQU 32 * 1024
 ;DEBUG EQU True
 DEBUG EQU False
 
+;Some defines for the Audio output
+;  Q: Should we make these selectable at run time?
+;  A: *TODO*:
+LPT_BASE_PORT EQU 0378h        ; 0378h == lpt1, 0278h == lpt2. *TODO* : These values are for generic PC's
+                               ; we *should* read them from the BIOS data area (0040:0008, 0040:000A, 40:0C and 40:0E for lpt1, lpt2, etc
+BEEP_ON_FREAD EQU False        ; Reprogram timer to generate a tone on _fread, *should* reduce the popping sound
+;PC_SPEAKER EQU False
+;LPT_DAC EQU True               ; Don't forget to set base address and, if applicable, DISNEY_SOUND_SOURCE
+DISNEY_SOUND_SOURCE EQU False   ; ONLY IN DOSBOX!
+PC_SPEAKER EQU True
+LPT_DAC EQU False
+
 macro BufferSpaceLeft Head, Tail, Size
   local noadj
   ; Pre: Head and Tail point to the adresses of the begin- and end-points of the buffer contents

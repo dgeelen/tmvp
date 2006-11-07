@@ -37,7 +37,7 @@
 #define AUDIO_BYTES_PER_FRAME 400
 #define RawOutput
 //#define FullLZW
-#define lz77s
+//#define lz77s
 
 
 using namespace std;
