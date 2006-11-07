@@ -53,6 +53,14 @@ proc uninstall_audio_interrupt
   ;mov  al, 0
   ;out 040h,al
 
+if LPT_DAC eq True
+  if DISNEY_SOUND_SOURCE eq True
+    mov  dx, LPT_BASE_PORT + 2
+    mov  al, 04h                 ; turn it off
+    out  dx, al
+  endif
+endif
+
   jmp short @@exit
 @@NoInt:
   lea  eax, [strNoIntUninstallError]
@@ -132,6 +140,14 @@ proc install_audio_interrupt
   mov  al, high(((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10)
   out  040h, al                 ;need a high byte as well
 
+if LPT_DAC eq True
+  if DISNEY_SOUND_SOURCE eq True
+    mov  dx, LPT_BASE_PORT + 2
+    mov  al, 04h                 ; turn it on
+    out  dx, al
+  endif
+endif
+
   lea  eax, [strIntset]
   push eax
   call _printf
@@ -159,7 +175,22 @@ proc audio_int_protmode_simpletest nolanguage ; this is an interrupt, let's do o
   ; Play a sample of audio     ; ** TODO: Figure out if A/V Sync is neccesary and how to implement it **
   mov  esi, [dword ptr AudioDataPtr] ; load pointer
   lodsb                        ; get data byte
+if PC_SPEAKER eq True
   out  042h, al                ; 042h = timer 2 counter
+endif
+if LPT_DAC eq True             ; TODO: OPTIMILISATIONIZE THIS DX CRAP
+  push dx
+  mov  dx, LPT_BASE_PORT
+  out  dx, al
+  if DISNEY_SOUND_SOURCE eq True ; This is Disney Sound Source Voodoo
+    add  dx, 2                 ; select control regists
+    mov  al, 00ch
+    out  dx, al
+    mov  al, 004h
+    out  dx, al
+  endif
+  pop  dx
+endif
   dec  [dword ptr SampleTimer]
   jnz  short @@StillInBuffer   ; We're still in the current datablock, thus certainly in the buffer
   add  esi, PALETTE_SIZE + FRAME_SIZE ;Select next audiodata block
@@ -208,6 +239,34 @@ proc audio_int_protmode_simpletest nolanguage ; this is an interrupt, let's do o
 @@NoResetFramePtr:
   mov  [dword ptr DecodeBufHead], esi; update head pointer
   pop  edx ecx edi es
+
+  ; --- THIS APPLIES (in theory) ONLY TO THE PC SPEAKER OUTPUT ---
+  ; Finally we need to do a little check to see if we want to read from disk
+  ; Because when we do that, int 21h disables interrupts for a short while
+  ; which will result in a 'pop'. To counter act this we need to reprogram the
+  ; timer to output a tone during this time.
+  ;
+  ;   Q. Is the interrupt really the best place to do this?
+  ;   A. *TODO*
+  ;
+if BEEP_ON_FREAD eq True
+  cmp  [dword ptr fread_request], 1
+  jne  @@ExitFlip
+  ; First timer 2
+  mov al, 10110110B            ; 'Original' mode ??
+  out 043h, al
+  in  al, 061h
+  and al, 0FCh                 ; disconnect from speaker
+  out 061h, al
+  ; Then timer 0
+  mov al, 00110110B            ; yet another magic bit string
+  out 043h, al
+  mov al, 0ffh                 ; 18.2 hz (?)
+  out 040h,al
+  out 040h,al
+  dec  [dword ptr _fread_request] ; acknowledge request
+  ; --- END PC SPEAKER SPECIFIC SECTION ---
+endif
 @@ExitFlip:
   pop  esi
   pop  eax

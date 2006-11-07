@@ -132,6 +132,8 @@ if DECODE_MODE eq DM_LZ77S      ;******* Start LZ77S Player *******
   mov  ebx, [dword ptr Filehandle]
   _fread
   pop ecx
+  test eax, eax
+  jz   @@done
 
   add eax, ecx
   add eax, offset InputBuffer
@@ -257,7 +259,7 @@ endif                           ;******* End LZ77S Player *******
   jne  @@NextFrame
   cli
   mov  eax, [dword ptr DecodeBufHead] ; save head
-  mov  edx, [dword ptr DecodeBufTail] ; FIXME: LZ77 DECODER DOES NOT OBEY LOOP INVARIANT
+  mov  edx, [dword ptr DecodeBufTail] ; FIXME: LZ77 DECODER DOES NOT OBEY (implicit :) LOOP INVARIANT
   mov [dword ptr DecodeBufHead], edx  ; 'empty' buffer
   sti
   push eax                            ; eax used in following
