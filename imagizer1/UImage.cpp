@@ -3,10 +3,12 @@
 
 #pragma hdrstop
 
-#include <assert>
+#include <assert.h>
 #include "UImage.h"
 #include "stdio.h"
-#include <png.h>
+#ifdef WITH_PNG
+# include <png.h>
+#endif
 
 using namespace std;
 
@@ -63,6 +65,7 @@ void RawRGBImage::LoadFromFile(string filename)
 {
 }
 
+#ifdef WITH_PNG
 void RawRGBImage::LoadFromPNG(string filename, uint32 awidth, uint32 aheight)
 {
 	FILE *fp = fopen(filename.c_str(), "rb");
@@ -123,7 +126,9 @@ void RawRGBImage::LoadFromPNG(string filename, uint32 awidth, uint32 aheight)
 
 	fclose(fp);
 }
+#endif
 
+#ifdef WITH_PNG
 void RawRGBImage::SaveToPNG(std::string filename)
 {
 	FILE *fp = fopen(filename.c_str(), "wb");
@@ -172,6 +177,7 @@ void RawRGBImage::SaveToPNG(std::string filename)
 
 	fclose(fp);
 }
+#endif
 
 void RawRGBImage::LoadFromBMP(string filename)
 {
@@ -192,6 +198,18 @@ void RawRGBImage::LoadFromRAW(std::string filename, uint32 awidth, uint32 aheigh
 
 	fclose(fp);
 }
+
+void RawRGBImage::LoadFromRAW(FILE* filehandle, uint32 awidth, uint32 aheight)
+{
+	if (!filehandle) {
+		return ;
+	}
+
+	SetSize(awidth, aheight);
+
+	fread(data, sizeof(*data), awidth * aheight, filehandle);
+}
+
 //---------------------------------------------------------------------------
 
 void TextPal::SetColor(uint8 ind, RGBColor col)
