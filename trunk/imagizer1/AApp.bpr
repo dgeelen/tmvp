@@ -28,7 +28,7 @@
     <DEBUGLIBPATH value="$(BCB)\lib\debug"/>
     <RELEASELIBPATH value="$(BCB)\lib\release"/>
     <LINKER value="ilink32"/>
-    <USERDEFINES value="_DEBUG"/>
+    <USERDEFINES value=""/>
     <SYSDEFINES value="_RTLDLL;NO_STRICT;USEPACKAGES"/>
     <MAINSOURCE value="AApp.cpp"/>
     <INCLUDEPATH value="&quot;C:\Program Files\Borland\CBuilder6\Projects&quot;;..;$(BCB)\include;$(BCB)\include\vcl;$(BCB)\Projects\png"/>
@@ -38,13 +38,12 @@
   </MACROS>
   <OPTIONS>
     <IDLCFLAGS value="-I&quot;C:\Program Files\Borland\CBuilder6\Projects&quot; -I.. -I$(BCB)\include 
-      -I$(BCB)\include\vcl -I$(BCB)\Projects\png -src_suffix cpp -D_DEBUG -boa"/>
-    <CFLAG1 value="-Od -H=$(BCB)\lib\vcl60.csm -Hc -Vx -Ve -X- -r- -a8 -6 -b- -k -y -v -vi- 
-      -c -tW -tWM"/>
-    <PFLAGS value="-$Y+ -$W -$R -$O- -$A8 -v -JPHNE -M"/>
+      -I$(BCB)\include\vcl -I$(BCB)\Projects\png -src_suffix cpp -boa"/>
+    <CFLAG1 value="-O2 -H=$(BCB)\lib\vcl60.csm -Hc -Vx -Ve -X- -a8 -6 -b- -k- -vi -c -tW -tWM"/>
+    <PFLAGS value="-$Y- -$R -$L- -$D- -$A8 -v -JPHNE -M"/>
     <RFLAGS value=""/>
-    <AFLAGS value="/mx /w2 /zi"/>
-    <LFLAGS value="-D&quot;&quot; -aa -Tpe -x -Gn -v"/>
+    <AFLAGS value="/mx /w2 /zn"/>
+    <LFLAGS value="-D&quot;&quot; -aa -Tpe -x -Gn"/>
     <OTHERFILES value=""/>
   </OPTIONS>
   <LINKER>
