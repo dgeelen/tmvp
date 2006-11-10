@@ -103,7 +103,7 @@ proc decoder
 @@TestLZ77sBufferEmpty:
   BufferSpaceLeft DecodeBufHead, DecodeBufTail, DECBUF_SIZE ; eax == empty bytes left in buffer
   ; do crappy refill for now....
-  cmp eax, 0FFh
+  cmp eax, 0FFh ;//decwinsize????
   jbe @@lz77sDecoder
   BufferSpaceLeft InputBufHead, InputBufTail, INPBUF_SIZE;
   sub eax, INPBUF_SIZE
@@ -125,10 +125,12 @@ proc decoder
   mov  ebx, [dword ptr Filehandle]
   _fread
   pop ecx
-  test eax, eax
-  jz   @@done
 
   add eax, ecx
+  
+  test eax, eax
+  jz   @@done
+  
   add eax, offset InputBuffer
   mov [dword ptr InputBufTail], eax
   mov [dword ptr InputBufHead], offset InputBuffer
@@ -192,7 +194,7 @@ proc decoder
         cmp edi, offset DecodeBuffer + DECBUF_SIZE
         jne @@noedi
         mov edi, offset DecodeBuffer
-        jmp @@nosign ;TODO: figure out when this happens and what it does
+        ;jmp @@nosign ;TODO: figure out when this happens and what it does
        @@noedi:
         jmp @@nosign
        @@golz77copy:
