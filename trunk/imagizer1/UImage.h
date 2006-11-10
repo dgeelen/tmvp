@@ -3,7 +3,9 @@
 #ifndef UImageH
 #define UImageH
 
-//#include <vcl.h>
+#ifdef WITH_PNG
+#include <vcl.h>	// this is needed for BCB here.... TODO: find correct define 
+#endif
 #include <string>
 #include <stdio.h>
 #include "UColor.h"
