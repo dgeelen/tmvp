@@ -38,14 +38,14 @@ int main(int argc, char* argv[])
 	TRenderMethod *r_renderer = NULL;
 
 	r_renderer = new TRenderBruteBlock;
-	r_palcalc = new TPalMedianCut;
+	r_palcalc = new TPalMedianCutSort(250);		// TODO: threshold from cmd line param?
 
 	r_textimage.font = &r_font;
 	r_textimage.pal = &r_pal;
 
 	while (!feof(ifhandle))
 	{
-  	r_sourceimage.LoadFromRAW(ifhandle, 160, 100);
+		r_sourceimage.LoadFromRAW(ifhandle, 160, 100);
 
 		r_palcalc->CalcPal(&r_sourceimage, &r_pal);
 
@@ -63,9 +63,9 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	// TODO, release resources...
+	// TODO: release resources...
 
 	return 0;
 }
 //---------------------------------------------------------------------------
- 
+
