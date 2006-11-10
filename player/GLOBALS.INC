@@ -20,6 +20,7 @@ global install_audio_interrupt:proc
 global uninstall_audio_interrupt:proc
 global Decoder:proc
 global fileop_function_test:proc
+global filemagic:proc
 
 ;---Variables
 global DecodeBufHead:dword
@@ -28,3 +29,7 @@ global AudioDataPtr:dword
 global DecodeBuffer:byte:DECBUF_SIZE
 global AudioBuffer:byte:AUDSAMP_SIZE * RENDER_AHEAD
 global Filehandle:dword
+global DecoderMode:dword
+if BEEP_ON_FREAD eq True
+  global WaveSample:dword
+endif

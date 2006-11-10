@@ -10,13 +10,6 @@ locals ;@@                     ; Use '@@' as local symbol prefix
                                ; Must be 2 chars
 jumps
 
-DM_RAW      EQU 1	; implemented and working
-DM_LZ77S    EQU 2
-DM_DEFLATE  EQU 3
-
-;DECODE_MODE EQU DM_RAW
-DECODE_MODE EQU DM_LZ77S
-
 INPBUF_SIZE EQU 64*1024
 
 codeseg
@@ -25,40 +18,8 @@ proc decoder
   ; Post: File has been decoded/played
   uses eax,ebx,ecx,edx,esi,edi,es
 
-
-
-;--- LOAD AND 'PLAY' A _RAW_ FILE ---
-  ; Simon says:
-  ; blah
-  mov ax, ds
-  mov es, ax
-  cld
-
-  ;first we need to zero out the buffer or we get a nasty 'glitch' on startup
-;  if DECODE_MODE eq DM_RAW1
-;    xor  eax, eax
-;    lea  esi, [DecodeBuffer]
-;    mov  ecx, DECBUF_SIZE shr 2
-;    rep  stosd                        ; mov [es:esi], eax
-;  endif
-  if DECODE_MODE eq DM_LZ77S
-    xor  eax, eax
-    lea  edi, [DecodeBuffer]
-    mov  ecx, DECBUF_SIZE shr 2
-    rep  stosd                        ; mov [es:esi], eax
-    xor  eax, eax
-    lea  edi, [InputBuffer]
-    mov  ecx, INPBUF_SIZE shr 2
-    rep  stosd                        ; mov [es:esi], eax
-  endif
-  if DECODE_MODE eq DM_DEFLATE
-    display TODO: XOR  EAX, EAX
-    display TODO: LEA  ESI, [DEFLATE_BUFFER]
-    display TODO: MOV  ECX, DEFLATE_BUFFER_SIZE
-    display TODO: REP  STOSD
-  endif
-
-  mov  ebx, [dword ptr Filehandle]
+  ; First some generic initialisation shared by all decoders (2 atm)
+  mov  ebx, [dword ptr Filehandle] ; Set filehandle
   lea  edx, [DecodeBuffer]
   lea  eax, [edx + FRAME_SIZE + PALETTE_SIZE]
   cli                          ; Prevent FLIP from occurring to early
@@ -67,22 +28,47 @@ proc decoder
   mov  [dword ptr AudioDataPtr] , eax
   sti
 
-if DECODE_MODE eq DM_LZ77S
+;***
+  mov  ax, ds                  ; FIXME: simon's lz77s decoder needs something along these lines
+  mov  es, ax                  ; But not quite the same (or something else is wrong ...)
   mov  [dword ptr InputBufHead], offset InputBuffer
   mov  [dword ptr InputBufTail], offset InputBuffer
-endif
-@@NextFrame:
-;----------------------------------------------------------------
-if DECODE_MODE eq DM_RAW        ;******* Start Raw Player *******
+  mov  esi, eax
+  mov  edi, eax
+  cld
+;***
+
+
+  ; then we decide which decoder to use
+  mov  eax, 1
+  test [dword ptr DecoderMode], eax ; is it RAW or not?
+  jz   @@RawDecoder                 ; it's a raw
+  shl  eax, 1
+  test [dword ptr DecoderMode], eax ; test what kind of compression (LZ77s or ...??)
+  jz   @@lz77sDecoder
+  lea  eax, [strDecoderNotFound]
+  push eax
+  call _printf
+  add  esp, 4
+  jmp  @@exit
+
+;******************************************************************************************************************************
+
+@@RawDecoder:                  ; ----------------------------------------------------------------------------------------------RAW---
+  hlt
+  call keypressed              ; TODO: LESS CHECKING ?
+  jnz  @@TestRawBufferEmpty
+  call near @@ProcessKeypress
+@@TestRawBufferEmpty:
   BufferSpaceLeft DecodeBufHead, DecodeBufTail, DECBUF_SIZE ; eax == empty bytes left in buffer
   ; dont refill if the buffer is still >50% full
   cmp  eax, DECBUF_SIZE shr 1
-  jbe  @@waitnextiter
+  jbe  @@RawDecoder
 
   ; dont refill if there is less than DECWIN_SIZE free space
   ; ( and cap the amount of bytes to refill at freespace-DECWIN_SIZE )
   sub  eax, DECWIN_SIZE
-  js   @@waitnextiter
+  js   @@RawDecoder
 
   ; cap amount of bytes to refill to not go past the end of our circular buffer
   mov  ecx, large (offset DecodeBuffer) + DECBUF_SIZE   ; ecx == end of buffer
@@ -105,13 +91,20 @@ if DECODE_MODE eq DM_RAW        ;******* Start Raw Player *******
   mov  [dword ptr DecodeBufTail], edx
   test eax, eax
   jz  @@Done
-endif                           ;******* End Raw Player *******
-;----------------------------------------------------------------
-if DECODE_MODE eq DM_LZ77S      ;******* Start LZ77S Player *******
+  jmp  @@RawDecoder          ; ---------------------------------------------------------------------------------------------ENDRAW---
+
+;******************************************************************************************************************************
+
+@@lz77sDecoder:              ; ---------------------------------------------------------------------------------------------LZ77s---
+  hlt
+  call keypressed              ; TODO: LESS CHECKING ?
+  jnz  @@TestLZ77sBufferEmpty
+  call near @@ProcessKeypress
+@@TestLZ77sBufferEmpty:
   BufferSpaceLeft DecodeBufHead, DecodeBufTail, DECBUF_SIZE ; eax == empty bytes left in buffer
   ; do crappy refill for now....
   cmp eax, 0FFh
-  jbe @@waitnextiter
+  jbe @@lz77sDecoder
   BufferSpaceLeft InputBufHead, InputBufTail, INPBUF_SIZE;
   sub eax, INPBUF_SIZE
   neg eax
@@ -210,7 +203,7 @@ if DECODE_MODE eq DM_LZ77S      ;******* Start LZ77S Player *******
 
   mov [dword ptr DecodeBufTail], edi
 
-  jmp @@NextFrame
+  jmp @@TestLZ77sBufferEmpty
 
 @@literalcopy:
   mov cl, al
@@ -240,23 +233,23 @@ if DECODE_MODE eq DM_LZ77S      ;******* Start LZ77S Player *******
   mov [dword ptr DecodeBufTail], edi
   mov [dword ptr InputBufHead], esi
 
-  jmp @@NextFrame
+  jmp @@TestLZ77sBufferEmpty           ; ----------------------------------------------------------------------------------------------END LZ77s---
 
+;******************************************************************************************************************************
 
-
-endif                           ;******* End LZ77S Player *******
-;----------------------------------------------------------------
-@@waitnextiter:
-  call keypressed              ; TODO: LESS CHECKING ?
-  jz   @@ProcessKeypress
-  hlt
-  jmp @@NextFrame
-@@ProcessKeypress:
-  call getkey
+                               ;-----------------------------------------------------------------------------------------------KEY HANDLER---
+@@ProcessKeypress:             ; *NOTICE* THIS HANDLES KEYPRESSES FOR *ALL* DECODERS
+                               ; HENCE THEY _MUST_ _ALL_ OBEY THE INVARIANTS ASSUMED HERE!!!
+  call getkey                  ; there was a key press let's find out which key it was
   cmp  al, 27                  ; ESC
-  je   @@exit                  ; exit immidiately, without showing frames remaining in buffer
-  cmp  al, 32                  ; Spatie
-  jne  @@NextFrame
+  jne  @@dontexit              ; exit immidiately, without showing frames remaining in buffer
+  pop  eax                     ; discard return address
+  jmp  @@exit
+@@dontexit:
+  cmp  al, 32                  ; Space
+  je   @@pauseplayer
+  retn                         ; resume play
+@@pauseplayer:
   cli
   mov  eax, [dword ptr DecodeBufHead] ; save head
   mov  edx, [dword ptr DecodeBufTail] ; FIXME: LZ77 DECODER DOES NOT OBEY (implicit :) LOOP INVARIANT
@@ -270,8 +263,12 @@ endif                           ;******* End LZ77S Player *******
   call getkey                  ; read and discard key
   pop  eax
   mov  [dword ptr DecodeBufHead], eax
-  jmp  @@NextFrame
-  ret
+  retn                         ; ----------------------------------------------------------------------------------------------END KEY HANDLER---
+
+;******************************************************************************************************************************
+
+  jmp  @@exit   ; ----WIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWPIWPWPIWPIWPIWPIWPIWPIWPIWPIWPIWPWIPWIPWIPWIPWIPWIPWI
+
 @@done:
   hlt
   mov  eax, [dword ptr DecodeBufHead]
@@ -283,10 +280,10 @@ endif                           ;******* End LZ77S Player *******
 endp
 
 dataseg
-strDebugFileName db 'output.tst',0
 strReadMsg db 'postread, eax=%i',newline,'$',0
 strWriteMsg db 'postwrite, eax=%i',newline,'$',0
 strOpenMsg db 'postopen, eax=%i',newline,'$',0
+strDecoderNotFound db 'WTF?! Can''t find appropriate decoder, something is wrong here!', newline, 36,0
 modechar_WO db ' w',0
 
 udataseg
@@ -297,5 +294,5 @@ InputBuffer db INPBUF_SIZE dup (?); data is read into this buffer from input fil
 InputBufHead dd ?             ; HEAD points to the first unread element in the buffer
 InputBufTail dd ?             ; TAIL points one past the element last added to the buffer
 AudioDataPtr dd ?              ; AudioDataPtr points to the next-to-be-played sample of audio data
-DebugFilehandle  dd ?
+DecoderMode dd ?               ; This is set by the filemagic routine and determines the decoder needed to decode this file
 end

@@ -9,6 +9,93 @@ jumps
 
 codeseg
 
+proc FileMagic
+  ; Pre: FileHandle is open and file >= 16 bytes
+  ; Post: FileMagic has been handled, eventual errors messages have been printed
+  ;       and an status code is returned in eax
+  ;
+  ; FileMagic layout:
+  ;  Offset | Size | Meaning
+  ; --------+------+---------
+  ;     00h |  04h | Spells 'TMVP' in ASCII
+  ;     04h |  04h | Version number in hex, bytes from l-t-r (*in FILE*) Mayor, Medium, Minor, Patch
+  ;     08h |  04h | 32 possible flags. Left most flag (*in FILE*) indicates RAW/Compressed
+  ;     0Ch |  04h | Reserved for future use. *MUST BE ZERO*
+  ;
+  ; Error codes:
+  ;   0ffffffffh : File does not have 'TMVP' as first 4 bytes
+  ;   0fffffffeh : Player can not play this file version (Either too new or too old)
+  uses ebx, ecx, edx
+
+; DEBUG: NO CHECKING
+;  xor  eax, eax
+;  jmp  @@exit
+
+  mov  ebx, [dword ptr FileHandle]
+  mov  ecx, 16                 ; currently we have 16 bytes of file magic
+  lea  edx, [FileMagicBuffer]  ; 16 bytes buffer
+  _fread                       ; ebx == filehandle, ecx == nr bytes to read, ds:edx == ptr to buffer
+  cmp  [dword ptr edx], 'PVMT' ; Should read 'TMVP', but since that is in filespace this is reversed
+  je   short @@IsTMVP
+  lea  eax, [strFileMagicIsNotTMVP]
+  push eax
+  call _printf
+  add  esp, 4
+  mov  eax, -3                 ; File Not TMVP, but this function will print the error
+  jmp  @@exit                  ; actually out of range ...
+@@IsTMVP:
+  mov  eax, [dword ptr edx + 4]; VERSION
+  cmp  eax, TMVP_VERSION
+  jbe  @@ICanPlaythis              ; Assume newer players can still play older files
+  xor  ebx, ebx
+  mov  bl, al
+  push ebx
+  shr  eax, 8
+  mov  bl, al
+  push ebx
+  shr  eax, 8
+  mov  bl, al
+  push ebx
+  shr  eax, 8
+  mov  bl, al
+  push ebx
+  mov  eax, TMVP_VERSION
+  mov  bl, al
+  push ebx
+  shr  eax, 8
+  mov  bl, al
+  push ebx
+  shr  eax, 8
+  mov  bl, al
+  push ebx
+  shr  eax, 8
+  mov  bl, al
+  push ebx
+  lea  eax, [strFileMagicNeedNewerTMVP]
+  push eax
+  call _printf
+  add  esp, 4*9
+  mov  eax, -3                           ; Wrong file version, but this function will print the error
+  jmp  short @@exit
+@@ICanPlaythis:
+  mov  eax, [dword ptr FileMagicBuffer+8]; get flags
+  and  eax, 03h                          ; Compressed and compression A/B
+  mov  [dword ptr DecoderMode], eax      ; save so we can choose the right mode in the decoder
+  mov  eax, [dword ptr FileMagicBuffer + 0ch]
+  test eax, 0ffffffffh                   ; if any bits are set .. BOOM
+  jz   @@AllOk
+  lea  eax, [strFileMagicReservedBitsNotZero]
+  push eax
+  call _printf
+  add  esp, 4
+  mov  eax, -3
+  jmp  short @@exit
+@@AllOk:
+  xor  eax, eax
+@@Exit:
+  ret
+endp
+
 proc InitVidBuf
   ; Initialises the videobuffer with a pattern
   uses  eax, ecx, edi, es
@@ -262,8 +349,12 @@ scratchpad db 0,36
 int_print_warn db 'Warning: Someone is using `int_print()''!', 0ah, 0dh,'$', 0
 endp int_print
 dataseg
+strFileMagicIsNotTMVP db           'Sorry, this does not appear to be a valid TMVP file!',newline,36,0
+strFileMagicNeedNewerTMVP db       'Sorry, this file requires a newer version of TMVP:',newline,'Player version: %i.%i.%i-r%i, required: %i.%i.%i-r%i',newline,36,0
+strFileMagicReservedBitsNotZero db 'Error: Reserved bits not zero!', newline, 36, 0
 udataseg
 OldVideoMode db ?
 FontData db 8*256 dup (?)
 RMCallStruct db 32 dup (?)  ; Real mode call struct
+FileMagicBuffer db 16 dup (?) ; Buffer to hold FileMagic while we examine it
 end
