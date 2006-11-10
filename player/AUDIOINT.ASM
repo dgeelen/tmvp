@@ -261,8 +261,6 @@ strProtmodeUninstallError db 'Error while uninstalling Protected mode interrupt'
 strNoIntUninstallError db 'uninstall_audio_interrupt(): Errr... no interrupt got installed?',newline,36,0
 strVidSegSelError db 'Error: could not get selector for video segment',newline, 36, 0
 
-esi_msg db 'ESI="%x"="%i"',newline, 36, 0
-
 udataseg
 AudioBuffer db AUDSAMP_SIZE * RENDER_AHEAD dup (?); interrupt consumes 1000 bytes / frame (1/20s)
                                                   ; NOTE: If possible, we should read this also directly from [DecodeBuffer]

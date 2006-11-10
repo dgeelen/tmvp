@@ -267,14 +267,16 @@ proc decoder
 
 ;******************************************************************************************************************************
 
-  jmp  @@exit   ; ----WIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWIPWPIWPWPIWPIWPIWPIWPIWPIWPIWPIWPIWPWIPWIPWIPWIPWIPWIPWI
-
 @@done:
   hlt
+  call keypressed              ; TODO: LESS CHECKING ?
+  jnz  @@doneNotKeyPress
+  call near @@ProcessKeypress
+@@doneNotKeyPress:
   mov  eax, [dword ptr DecodeBufHead]
   cmp  eax, [dword ptr DecodeBufTail]
   ;*WARNING*: Don't play broken (incomplete) files with this on!!!
-  ;jne   @@done                 ; wait for interrupt to play remaining frames (empty the buffer)
+  jne   @@done                 ; wait for interrupt to play remaining frames (empty the buffer)
 @@exit:                        ; Then exit
   ret
 endp
