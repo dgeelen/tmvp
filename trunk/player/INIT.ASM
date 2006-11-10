@@ -20,6 +20,9 @@ proc Initialise
   test eax, eax
   mov  eax, -2                 ; Failed to open input
   jz   @@exit_fail
+  call filemagic               ; test if this is a real TMVP file and what decoder to use
+  test eax, eax
+  jnz  @@exit_fail             ; nonzero indicates error code
   call InitVidBuf              ; Fill the videobuffer with '0' (or a test pat.)
   call Set80x50
   call SetFont

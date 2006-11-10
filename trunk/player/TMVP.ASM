@@ -53,10 +53,17 @@ proc tmvp
 @@InitialisationError:         ; eax == error nr, print msg and jmp @@exit
 @@FailedToOpenInput:
   cmp  eax, -2
-  jne  @@UnknownError
+  jne  @@PossiblyKnownError
   lea  edx, [strFailedToOpenInput]
   mov  ah, 09h
   int  021h
+  xor  eax, eax
+  dec  eax
+  jmp  short @@Terminate
+@@PossiblyKnownError:           ; We might already have printed a msg for this error
+  cmp  eax, -3                  ; *FixMe* err yeah change this to a more logical #error
+  jne  @@UnknownError
+  ; print nothing
   xor  eax, eax
   dec  eax
   jmp  short @@Terminate
