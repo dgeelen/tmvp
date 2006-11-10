@@ -4,7 +4,7 @@
 #pragma hdrstop
 
 #include "UColor.h"
-#include <math>
+#include <math.h>
 
 RGBColor::RGBColor()
 {

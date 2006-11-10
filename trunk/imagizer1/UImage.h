@@ -3,8 +3,9 @@
 #ifndef UImageH
 #define UImageH
 
-#include <vcl.h>
+//#include <vcl.h>
 #include <string>
+#include <stdio.h>
 #include "UColor.h"
 
 class RawRGBImage {
@@ -28,6 +29,7 @@ class RawRGBImage {
 	void LoadFromFile(std::string filename);
 	void LoadFromPNG(std::string filename, uint32 awidth = -1, uint32 aheight = -1);
 	void LoadFromRAW(std::string filename, uint32 awidth, uint32 aheight, uint32 framenr = 0);
+	void LoadFromRAW(FILE* filehandle, uint32 awidth, uint32 aheight);
 	void LoadFromBMP(std::string filename);
 
 	void SaveToPNG(std::string filename);
