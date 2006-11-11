@@ -24,10 +24,10 @@ int main(int argc, char* argv[])
 	if (argc > 2) if2name = argv[2];
 	if (argc > 3) ofname  = argv[3];
 
-	if (if1name == "-" || if2name == "-")
+	if ( if2name == "-")
 		return 0;
 
-	FILE* if1handle = fopen(if1name.c_str(), "rb");
+	FILE* if1handle = (if1name == "-") ? stdin : fopen(if1name.c_str(), "rb");
 	FILE* if2handle = fopen(if2name.c_str(), "rb");
 	FILE* ofhandle = (ofname == "-") ? stdout : fopen(ofname.c_str(), "wb");
 
@@ -39,7 +39,7 @@ int main(int argc, char* argv[])
 		fwrite(buffer, 1, 8000 + 48, ofhandle);
 		read2 = fread(buffer, 1, 400, if2handle);
 		fwrite(buffer, 1, 400, ofhandle);
-	} while (read1 != 0 || read2 != 0);
+	} while (read1 != 0 && read2 != 0);
 
 	fclose(if1handle);
 	fclose(if2handle);
@@ -47,4 +47,5 @@ int main(int argc, char* argv[])
 	return 0;
 }
 //---------------------------------------------------------------------------
+
  

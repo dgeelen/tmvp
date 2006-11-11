@@ -56,7 +56,7 @@ class TextPal {
 	RGBColor data[16];
  public:
 	void SetColor(uint8 ind, RGBColor col);
-	RGBColor GetColor(uint8 ind);
+	RGBColor GetColor(uint8 ind) { return data[ind]; };
 };
 
 class TextImage {

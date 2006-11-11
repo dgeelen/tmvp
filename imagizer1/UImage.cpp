@@ -217,10 +217,10 @@ void TextPal::SetColor(uint8 ind, RGBColor col)
 	data[ind] = col;
 }
 
-RGBColor TextPal::GetColor(uint8 ind)
-{
-	return data[ind];
-}
+//RGBColor TextPal::GetColor(uint8 ind)
+//{
+//	return data[ind];
+//}
 
 //---------------------------------------------------------------------------
 

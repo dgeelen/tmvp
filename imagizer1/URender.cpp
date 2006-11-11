@@ -113,7 +113,10 @@ void TRenderBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 		for( unsigned char fg=0;fg<16;fg++) {
 			RGBColor fgcol = dst->pal->GetColor(fg);
 			for( unsigned char quad=0; quad < 4; quad++) {
-				lookup[fg][bg][quad] = RGBAvg2(fgcol, bgcol, quad*16,64);
+				// this is faster, TODO: macro-ize this in a nice way
+				lookup[fg][bg][quad].c.r = (fgcol.c.r*quad*16 + bgcol.c.r*(64-(quad*16))) / 64;
+				lookup[fg][bg][quad].c.g = (fgcol.c.g*quad*16 + bgcol.c.g*(64-(quad*16))) / 64;
+				lookup[fg][bg][quad].c.b = (fgcol.c.b*quad*16 + bgcol.c.b*(64-(quad*16))) / 64;
 			}
 		}
 	}
@@ -176,13 +179,5 @@ void TRenderBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 	}
 }
 
-
 #pragma package(smart_init)
-
-
-
-
-
-
-
 
