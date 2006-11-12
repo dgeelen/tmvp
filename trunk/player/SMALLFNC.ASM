@@ -164,7 +164,14 @@ proc SetFont
   mov  es, ax                  ;
   mov  ds, dx                  ; set ds == selector of DOS memory block
   xor  edx, edx
-  _fread                       ; ebx == filehandle, ecx == nr bytes to read, ds:edx == ptr to buffer
+
+; we dont call _fread here cause that uses ds, which has just been altered
+; so we do the read directly (TODO?: make another macro for this? or give _fread parameter for this?
+;  _fread                       ; ebx == filehandle, ecx == nr bytes to read, ds:edx == ptr to buffer
+  xor  eax, eax                ; clear eax in order to accurately show the
+  mov  ah, 03Fh                ; number of bytes read
+  int  021h                    ; do it
+
   mov  dx, ds                  ; dx == selector of DOS memory block
   mov  ecx, 0ffffffffh
   jc   @@FreeMemory            ; if error

@@ -34,7 +34,7 @@ proc Initialise
   call _printf
   add  esp, 4*2
 @@l1:
-  hlt
+;  hlt  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
   call keypressed
   jnz  @@l1
   call getkey
