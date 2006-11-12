@@ -81,6 +81,14 @@ proc install_audio_interrupt
   ;      A. *TODO*
   uses eax, ebx, ecx, edx, edi, es
 
+  ; load es with alias to cs, so we can write into our code
+  ; (this is not possible using cs directly in protected mode)
+  mov ax, 000Ah			; 000Ah == Create Alias Descriptor
+  mov bx, cs			; in:  bx = original selector
+  int 31h			; out: ax = new selector, CF = error
+  jc  @@pError
+  mov es, ax
+
   xor  eax, eax
   mov  [dword ptr ChainTimer], (119318000/((((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) * 182) + 5)/10
   mov  [dword ptr FlipTimer], AUDIO_INT_FREQ/FPS
@@ -99,17 +107,17 @@ proc install_audio_interrupt
   add  esp, 4
   jmp  short @@pError
 @@GotVidSegSel:
-  mov  [word ptr cs:vidmem_selector], ax
+  mov  [word ptr ds:vidmem_selector], ax
   ; SET PROTECTED MODE INTERRUPT
   mov   ax, 0204h              ; get protected mode interrupt vector
   mov   bl, 08h                ; of int08
   int   031h                   ; get it
   jc    @@pError
   ; CX:EDX == selector:offset
-  mov  [dword ptr cs:old_protmode_int08    ], edx
-  mov  [ word ptr cs:old_protmode_int08 + 4], cx
+  mov  [dword ptr es:old_protmode_int08    ], edx
+  mov  [ word ptr es:old_protmode_int08 + 4], cx
   ; store DS for use in interrupt
-  mov  [word ptr cs:protmode_ds], ds
+  mov  [word ptr es:protmode_ds], ds
   ; set new interrupt vector
   mov   ax, 0205h
   mov   bl, 08h
@@ -167,7 +175,12 @@ proc audio_int_protmode_simpletest nolanguage ; this is an interrupt, let's do o
   push ds                      ; save ds
   push eax                     ; and eax
   push esi                     ; and esi
-  mov  ds, [word ptr cs:protmode_ds]
+
+  ; set ds to our data segment selector
+  db 66h, 0B8h		; mov ax, imm16
+  protmode_ds dw 0	; this is set by install_audio_interrupt
+  mov  ds, ax
+
   ; first check that the buffer is non-empty
   mov  esi, [dword ptr DecodeBufHead]
   cmp  [dword ptr DecodeBufTail], esi ; CMP MEM, REG is 1 clock faster than CMP REG,MEM?!
@@ -250,7 +263,6 @@ endif
   pop  eax
   pop  ds
   iret
-  protmode_ds dw 0
 endp
 
 endp

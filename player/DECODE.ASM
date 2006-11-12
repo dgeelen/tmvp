@@ -55,7 +55,7 @@ proc decoder
 ;******************************************************************************************************************************
 
 @@RawDecoder:                  ; ----------------------------------------------------------------------------------------------RAW---
-  hlt
+;  hlt  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
   call keypressed              ; TODO: LESS CHECKING ?
   jnz  @@TestRawBufferEmpty
   call near @@ProcessKeypress
@@ -96,7 +96,7 @@ proc decoder
 ;******************************************************************************************************************************
 
 @@lz77sDecoder:              ; ---------------------------------------------------------------------------------------------LZ77s---
-  hlt
+;  hlt  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
   call keypressed              ; TODO: LESS CHECKING ?
   jnz  @@TestLZ77sBufferEmpty
   call near @@ProcessKeypress
@@ -259,7 +259,7 @@ proc decoder
   sti
   push eax                            ; eax used in following
 @@paused:
-  hlt
+;  hlt  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
   call keypressed
   jnz  @@paused
   call getkey                  ; read and discard key
@@ -270,7 +270,7 @@ proc decoder
 ;******************************************************************************************************************************
 
 @@done:
-  hlt
+;  hlt  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
   call keypressed              ; TODO: LESS CHECKING ?
   jnz  @@doneNotKeyPress
   call near @@ProcessKeypress
