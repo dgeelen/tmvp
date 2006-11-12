@@ -63,8 +63,11 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	// TODO: release resources...
+	delete r_renderer;
+	delete r_palcalc;
 
+	if (ifname != "-") fclose(ifhandle);
+	if (ofname != "-") fclose(ofhandle);
 	return 0;
 }
 //---------------------------------------------------------------------------
