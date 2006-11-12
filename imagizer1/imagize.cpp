@@ -21,9 +21,11 @@ int main(int argc, char* argv[])
 	string ifname = "-";
 	string ofname = "-";
 
-	// TODO: maybe read other cmd line params???
+	uint palthreshold = 250;
+
 	if (argc > 1) ifname = argv[1];
 	if (argc > 2) ofname = argv[2];
+	if (argc > 3) palthreshold = atoi(argv[3]);
 
 	FILE* ifhandle = (ifname == "-") ? stdin  : fopen(ifname.c_str(), "rb");
 	FILE* ofhandle = (ofname == "-") ? stdout : fopen(ofname.c_str(), "wb");
@@ -38,7 +40,7 @@ int main(int argc, char* argv[])
 	TRenderMethod *r_renderer = NULL;
 
 	r_renderer = new TRenderBruteBlock;
-	r_palcalc = new TPalMedianCutSort(250);		// TODO: threshold from cmd line param?
+	r_palcalc = new TPalMedianCutSort(palthreshold);
 
 	r_textimage.font = &r_font;
 	r_textimage.pal = &r_pal;
