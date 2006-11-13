@@ -108,44 +108,44 @@ std::list<APoint> medianCut(APoint* image, int numAPoints, unsigned int desiredS
         Block longestBlock = blockQueue.top();
         blockQueue.pop();
         APoint * begin  = longestBlock.getAPoints();
-	APoint * median = longestBlock.getAPoints() + (longestBlock.numAPoints()+1)/2;
-	APoint * end    = longestBlock.getAPoints() + longestBlock.numAPoints();
-	switch(longestBlock.longestSideIndex())
-	{
-	case 0: std::nth_element(begin, median, end, CoordinateAPointComparator<0>()); break;
-	case 1: std::nth_element(begin, median, end, CoordinateAPointComparator<1>()); break;
-	case 2: std::nth_element(begin, median, end, CoordinateAPointComparator<2>()); break;
-	}
+				APoint * median = longestBlock.getAPoints() + (longestBlock.numAPoints()+1)/2;
+				APoint * end    = longestBlock.getAPoints() + longestBlock.numAPoints();
+				switch(longestBlock.longestSideIndex())
+				{
+					case 0: std::nth_element(begin, median, end, CoordinateAPointComparator<0>()); break;
+					case 1: std::nth_element(begin, median, end, CoordinateAPointComparator<1>()); break;
+					case 2: std::nth_element(begin, median, end, CoordinateAPointComparator<2>()); break;
+				}
 
-	Block block1(begin, median-begin), block2(median, end-median);
-	block1.shrink();
-	block2.shrink();
+				Block block1(begin, median-begin), block2(median, end-median);
+				block1.shrink();
+				block2.shrink();
 
-        blockQueue.push(block1);
-        blockQueue.push(block2);
-    }
+				blockQueue.push(block1);
+				blockQueue.push(block2);
+		}
 
-    std::list<APoint> result;
-    while(!blockQueue.empty())
-    {
-        Block block = blockQueue.top();
-        blockQueue.pop();
-        APoint * APoints = block.getAPoints();
+		std::list<APoint> result;
+		while(!blockQueue.empty())
+		{
+				Block block = blockQueue.top();
+				blockQueue.pop();
+				APoint * APoints = block.getAPoints();
 
-        int sum[NUM_DIMENSIONS] = {0};
-        for(int i=0; i < block.numAPoints(); i++)
-        {
-            for(int j=0; j < NUM_DIMENSIONS; j++)
-            {
-                sum[j] += APoints[i].x[j];
-            }
-        }
+				int sum[NUM_DIMENSIONS] = {0};
+				for(int i=0; i < block.numAPoints(); i++)
+				{
+						for(int j=0; j < NUM_DIMENSIONS; j++)
+						{
+								sum[j] += APoints[i].x[j];
+						}
+				}
 
-        APoint averageAPoint;
-        for(int j=0; j < NUM_DIMENSIONS; j++)
-        {
-            averageAPoint.x[j] = sum[j] / block.numAPoints();
-        }
+				APoint averageAPoint;
+				for(int j=0; j < NUM_DIMENSIONS; j++)
+				{
+						averageAPoint.x[j] = sum[j] / block.numAPoints();
+				}
 
         result.push_back(averageAPoint);
     }
