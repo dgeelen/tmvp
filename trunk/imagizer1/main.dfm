@@ -46,13 +46,15 @@ object Form1: TForm1
     ItemHeight = 13
     ItemIndex = 0
     TabOrder = 1
-    Text = 'Brute Force - Blocks'
+    Text = 'Blocks - Brute Force '
     OnChange = ComboBoxRenderMethodChange
     Items.Strings = (
-      'Brute Force - Blocks'
-      'Brute Force - Any'
+      'Blocks - Brute Force '
+      'Blocks - Semi Brute Force'
       'Simulated Annealing'
-      'Smart Blocks 1')
+      '----unimplemented----'
+      'Smart Blocks 1'
+      'Brute Force - Any')
   end
   object ComboBoxPalleteMethod: TComboBox
     Left = 656

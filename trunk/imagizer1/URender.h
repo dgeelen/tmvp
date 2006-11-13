@@ -37,6 +37,11 @@ class TRenderBruteBlock : public TRenderMethod {
 	void DoRender(RawRGBImage* src, TextImage* dst);
 };
 
+class TRenderSemiBruteBlock : public TRenderMethod {
+ public:
+	void DoRender(RawRGBImage* src, TextImage* dst);
+};
+
 #include "URenderSimAnn.h"
 
 //---------------------------------------------------------------------------

@@ -140,7 +140,8 @@ void TRenderBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 
 			for( unsigned char bg=0;bg<16;bg++) {
 				RGBColor bgcol = dst->pal->GetColor(bg);
-				for( unsigned char fg=0;fg<16;fg++) { // and for all fore- and background colors
+				for( unsigned char fg=0;fg<16;fg++) // and for all fore- and background colors
+				if (bg != fg) { // fg == bg case is redundant cause char 0 is only fg
 					RGBColor fgcol = dst->pal->GetColor(fg);
 //					char_dist = 0;
 					char_dist = MRGBDistInt(fgcol, bgcol) >> 6;
@@ -179,5 +180,108 @@ void TRenderBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 	}
 }
 
+void TRenderSemiBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
+{
+
+	RGBColor lookup[16][16][4];
+	for( unsigned char bg=0;bg<16;bg++) {
+		RGBColor bgcol = dst->pal->GetColor(bg);
+		for( unsigned char fg=0;fg<16;fg++) {
+			RGBColor fgcol = dst->pal->GetColor(fg);
+			for( unsigned char quad=0; quad < 4; quad++) {
+				// this is faster, TODO: macro-ize this in a nice way
+				lookup[fg][bg][quad].c.r = (fgcol.c.r*quad*16 + bgcol.c.r*(64-(quad*16))) / 64;
+				lookup[fg][bg][quad].c.g = (fgcol.c.g*quad*16 + bgcol.c.g*(64-(quad*16))) / 64;
+				lookup[fg][bg][quad].c.b = (fgcol.c.b*quad*16 + bgcol.c.b*(64-(quad*16))) / 64;
+			}
+		}
+	}
+
+	for(uint y = 0 ; y < src->GetHeight(); y+=2) {
+		for(uint x = 0 ; x < src->GetWidth(); x+=2) { // for every quad region
+			RGBColor tcol[4];
+			tcol[0] = src->GetPixel(x + 0,y + 0);
+			tcol[1] = src->GetPixel(x + 1,y + 0);
+			tcol[2] = src->GetPixel(x + 0,y + 1);
+			tcol[3] = src->GetPixel(x + 1,y + 1);
+
+			uint8 pcol[4];
+
+			bool chosen[16];
+			for (int j = 0; j < 16; ++j)
+				chosen[j] = false;
+
+			for (int i = 0; i < 4; ++i)
+			{
+				uint32 mindist = 0xFFFFFFFF;
+				for (int j = 0; j < 16; ++j)
+				if (!chosen[j])
+				{
+					uint32 dist = MRGBDistInt(dst->pal->GetColor(j), tcol[i]);
+					if (dist < mindist) {
+						mindist = dist;
+						pcol[i] = j;
+					}
+				}
+				chosen[pcol[i]] = true;
+			}
+			
+			unsigned char best_bg;
+			unsigned char best_fg;
+			unsigned char best_char;
+
+			unsigned long int char_dist;
+			unsigned long int best_char_dist=ULONG_MAX;
+			unsigned char best_quad[4];
+			unsigned long int best_quad_dist;
+			unsigned long int quad_dist;
+
+//			best_fg = pcol[0];
+//			best_bg = pcol[0];
+//			best_char = 0;
+
+			for( unsigned char bg=0;bg<4;bg++) {
+//				RGBColor bgcol = dst->pal->GetColor(pcol[bg]);
+				for( unsigned char fg=0;fg<4;fg++) // and for all fore- and background colors
+				if (bg != fg) { // fg == bg case is redundant cause char 0 is only fg
+//					RGBColor fgcol = dst->pal->GetColor(pcol[fg]);
+					char_dist = 0;
+//					char_dist = MRGBDistInt(fgcol, bgcol) >> 6;
+					RGBColor* curlookup = &lookup[pcol[fg]][pcol[bg]][0];
+					for( unsigned char region=0; region < 4 ; region ++) { // try all regions
+						RGBColor ttcol = tcol[region];
+						best_quad_dist=ULONG_MAX;
+						for( unsigned char quad=0; quad < 4; quad++) { // with all 4 quad blocks
+
+							quad_dist = MRGBDistInt(ttcol, curlookup[quad]);
+							if(quad_dist<best_quad_dist) {
+								best_quad_dist=quad_dist;
+								best_quad[region]=quad;
+							}
+						}
+						char_dist += best_quad_dist;
+//						char_dist += sqrtl(best_quad_dist);
+					}
+
+					if(char_dist<best_char_dist) {
+					// select the char representing our chosen quads
+						best_char = (best_quad[0] << 0)    // 4^0
+											| (best_quad[1] << 2)    // 4^1
+											| (best_quad[2] << 4)    // 4^2
+											| (best_quad[3] << 6);   // 4^3
+						best_char_dist=char_dist;
+						best_bg=pcol[bg];
+						best_fg=pcol[fg];
+					}
+				}
+			}  
+			if (best_char == 0) best_fg = best_bg;
+			if (best_bg == best_fg) best_char = (best_bg << 4) | best_bg;
+			dst->SetChar(x>>1, y>>1, best_char, best_fg, best_bg);
+		}
+	}
+}
+
 #pragma package(smart_init)
+
 
