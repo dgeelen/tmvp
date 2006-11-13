@@ -383,6 +383,7 @@ void __fastcall TForm1::ComboBoxRenderMethodChange(TObject *Sender)
 	r_renderer = NULL;
 	switch (ComboBoxRenderMethod->ItemIndex) {
 		case 0: r_renderer = new TRenderBruteBlock; break;
+		case 1: r_renderer = new TRenderSemiBruteBlock; break;
 		case 2: r_renderer = new TRenderSimulatedAnnealing; break;
 	}
 	assert(r_renderer != NULL);

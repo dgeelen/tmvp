@@ -40,6 +40,7 @@ int main(int argc, char* argv[])
 	TRenderMethod *r_renderer = NULL;
 
 	r_renderer = new TRenderBruteBlock;
+	//r_renderer = new TRenderSemiBruteBlock
 	r_palcalc = new TPalMedianCutSort(palthreshold);
 
 	r_textimage.font = &r_font;
