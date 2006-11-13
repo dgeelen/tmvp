@@ -182,7 +182,7 @@ void TRenderBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 
 void TRenderSemiBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 {
-
+	// TODO: save this lookup, and only recreate it when our pallete changes
 	RGBColor lookup[16][16][4];
 	for( unsigned char bg=0;bg<16;bg++) {
 		RGBColor bgcol = dst->pal->GetColor(bg);
