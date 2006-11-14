@@ -11,9 +11,7 @@ int main()
 	printw("Can do 'pallete': %s\n", can_change_color() ? "yes" : "no");
 
 	init_color(COLOR_RED, 500, 0, 500);
-	init_color(COLOR_CYAN, 500, 0, 500);
-
-	init_color(COLOR_RED, 700, 0, 700);
+	init_color(COLOR_CYAN, 0, 500, 500);
 
 	init_pair(1, COLOR_CYAN, COLOR_RED);
 
@@ -21,9 +19,18 @@ int main()
 
 
 	printw("Hello World !!!\n");	/* Print Hello World		  */
-	attrset(COLOR_PAIR(1) ;
+	attrset(COLOR_PAIR(1) );
+	printw("normal: Hello World !!!\n");	/* Print Hello World		  */
 
-	printw("Hello World !!!\n");	/* Print Hello World		  */
+	attrset(COLOR_PAIR(1) | A_BLINK);
+	printw("blink: Hello World !!!\n");	/* Print Hello World		  */
+
+	attrset(COLOR_PAIR(1) | A_BOLD);
+	printw("bold: Hello World !!!\n");	/* Print Hello World		  */
+
+	attrset(COLOR_PAIR(1) | A_BLINK | A_BOLD);
+	printw("b&b: Hello World !!!\n");	/* Print Hello World		  */
+
 	refresh();			/* Print it on to the real screen */
 	getch();			/* Wait for user input */
 	endwin();			/* End curses mode		  */
