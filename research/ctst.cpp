@@ -11,7 +11,11 @@ int main()
 	printw("Can do 'pallete': %s\n", can_change_color() ? "yes" : "no");
 
 	init_color(COLOR_RED, 500, 0, 500);
-	init_color(COLOR_CYAN, 0, 500, 500);
+	init_color(COLOR_CYAN, 500, 500, 0);
+
+	init_color(COLOR_RED+8, 1000, 0, 1000);
+	init_color(COLOR_CYAN+8, 10000, 1000, 0);
+
 
 	init_pair(1, COLOR_CYAN, COLOR_RED);
 
