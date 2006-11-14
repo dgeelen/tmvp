@@ -20,10 +20,10 @@ int main()
 	attrset(COLOR_PAIR(0) );
 
 
-	printw("Hello World !!!");	/* Print Hello World		  */
-	attrset(COLOR_PAIR(1) | A_BLINK | A_BOLD);
+	printw("Hello World !!!\n");	/* Print Hello World		  */
+	attrset(COLOR_PAIR(1) ;
 
-	printw("Hello World !!!");	/* Print Hello World		  */
+	printw("Hello World !!!\n");	/* Print Hello World		  */
 	refresh();			/* Print it on to the real screen */
 	getch();			/* Wait for user input */
 	endwin();			/* End curses mode		  */
