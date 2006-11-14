@@ -8,7 +8,7 @@ int main()
 	printw("---NCurses Display---\n");
 	printw("\n");
 	printw("real colors: %i\n", COLORS);
-	printw("Can do 'pallete': %s\n", can_change_color() ? "ÿes" : "no");
+	printw("Can do 'pallete': %s\n", can_change_color() ? "yes" : "no");
 
 	init_color(COLOR_RED, 500, 0, 500);
 	init_color(COLOR_CYAN, 500, 0, 500);
