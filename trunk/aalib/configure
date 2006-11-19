@@ -3285,13 +3285,6 @@ EOF
 	    fi
 	fi
      fi
-  
-  if test "$slang_driver" = true; then
-    if test "$force_curses_driver" = false; then
-      echo "Disabling curses driver since slang is available"
-      curses_driver_test=no
-    fi
-  fi
 fi
 
 
