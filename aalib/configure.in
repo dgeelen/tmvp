@@ -235,12 +235,6 @@ if test  "$slang_driver_test" = yes; then
   AC_SLANG(/usr/include/slang, slang.h, , -I/usr/include/slang , "slang on /usr/include/slang")
   AC_SLANG(/usr/local/include, slang.h, , -I/usr/local/include/slang , "slang on /usr/local/include")
   AC_SLANG(/usr/local/include/slang, slang.h, , -I/usr/local/include/slang , "slang on /usr/local/include/slang")
-  if test "$slang_driver" = true; then
-    if test "$force_curses_driver" = false; then
-      echo "Disabling curses driver since slang is available"
-      curses_driver_test=no
-    fi
-  fi
 fi
 
 dnl
