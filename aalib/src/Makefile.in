@@ -259,7 +259,7 @@ mostlyclean-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
-	rm *.exe
+	rm -f *.exe
 
 distclean-binPROGRAMS:
 
