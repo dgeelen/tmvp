@@ -54,17 +54,17 @@ initialize (void)
   int i;
   context = aa_autoinit (&aa_defparams);
   if (context == NULL)
-    {
-      printf ("Failed to initialize aalib\n");
-      exit (1);
-    }
+	{
+	  printf ("Failed to initialize aalib\n");
+	  exit (1);
+	}
   aa_autoinitkbd(context, 0);
   params = aa_getrenderparams ();
   bitmap = aa_image (context);
   for (i = 0; i < 256; i++)
-    aa_setpalette (palette, i, pal[i * 3] * 4,
-		   pal[i * 3 + 1] * 4,
-		   pal[i * 3 + 2] * 4);
+	aa_setpalette (palette, i, pal[i * 3] * 4,
+				   pal[i * 3 + 1] * 4,
+				   pal[i * 3 + 2] * 4);
   aa_hidecursor (context);
 }
 static void 
@@ -79,17 +79,17 @@ gentable (void)
   unsigned int i, p2;
   int minus = 800 / YSIZ;
   if (minus == 0)
-    minus = 1;
+	minus = 1;
   for (i = 0; i < MAXTABLE; i++)
-    {
-      if (i > minus)
 	{
-	  p2 = (i - minus) / 5;
-	  table[i] = p2;
+	  if (i > minus)
+		{
+		  p2 = (i - minus) / 5;
+		  table[i] = p2;
+		}
+	  else
+		table[i] = 0;
 	}
-      else
-	table[i] = 0;
-    }
 }
 #define MA 5
 static void 
@@ -100,12 +100,12 @@ firemain (void)
   i = 0;
 #define END (bitmap + XSIZ * YSIZ)
   for (p = bitmap;
-       p <= (unsigned char *) (END); p += 1)
-    {
-      *p = table[
-		  (*(p + XSIZ - 1) + *(p + XSIZ + 1) + *(p + XSIZ)) +
-		  (*(p + 2 * XSIZ - 1) + *(p + 2 * XSIZ + 1))];
-    }
+	   p <= (unsigned char *) (END); p += 1)
+	{
+	  *p = table[
+				  (*(p + XSIZ - 1) + *(p + XSIZ + 1) + *(p + XSIZ)) +
+				  (*(p + 2 * XSIZ - 1) + *(p + 2 * XSIZ + 1))];
+	}
 }
 
 #define min(x,y) ((x)<(y)?(x):(y))
@@ -118,23 +118,23 @@ drawfire (void)
   height++;
   loop--;
   if (loop < 0)
-    loop = rand () % 3, sloop++;;
+	loop = rand () % 3, sloop++;;
   i1 = 1;
   i2 = 4 * XSIZ + 1;
   for (p = (char *) bitmap + XSIZ * (YSIZ + 0); p < ((unsigned char *) bitmap + XSIZ * (YSIZ + 1)); p++, i1 += 4, i2 -= 4)
-    {
-      last1 = rand () % min (i1, min (i2, height));
-      i = rand () % 6;
-      for (; p < (unsigned char *) bitmap + XSIZ * (YSIZ + 1) && i != 0; p++, i--, i1 += 4, i2 -= 4)
-	*p = last1, last1 += rand () % 6 - 2,
-	  *(p + XSIZ) = last1, last1 += rand () % 6 - 2;
-      *(p + 2 * XSIZ) = last1, last1 += rand () % 6 - 2;
-    }
+	{
+	  last1 = rand () % min (i1, min (i2, height));
+	  i = rand () % 6;
+	  for (; p < (unsigned char *) bitmap + XSIZ * (YSIZ + 1) && i != 0; p++, i--, i1 += 4, i2 -= 4)
+		*p = last1, last1 += rand () % 6 - 2,
+		  *(p + XSIZ) = last1, last1 += rand () % 6 - 2;
+	  *(p + 2 * XSIZ) = last1, last1 += rand () % 6 - 2;
+	}
   /*
-     for(p=bitmap+XSIZ*YSIZ;p<bitmap+(YSIZ+2)*XSIZ;p++)
-     {
-     *p=rand();
-     } */
+	 for(p=bitmap+XSIZ*YSIZ;p<bitmap+(YSIZ+2)*XSIZ;p++)
+	 {
+	 *p=rand();
+	 } */
   i = 0;
   firemain ();
   aa_renderpalette (context, palette, params, 0, 0, aa_scrwidth (context), aa_scrheight (context));
@@ -145,18 +145,18 @@ game (void)
 {
   gentable ();
   while (aa_getevent(context, 0) == AA_NONE)
-    {
-      drawfire ();
-    }
+	{
+	  drawfire ();
+	}
 }
 int 
 main (int argc, char **argv)
 {
   if (!aa_parseoptions (NULL, NULL, &argc, argv) || argc != 1)
-    {
-      printf ("%s", aa_help);
-      exit (1);
-    }
+	{
+	  printf ("%s", aa_help);
+	  exit (1);
+	}
   initialize ();
   game ();
   uninitialize ();

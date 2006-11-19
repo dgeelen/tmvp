@@ -50,23 +50,23 @@ void breakfunc(int signo) {
 
   switch(signo) {
   case SIGINT:
-    fprintf(stderr, "Interrupt (Ctrl-C)\n"); break;
+	fprintf(stderr, "Interrupt (Ctrl-C)\n"); break;
   case SIGQUIT:
-    fprintf(stderr, "Quit\n"); break;
+	fprintf(stderr, "Quit\n"); break;
   case SIGILL:
-    fprintf(stderr, "Illegal instruction\n"); break;
+	fprintf(stderr, "Illegal instruction\n"); break;
   case SIGFPE:
-    fprintf(stderr, "Floating point\n"); break;
+	fprintf(stderr, "Floating point\n"); break;
   case SIGKILL:
-    fprintf(stderr, "Kill process\n"); break;
+	fprintf(stderr, "Kill process\n"); break;
   case SIGBUS:
-    fprintf(stderr, "Bus error\n"); break;
+	fprintf(stderr, "Bus error\n"); break;
   case SIGSEGV:
-    fprintf(stderr, "Segmentation fault\n"); break;
+	fprintf(stderr, "Segmentation fault\n"); break;
   case SIGTERM:
-    fprintf(stderr, "Termination, process killed\n"); break;
+	fprintf(stderr, "Termination, process killed\n"); break;
   case SIGBREAK:
-    fprintf(stderr, "Break (Ctrl-Break)\n"); break;
+	fprintf(stderr, "Break (Ctrl-Break)\n"); break;
   }
   exit(99);
 }
@@ -90,44 +90,44 @@ static int os2vio_init(__AA_CONST struct aa_hardware_params *p,__AA_CONST  void 
   
   /* check size or prompt for it */
   if(p->width)
-    width = p->width;
+	width = p->width;
   else {
-    char c[255];
-    width = def.recwidth;
-    if(p->recwidth)
-      width = p->recwidth;
-    printf("Width?[%i]", width);
-    gets(c);
-    sscanf(c, "%i", &width);
+	char c[255];
+	width = def.recwidth;
+	if(p->recwidth)
+	  width = p->recwidth;
+	printf("Width?[%i]", width);
+	gets(c);
+	sscanf(c, "%i", &width);
   }
   if (p->height)
-    height = p->height;
+	height = p->height;
   else {
-    char c[256];
-    height = def.recheight;
-    if (p->recheight)
-      height = p->recheight;
-    printf("Height?[%i]", height);
-    gets(c);
-    sscanf(c, "%i", &height);
+	char c[256];
+	height = def.recheight;
+	if (p->recheight)
+	  height = p->recheight;
+	printf("Height?[%i]", height);
+	gets(c);
+	sscanf(c, "%i", &height);
   }
   if (p->maxwidth && width > p->maxwidth)
-    width = p->maxwidth;
+	width = p->maxwidth;
   if (p->minwidth && width < p->minwidth)
-    width = p->minwidth;
+	width = p->minwidth;
   if (p->maxheight && height > p->maxheight)
-    height = p->maxheight;
+	height = p->maxheight;
   if (p->minheight && height < p->minheight)
-    height = p->minheight;
+	height = p->minheight;
 
   /* set font for modes that we know the size for, default vga16 */
   switch(height) {
   case 50:
-    p->font = &aa_font8; break;
+	p->font = &aa_font8; break;
   case 43:
-    p->font = &aa_font9; break;
+	p->font = &aa_font9; break;
   case 28:
-    p->font = &aa_font14; break;
+	p->font = &aa_font14; break;
   }
 
   RowStr = (BYTE *)malloc(2 * width * sizeof(BYTE));
@@ -143,9 +143,9 @@ static int os2vio_init(__AA_CONST struct aa_hardware_params *p,__AA_CONST  void 
   vio_mode.col = width;
   vio_mode.row = height;
   if(width>=132)
-    vio_mode.hres = 1056;
+	vio_mode.hres = 1056;
   else
-    vio_mode.hres = 720;
+	vio_mode.hres = 720;
   vio_mode.vres = 400;
   vio_mode.fmt_ID = 0;
   vio_mode.attrib = 1;
@@ -176,9 +176,9 @@ static int os2vio_init(__AA_CONST struct aa_hardware_params *p,__AA_CONST  void 
   printf("mmwidth=%d\nmmheight=%d\n", p->mmwidth, p->mmheight);
   printf("width=%d\nheight=%d\n", p->width, p->height);
   if(p->font!=NULL) {
-    printf("fontheight=%d\n", p->font->height);
-    printf("fontname=%s\n", p->font->name);
-    printf("fontname(short)=%s\n", p->font->shortname);
+	printf("fontheight=%d\n", p->font->height);
+	printf("fontname=%s\n", p->font->name);
+	printf("fontname(short)=%s\n", p->font->shortname);
   }
   getchar();
 #endif
@@ -208,24 +208,24 @@ static void os2vio_getsize(aa_context * c, int *w, int *h)
 static void os2vio_flush(aa_context * c)
 {
   char data[] = {
-    (WM_BLACK << 4) + WM_PALEGRAY,    /* NORMAL?   0 */
-    (WM_BLACK << 4) + WM_DKGREY,      /* DIM?      1 */
-    (WM_BLACK << 4) + WM_WHITE,       /* BOLD?     2 */
-    (WM_RED << 4) + WM_PALEGRAY,      /* BOLDFONT? 3 */
-    (WM_PALEGRAY << 4) + WM_BLACK,    /* REVERSE?  4 */
-    (WM_BLUE << 4) + WM_WHITE         /* SPECIAL?  5 */
+	(WM_BLACK << 4) + WM_PALEGRAY,    /* NORMAL?   0 */
+	(WM_BLACK << 4) + WM_DKGREY,      /* DIM?      1 */
+	(WM_BLACK << 4) + WM_WHITE,       /* BOLD?     2 */
+	(WM_RED << 4) + WM_PALEGRAY,      /* BOLDFONT? 3 */
+	(WM_PALEGRAY << 4) + WM_BLACK,    /* REVERSE?  4 */
+	(WM_BLUE << 4) + WM_WHITE         /* SPECIAL?  5 */
   };
 
   int x, y;
   for (y = 0; y < aa_scrheight(c); y++) {
-    for (x = 0; x < aa_scrwidth(c); x++) {
-      if(c->attrbuffer[x + y * aa_scrwidth(c)] < 7)
-	RowStr[x*2+1] = data[c->attrbuffer[x + y * aa_scrwidth(c)]];
-      else
-	RowStr[x*2+1] = (WM_BLACK << 4) + WM_PALEGRAY;
-      RowStr[x*2] = c->textbuffer[x + y * aa_scrwidth(c)];
-    }
-    VioWrtCellStr(RowStr, 2*width, y, 0, (HVIO)0);
+	for (x = 0; x < aa_scrwidth(c); x++) {
+	  if(c->attrbuffer[x + y * aa_scrwidth(c)] < 7)
+		RowStr[x*2+1] = data[c->attrbuffer[x + y * aa_scrwidth(c)]];
+	  else
+		RowStr[x*2+1] = (WM_BLACK << 4) + WM_PALEGRAY;
+	  RowStr[x*2] = c->textbuffer[x + y * aa_scrwidth(c)];
+	}
+	VioWrtCellStr(RowStr, 2*width, y, 0, (HVIO)0);
   }
 }
 static void os2vio_gotoxy(aa_context * c, int x, int y)

@@ -4,5 +4,5 @@
 void
 aa_putpixel (aa_context *c, int x, int y, int color)
 {
-	c->imagebuffer[x+y*aa_imgwidth(c)]=color;
+		c->imagebuffer[x+y*aa_imgwidth(c)]=color;
 }
