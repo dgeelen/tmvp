@@ -1,5 +1,5 @@
 object Form1: TForm1
-  Left = 460
+  Left = 456
   Top = 303
   Width = 944
   Height = 659
@@ -62,12 +62,13 @@ object Form1: TForm1
     Width = 145
     Height = 21
     ItemHeight = 13
-    ItemIndex = 1
+    ItemIndex = 2
     TabOrder = 2
     Text = 'Median Cut'
     OnChange = ComboBoxPalleteMethodChange
     Items.Strings = (
       'Standard Dos Colors'
+      'Ansi Colors (cygwin)'
       'Median Cut'
       'Median Cut + sort'
       'Median Cut + sort (250)'
@@ -81,13 +82,15 @@ object Form1: TForm1
     Width = 145
     Height = 21
     ItemHeight = 13
-    ItemIndex = 1
+    ItemIndex = 2
     TabOrder = 3
     Text = 'Blocks'
     OnChange = ComboBoxCharsetChange
     Items.Strings = (
-      'ASCII'
-      'Blocks')
+      'ASCII (32-127)'
+      'Extended ASCII (MSDOS)'
+      'Blocks'
+      'ASCII + Ordered Blocks')
   end
   object Memo1: TMemo
     Left = 8
@@ -164,7 +167,7 @@ object Form1: TForm1
       Width = 152
       Height = 21
       TabOrder = 3
-      Text = 'c:\render\pngin\%08i.png'
+      Text = 'c:\stitch.png'
     end
   end
   object GroupBoxOutPut: TGroupBox
@@ -206,7 +209,7 @@ object Form1: TForm1
       Width = 146
       Height = 21
       TabOrder = 3
-      Text = 'c:\render\output.aap%'
+      Text = 'C:\Stuff\Projects\TMVP\trunk\research\image.aap'
     end
     object EditSavePng: TEdit
       Left = 104
@@ -308,5 +311,23 @@ object Form1: TForm1
     Caption = 'End'
     TabOrder = 20
     OnClick = ButtonSpecialEndClick
+  end
+  object Button1: TButton
+    Left = 760
+    Top = 536
+    Width = 75
+    Height = 25
+    Caption = 'Button1'
+    TabOrder = 21
+    OnClick = Button1Click
+  end
+  object Button2: TButton
+    Left = 760
+    Top = 568
+    Width = 75
+    Height = 25
+    Caption = 'Button2'
+    TabOrder = 22
+    OnClick = Button2Click
   end
 end

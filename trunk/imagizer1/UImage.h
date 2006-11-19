@@ -41,13 +41,19 @@ class TextFont {
 	uint8 ratio[256][5];
 	void CalcRatios();
  public:
+	uint8 lorval;
+	uint8 hirval;
 	bool data[256][8][8];
 
+	uint8 bmap[256]; // TODO: create get* func
+	bool imap[256];
 
 	void LoadFromRGBImage(RawRGBImage* img);
 	void LoadFromRAWFile(std::string filename);
 
 	void SaveToRAWFile(std::string filename);
+
+	void DisableMap(); 
 
 	uint8 GetRatio(uint8 chr, uint8 quad);
 };

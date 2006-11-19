@@ -32,6 +32,7 @@ int main(int argc, char* argv[])
 
 	RawRGBImage r_sourceimage;
 	TextFont r_font;
+	r_font.DisableMap(); // we dont do fonts (yet, TODO?)
 	TextImage r_textimage;
 
 	TCalcPallete *r_palcalc = NULL;
@@ -39,8 +40,8 @@ int main(int argc, char* argv[])
 
 	TRenderMethod *r_renderer = NULL;
 
-	r_renderer = new TRenderBruteBlock;
-	//r_renderer = new TRenderSemiBruteBlock
+	//r_renderer = new TRenderBruteBlock;
+	r_renderer = new TRenderSemiBruteBlock;
 	r_palcalc = new TPalMedianCutSort(palthreshold);
 
 	r_textimage.font = &r_font;

@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------
-
+               
 
 #pragma hdrstop
 
@@ -224,7 +224,7 @@ void TextPal::SetColor(uint8 ind, RGBColor col)
 
 //---------------------------------------------------------------------------
 
-	void TextFont::CalcRatios()
+void TextFont::CalcRatios()
 {
 	for (int chr = 0; chr < 256; ++chr)
 	{
@@ -253,12 +253,57 @@ void TextPal::SetColor(uint8 ind, RGBColor col)
 			for (int sy = 4; sy < 8; ++sy)
 				ratio[chr][3] += (data[chr][sx][sy] ? 4 : 0);
 	}
+
+	for (uint chr = 0; chr < 256; ++chr) {
+		uint8 nchr;
+		bool ninv;
+		uint8 q[4];
+		q[0] = 16 * ((chr >> 0) & 3);
+		q[1] = 16 * ((chr >> 2) & 3);
+		q[2] = 16 * ((chr >> 4) & 3);
+		q[3] = 16 * ((chr >> 6) & 3);
+
+		uint32 mindist = 0xFFFFFFFF;
+
+		for (int i = lorval; i <= hirval; ++i)
+//		if (((i&127) >= 32) && (i != 127))
+		{
+			uint32 dist = 0;
+			for (int j = 0; j < 4; ++j)
+				dist += (GetRatio(i, j) - q[j]) * (GetRatio(i, j) - q[j]);
+			if (dist < mindist) {
+				mindist = dist;
+				nchr = i;
+				ninv = false;
+			}
+
+			dist = 0;
+			for (int j = 0; j < 4; ++j)
+				dist += ((64 - GetRatio(i, j)) - q[j]) * ((64 - GetRatio(i, j)) - q[j]);
+			if (dist < mindist) {
+				mindist = dist;
+				nchr = i;
+				ninv = true;
+			}
+		}
+
+		bmap[chr] = nchr;
+		imap[chr] = ninv;
+	}
 }
+
+void TextFont::DisableMap()
+{
+	for (uint chr = 0; chr < 256; ++chr) {
+		bmap[chr] = chr;
+		imap[chr] = false;
+	}
+};
 
 void TextFont::LoadFromRGBImage(RawRGBImage* img)
 {
-	assert(img->GetWidth() == 128);
-	assert(img->GetHeight() == 128);
+	assert(img->GetWidth() >= 128);
+	assert(img->GetHeight() >= 128);
 
 	int chr = 0;
 	for (int cy = 0; cy < 128; cy += 8)
@@ -280,13 +325,56 @@ void TextFont::LoadFromRGBImage(RawRGBImage* img)
 
 void TextFont::LoadFromRAWFile(std::string filename)
 {
-	assert(false);
+	FILE *fp = fopen(filename.c_str(), "rb");
+	if (!fp) {
+		return ;
+	}
+
+	uint8 tbuf[2048];
+
+	fread(tbuf, 1, 2048, fp);
+	fclose(fp);
+
+	for (int i = 0; i < 2048; ++i)
+	{
+		uint8 chr = i / 8;
+		uint8 line = i % 8;
+
+		for (int j = 0; j < 8; ++j)
+		{
+			data[chr][j][line] = (tbuf[i] & 128) ? 1 : 0;
+			tbuf[i] <<= 1;
+		}
+	}
+
 	CalcRatios();
 }
 
 void TextFont::SaveToRAWFile(std::string filename)
 {
-	assert(false);
+	FILE *fp = fopen(filename.c_str(), "wb");
+	if (!fp) {
+		return ;
+	}
+
+	uint8 tbuf[2048];
+
+	for (int i = 0; i < 2048; ++i)
+	{
+		uint8 chr = i / 8;
+		uint8 line = i % 8;
+
+		tbuf[i] = 0;
+		for (int j = 0; j < 8; ++j)
+		{
+			tbuf[i] <<= 1;
+			tbuf[i] |= data[chr][j][line] ? 1 : 0;
+		}
+	}
+
+	fwrite(tbuf, 1, 2048, fp);
+
+	fclose(fp);
 }
 
 uint8 TextFont::GetRatio(uint8 chr, uint8 quad)
@@ -300,7 +388,12 @@ void TextImage::SetChar(uint16 x, uint16 y, uint8 chr, uint8 fg, uint8 bg)
 	assert(y < 50);
 	assert(fg < 16);
 	assert(bg < 16);
-	data[x + y*80] = chr | (fg << 8) | (bg << 12);
+
+	if (font->imap[chr])
+		data[x + y*80] = font->bmap[chr] | (bg << 8) | (fg << 12);
+	else
+		data[x + y*80] = font->bmap[chr] | (fg << 8) | (bg << 12);
+//	data[x + y*80] = chr | (fg << 8) | (bg << 12);
 }
 
 void TextImage::SaveToRawRGBImage(RawRGBImage* img)
