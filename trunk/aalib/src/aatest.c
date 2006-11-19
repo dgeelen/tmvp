@@ -31,7 +31,13 @@ int main(int argc, char **argv)
 	aa_edit(c, 0, 1, 20, s, 256);
 	aa_puts(c, 0, 0, AA_SPECIAL, "Key lookup test        ");
 	aa_flush(c);
-	while (aa_getkey(c, 0) == AA_NONE);
+	int ch;
+	while ((ch = aa_getevent(c, 1)) != ' ') {
+		char s[80];
+		sprintf(s, "Key event test-space to exit. c:%i", ch);
+		aa_puts(c, 0, 0, AA_SPECIAL, s);
+		aa_flush(c);
+	}
 	if (aa_autoinitmouse(c, AA_MOUSEALLMASK)) {
 		int co = 0;
 		sprintf(s, "Mouse test-space to exit");
