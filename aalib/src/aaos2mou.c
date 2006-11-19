@@ -18,8 +18,8 @@ static int os2_init(aa_context * c, int mode) {
   USHORT status = 0x0;
 
   if (MouOpen(NULL,&hMou) && MouOpen("POINTER$", &hMou)) {
-    hMou = -1;
-    return 0;
+	hMou = -1;
+	return 0;
   }
   MouDrawPtr(hMou);
   MouSetDevStatus(&status, hMou);
@@ -45,23 +45,23 @@ static void os2_getmouse(aa_context * c, int *x, int *y, int *b) {
   MouReadEventQue(&mouEvent, &mouwait, hMou);
   *x = ptrLoc.col; *y = ptrLoc.row;
   if((mouEvent.fs==0)&&(mouEvent.col==0)&&(mouEvent.row==0)) { /* no event */
-    *b = but;
-    return;
+	*b = but;
+	return;
   }
   if(mouEvent.fs&0x60)
-    but |= AA_BUTTON2;
+	but |= AA_BUTTON2;
   else
-    but &= ~AA_BUTTON2;
+	but &= ~AA_BUTTON2;
   if((mouEvent.fs&0x18)||(mouEvent.fs&0x60 && mouEvent.fs&0x06))
-    but |= AA_BUTTON3;
+	but |= AA_BUTTON3;
   else
-    but &= ~AA_BUTTON3;
+	but &= ~AA_BUTTON3;
   if(mouEvent.fs&0x06)
-    but |= AA_BUTTON1;
+	but |= AA_BUTTON1;
   else
-    but &= ~AA_BUTTON1;
+	but &= ~AA_BUTTON1;
   if(mouEvent.fs&0x01)
-    but = 0;
+	but = 0;
 
   *b = but;
 }
@@ -75,20 +75,20 @@ static void os2_cursormode(aa_context * c, int m) {
   USHORT statusHide = 0x0;  
   USHORT statusShow = 0x100;  
   if(!m) {
-    MouSetDevStatus(&statusShow, hMou);
-    MouDrawPtr(hMou);
+	MouSetDevStatus(&statusShow, hMou);
+	MouDrawPtr(hMou);
   }  else
-    MouSetDevStatus(&statusHide, hMou);
+	MouSetDevStatus(&statusHide, hMou);
 }
 
 
 struct aa_mousedriver mouse_os2_d =
 {
-    "os2", "OS/2 Mouse driver 0.1",
-    AA_MOUSEALLMASK|AA_HIDECURSOR,
-    os2_init,
-    os2_uninit,
-    os2_getmouse,
-    os2_cursormode,
+	"os2", "OS/2 Mouse driver 0.1",
+	AA_MOUSEALLMASK|AA_HIDECURSOR,
+	os2_init,
+	os2_uninit,
+	os2_getmouse,
+	os2_cursormode,
 };
 #endif

@@ -298,11 +298,11 @@ static inline void add_key(int c)
 
    key_buffer_end++;
    if (key_buffer_end >= KEY_BUFFER_SIZE)
-      key_buffer_end = 0;
+	  key_buffer_end = 0;
    if (key_buffer_end == key_buffer_start) {    /* buffer full */
-      key_buffer_start++;
-      if (key_buffer_start >= KEY_BUFFER_SIZE)
-	 key_buffer_start = 0;
+	  key_buffer_start++;
+	  if (key_buffer_start >= KEY_BUFFER_SIZE)
+		 key_buffer_start = 0;
    }
 }
 
@@ -321,7 +321,7 @@ static void clear_keybuf()
    key_buffer_end = 0;
 
    for (c=0; c<128; c++)
-      key[c] = FALSE;
+	  key[c] = FALSE;
 
    ENABLE();
 
@@ -335,10 +335,10 @@ static void clear_keybuf()
 static int keypressed()
 {
    if (key_buffer_start == key_buffer_end) {
-	 return FALSE;
+		 return FALSE;
    }
    else
-      return TRUE;
+	  return TRUE;
 }
 
 
@@ -354,7 +354,7 @@ static int readkey()
    int r;
 
    if ((!keyboard_installed))
-      return 0;
+	  return 0;
 
 
    do {
@@ -366,7 +366,7 @@ static int readkey()
    r = key_buffer[key_buffer_start];
    key_buffer_start++;
    if (key_buffer_start >= KEY_BUFFER_SIZE)
-      key_buffer_start = 0;
+	  key_buffer_start = 0;
 
    ENABLE();
 
@@ -383,7 +383,7 @@ static inline void kb_wait_for_write_ready()
    long i = 1000000L;
 
    while ((i--) && (inportb(0x64) & 2))
-      ; /* wait */
+	  ; /* wait */
 }
 
 
@@ -396,7 +396,7 @@ static inline void kb_wait_for_read_ready()
    long i = 1000000L;
 
    while ((i--) && (!(inportb(0x64) & 0x01)))
-      ; /* wait */
+	  ; /* wait */
 }
 
 
@@ -411,20 +411,20 @@ static inline int kb_send_data(unsigned char data)
    int temp;
 
    do {
-      kb_wait_for_write_ready();
+	  kb_wait_for_write_ready();
 
-      outportb(0x60, data);
-      i = 2000000L;
+	  outportb(0x60, data);
+	  i = 2000000L;
 
-      while (--i) {
-	 kb_wait_for_read_ready();
-	 temp = inportb(0x60);
+	  while (--i) {
+		 kb_wait_for_read_ready();
+		 temp = inportb(0x60);
 
-	 if (temp == 0xFA)
-	    return 1;
-	 else if (temp == 0xFE)
-	    break;
-      }
+		 if (temp == 0xFA)
+			return 1;
+		 else if (temp == 0xFE)
+			break;
+	  }
    }
    while ((resends-- > 0) && (i));
 
@@ -439,7 +439,7 @@ static inline int kb_send_data(unsigned char data)
 static inline void update_leds()
 {
    if ((!kb_send_data(0xED)) || (!kb_send_data((key_shifts>>8) & 7)))
-      kb_send_data(0xF4);
+	  kb_send_data(0xF4);
 }
 
 
@@ -455,138 +455,138 @@ static int my_keyint()
    temp = inportb(0x60);            /* read keyboard byte */
 
    if (temp == 0xE0) {
-      key_extended = 1; 
+	  key_extended = 1; 
    }
    else {
-      release = (temp & 0x80);      /* bit 7 means key was released */
-      temp &= 0x7F;                 /* bits 0-6 is the scan code */
+	  release = (temp & 0x80);      /* bit 7 means key was released */
+	  temp &= 0x7F;                 /* bits 0-6 is the scan code */
 
-      if (key_extended) {           /* if is an extended code */
-	 key_extended = 0;
+	  if (key_extended) {           /* if is an extended code */
+		 key_extended = 0;
 
-	 if (((temp == KEY_END) || (temp == KEY_DEL)) && 
-	     ((key_shifts & KB_CTRL_ALT_FLAG) == KB_CTRL_ALT_FLAG) && 
-	     (!release) && (three_finger_flag)) {
-	    asm (
-	       "  movb $0x79, %%al ; "
-	       "  call ___djgpp_hw_exception "
-	    : : : "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi", "memory"
-	    );
-	    goto exit_keyboard_handler;
-	 }
+		 if (((temp == KEY_END) || (temp == KEY_DEL)) && 
+			 ((key_shifts & KB_CTRL_ALT_FLAG) == KB_CTRL_ALT_FLAG) && 
+			 (!release) && (three_finger_flag)) {
+			asm (
+			   "  movb $0x79, %%al ; "
+			   "  call ___djgpp_hw_exception "
+			: : : "%eax", "%ebx", "%ecx", "%edx", "%esi", "%edi", "memory"
+			);
+			goto exit_keyboard_handler;
+		 }
 
-	 switch (key_extended_table[temp]) {
+		 switch (key_extended_table[temp]) {
 
-	    case 0:
-	       /* process as normal */
-	       break;
+			case 0:
+			   /* process as normal */
+			   break;
 
-	    case 1:
-	       /* ignore the key */
-	       goto exit_keyboard_handler; 
+			case 1:
+			   /* ignore the key */
+			   goto exit_keyboard_handler; 
 
-	    case 2:
-	       if (release) {
-		  key[temp] = FALSE;
-		  t = (temp+AA_UNKNOWN)|AA_RELEASE;
-		  add_key(t);
-	       }
-	       else { 
-		  /* report the scan code + the shift state */
-		  key[temp] = TRUE;
-		  t = temp+AA_UNKNOWN;
-		  add_key(t);
-	       }
-	       goto exit_keyboard_handler;
+			case 2:
+			   if (release) {
+				  key[temp] = FALSE;
+				  t = (temp+AA_UNKNOWN)|AA_RELEASE;
+				  add_key(t);
+			   }
+			   else { 
+				  /* report the scan code + the shift state */
+				  key[temp] = TRUE;
+				  t = temp+AA_UNKNOWN;
+				  add_key(t);
+			   }
+			   goto exit_keyboard_handler;
 
-	    default:
-	       /* use a replacement value from the LUT */
-	       temp = key_extended_table[temp];
-               if(temp>255) {
-	         if (release) {
-		    key[temp] = FALSE;
-		    t = temp|AA_RELEASE;
-		    add_key(t);
-	         }
-	         else { 
-		    /* report the scan code + the shift state */
-		    key[temp] = TRUE;
-		    t = temp;
-		    add_key(t);
-	         }
-	       goto exit_keyboard_handler;
-               }
-	       break;
-	 }
-      } 
+			default:
+			   /* use a replacement value from the LUT */
+			   temp = key_extended_table[temp];
+			   if(temp>255) {
+				 if (release) {
+					key[temp] = FALSE;
+					t = temp|AA_RELEASE;
+					add_key(t);
+				 }
+				 else { 
+					/* report the scan code + the shift state */
+					key[temp] = TRUE;
+					t = temp;
+					add_key(t);
+				 }
+			   goto exit_keyboard_handler;
+			   }
+			   break;
+		 }
+	  } 
 
-      if (release) {                /* key was released */
-	 key[temp] = FALSE;
+	  if (release) {                /* key was released */
+		 key[temp] = FALSE;
 
-	 if ((flag = key_special_table[temp]) != 0) {
-	    if ((flag < KB_SCROLOCK_FLAG) && (flag != KB_ALT_FLAG)) {
-		key_shifts &= ~flag; 
-	    }
-	    else if (flag == KB_ALT_FLAG) {
-	       key_shifts &= ~flag;
-	       if (key_shifts & KB_INALTSEQ_FLAG) {
-		  key_shifts &= ~KB_INALTSEQ_FLAG;
-		  /*add_key(key_pad_seq & 0xFF);*/
-	       }
-	    }
-	 } else goto addkeybuf;
-      }
-      else {                        /* key was pressed */
-	 key[temp] = TRUE;
+		 if ((flag = key_special_table[temp]) != 0) {
+			if ((flag < KB_SCROLOCK_FLAG) && (flag != KB_ALT_FLAG)) {
+				key_shifts &= ~flag; 
+			}
+			else if (flag == KB_ALT_FLAG) {
+			   key_shifts &= ~flag;
+			   if (key_shifts & KB_INALTSEQ_FLAG) {
+				  key_shifts &= ~KB_INALTSEQ_FLAG;
+				  /*add_key(key_pad_seq & 0xFF);*/
+			   }
+			}
+		 } else goto addkeybuf;
+	  }
+	  else {                        /* key was pressed */
+		 key[temp] = TRUE;
 
-	 if ((flag = key_special_table[temp]) != 0) {
-	    if (flag >= KB_SCROLOCK_FLAG) {
-	       if (key_led_flag) {
-		  key_shifts ^= flag;
-		  update_leds();
-		  goto exit_keyboard_handler;
-	       }
-	    }
-	    else
-	       key_shifts |= flag;
-	 }
-	 else {                     /* normal key */
-	    if (key_shifts & KB_ALT_FLAG) {
-	       if ((temp >= 0x47) && (key_extended_table[temp] == 2)) { 
-		  if (key_shifts & KB_INALTSEQ_FLAG) {
-		     key_pad_seq = key_pad_seq*10 + key_numlock_table[temp]-'0';
-		  }
-		  else {
-		     key_shifts |= KB_INALTSEQ_FLAG;
-		     key_pad_seq = key_numlock_table[temp] - '0';
-		  }
-		  goto exit_keyboard_handler;
-	       }
-	       else
-		  t = SCANCODE_TO_ALT(temp);
-	    }
-	    else {
-            addkeybuf:
-            if (key_shifts & KB_CTRL_FLAG)
-	       t = SCANCODE_TO_CONTROL(temp);
-	    else if (key_shifts & KB_SHIFT_FLAG)
-	       t = SCANCODE_TO_SHIFT(temp);
-	    else if ((key_shifts & KB_NUMLOCK_FLAG) &&
-		     (newchar = key_numlock_table[temp]) != 0)
-	       t = (KEY_PAD<<8) | newchar;
-	    else if (key_shifts & KB_CAPSLOCK_FLAG)
-	       t = SCANCODE_TO_CAPS(temp);
-	    else
-	       t = SCANCODE_TO_KEY(temp);
+		 if ((flag = key_special_table[temp]) != 0) {
+			if (flag >= KB_SCROLOCK_FLAG) {
+			   if (key_led_flag) {
+				  key_shifts ^= flag;
+				  update_leds();
+				  goto exit_keyboard_handler;
+			   }
+			}
+			else
+			   key_shifts |= flag;
+		 }
+		 else {                     /* normal key */
+			if (key_shifts & KB_ALT_FLAG) {
+			   if ((temp >= 0x47) && (key_extended_table[temp] == 2)) { 
+				  if (key_shifts & KB_INALTSEQ_FLAG) {
+					 key_pad_seq = key_pad_seq*10 + key_numlock_table[temp]-'0';
+				  }
+				  else {
+					 key_shifts |= KB_INALTSEQ_FLAG;
+					 key_pad_seq = key_numlock_table[temp] - '0';
+				  }
+				  goto exit_keyboard_handler;
+			   }
+			   else
+				  t = SCANCODE_TO_ALT(temp);
+			}
+			else {
+			addkeybuf:
+			if (key_shifts & KB_CTRL_FLAG)
+			   t = SCANCODE_TO_CONTROL(temp);
+			else if (key_shifts & KB_SHIFT_FLAG)
+			   t = SCANCODE_TO_SHIFT(temp);
+			else if ((key_shifts & KB_NUMLOCK_FLAG) &&
+					 (newchar = key_numlock_table[temp]) != 0)
+			   t = (KEY_PAD<<8) | newchar;
+			else if (key_shifts & KB_CAPSLOCK_FLAG)
+			   t = SCANCODE_TO_CAPS(temp);
+			else
+			   t = SCANCODE_TO_KEY(temp);
 
-	    key_shifts &= ~KB_INALTSEQ_FLAG;
-            t&=65535;
-            if(release) t|=AA_RELEASE;
+			key_shifts &= ~KB_INALTSEQ_FLAG;
+			t&=65535;
+			if(release) t|=AA_RELEASE;
 
-	    add_key(t);
-            }
-	 }
-      }
+			add_key(t);
+			}
+		 }
+	  }
    }
 
    exit_keyboard_handler:
@@ -611,7 +611,7 @@ static int install_keyboard()
    unsigned short shifts;
 
    if (keyboard_installed)
-      return -1;
+	  return -1;
 
    LOCK_VARIABLE(three_finger_flag);
    LOCK_VARIABLE(key_led_flag);
@@ -635,7 +635,7 @@ static int install_keyboard()
 
    /* transfer keys from keyboard buffer */
    while ((kbhit()) && (key_buffer_end < KEY_BUFFER_SIZE-1))
-      key_buffer[key_buffer_end++] = getch();
+	  key_buffer[key_buffer_end++] = getch();
 
    /* get state info from the BIOS */
    _dosmemgetw(0x417, 1, &shifts);
@@ -643,27 +643,27 @@ static int install_keyboard()
    key_shifts = 0;
 
    if (shifts & 1) {
-      key_shifts |= KB_SHIFT_FLAG;
-      key[KEY_RSHIFT] = TRUE;
+	  key_shifts |= KB_SHIFT_FLAG;
+	  key[KEY_RSHIFT] = TRUE;
    }
    if (shifts & 2) {
-      key_shifts |= KB_SHIFT_FLAG;
-      key[KEY_LSHIFT] = TRUE;
+	  key_shifts |= KB_SHIFT_FLAG;
+	  key[KEY_LSHIFT] = TRUE;
    }
    if (shifts & 4) {
-      key_shifts |= KB_CTRL_FLAG;
-      key[KEY_LCONTROL] = TRUE;
+	  key_shifts |= KB_CTRL_FLAG;
+	  key[KEY_LCONTROL] = TRUE;
    }
    if (shifts & 8) {
-      key_shifts |= KB_ALT_FLAG;
-      key[KEY_ALT] = TRUE;
+	  key_shifts |= KB_ALT_FLAG;
+	  key[KEY_ALT] = TRUE;
    }
    if (shifts & 16)
-      key_shifts |= KB_SCROLOCK_FLAG;
+	  key_shifts |= KB_SCROLOCK_FLAG;
    if (shifts & 32)
-      key_shifts |= KB_NUMLOCK_FLAG;
+	  key_shifts |= KB_NUMLOCK_FLAG;
    if (shifts & 64)
-      key_shifts |= KB_CAPSLOCK_FLAG;
+	  key_shifts |= KB_CAPSLOCK_FLAG;
 
 
    
@@ -694,7 +694,7 @@ static void remove_keyboard()
    unsigned short shifts;
 
    if (!keyboard_installed)
-      return;
+	  return;
 
    /*_remove_irq(KEYBOARD_INT);*/
 
@@ -702,19 +702,19 @@ static void remove_keyboard()
    shifts = 0;
 
    if (key[KEY_RSHIFT])
-      shifts |= 1;
+	  shifts |= 1;
    if (key[KEY_LSHIFT])
-      shifts |= 2;
+	  shifts |= 2;
    if (key[KEY_LCONTROL])
-      shifts |= 4;
+	  shifts |= 4;
    if (key[KEY_ALT])
-      shifts |= 8;
+	  shifts |= 8;
    if (key_shifts & KB_SCROLOCK_FLAG)
-      shifts |= 16;
+	  shifts |= 16;
    if (key_shifts & KB_NUMLOCK_FLAG)
-      shifts |= 32;
+	  shifts |= 32;
    if (key_shifts & KB_CAPSLOCK_FLAG)
-      shifts |= 64;
+	  shifts |= 64;
 
    _dosmemputw(&shifts, 1, 0x417);
 
@@ -730,58 +730,58 @@ static void remove_keyboard()
 
 static int dos_init(aa_context * c, int mode)
 {
-    install_keyboard();
-    return 1;
+	install_keyboard();
+	return 1;
 }
 static void dos_uninit(aa_context * c)
 {
-    remove_keyboard();
+	remove_keyboard();
 }
 
 static int mygetch()
 {
-    int i = readkey();
-    if (!i) return AA_NONE;
-    if (i) {
-	if (i == 8)
-	    return AA_BACKSPACE;
-	if (i == 27)
-	    return AA_ESC;
-	return (i);
-    }
-    if (!i)
-	switch (getch()) {
-	case 72:
-	    return AA_UP;
-	case 80:
-	    return AA_DOWN;
-	case 75:
-	    return AA_LEFT;
-	case 77:
-	    return AA_RIGHT;
-	default:
-	    return AA_UNKNOWN;
+	int i = readkey();
+	if (!i) return AA_NONE;
+	if (i) {
+		if (i == 8)
+			return AA_BACKSPACE;
+		if (i == 27)
+			return AA_ESC;
+		return (i);
 	}
-    return (AA_UNKNOWN);
+	if (!i)
+		switch (getch()) {
+		case 72:
+			return AA_UP;
+		case 80:
+			return AA_DOWN;
+		case 75:
+			return AA_LEFT;
+		case 77:
+			return AA_RIGHT;
+		default:
+			return AA_UNKNOWN;
+		}
+	return (AA_UNKNOWN);
 }
 
 static int dos_getchar(aa_context * c1, int wait)
 {
-    if(c1->mousedriver!=NULL) wait=0;
-    if (wait)
-	return (mygetch());
-    if (keypressed())
-	return (mygetch());
-    else
-	return (AA_NONE);
+	if(c1->mousedriver!=NULL) wait=0;
+	if (wait)
+		return (mygetch());
+	if (keypressed())
+		return (mygetch());
+	else
+		return (AA_NONE);
 }
 
 
 __AA_CONST struct aa_kbddriver kbd_dos_d =
 {
-    "dos", "dos keyboard driver 2.0",
-    AA_SENDRELEASE,
-    dos_init,
-    dos_uninit,
-    dos_getchar,
+	"dos", "dos keyboard driver 2.0",
+	AA_SENDRELEASE,
+	dos_init,
+	dos_uninit,
+	dos_getchar,
 };

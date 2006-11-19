@@ -5,52 +5,52 @@
 __AA_CONST struct aa_driver * __AA_CONST aa_drivers[] =
 {
 #ifdef DJGPP
-    &dos_d,
+	&dos_d,
 #else
 #ifdef X11_DRIVER
-    &X11_d,
+	&X11_d,
 #endif
 #ifdef LINUX_DRIVER
-    &linux_d,
+	&linux_d,
 #endif
 #ifdef SLANG_DRIVER
-    &slang_d,
+	&slang_d,
 #endif
 #ifdef CURSES_DRIVER
-    &curses_d,
+	&curses_d,
 #endif
 #ifdef OS2_DRIVER
-    &os2vio_d,
+	&os2vio_d,
 #endif
 #endif
-    &stdout_d,
-    &stderr_d,
-    NULL
+	&stdout_d,
+	&stderr_d,
+	NULL
 };
 aa_context *aa_autoinit(__AA_CONST struct aa_hardware_params *params)
 {
-    aa_context *context = NULL;
-    int i = 0;
-    char *t;
-    while ((t = aa_getfirst(&aa_displayrecommended)) != NULL) {
-	if (context == NULL) {
-	    for (i = 0; aa_drivers[i] != NULL; i++) {
-		if (!strcmp(t, aa_drivers[i]->name) || !strcmp(t, aa_drivers[i]->shortname)) {
-		    context = aa_init(aa_drivers[i], params, NULL);
-		    break;
+	aa_context *context = NULL;
+	int i = 0;
+	char *t;
+	while ((t = aa_getfirst(&aa_displayrecommended)) != NULL) {
+		if (context == NULL) {
+			for (i = 0; aa_drivers[i] != NULL; i++) {
+				if (!strcmp(t, aa_drivers[i]->name) || !strcmp(t, aa_drivers[i]->shortname)) {
+					context = aa_init(aa_drivers[i], params, NULL);
+					break;
+				}
+			}
+			if (aa_drivers[i] == NULL)
+				printf("Driver %s unknown", t);
+			free(t);
 		}
-	    }
-	    if (aa_drivers[i] == NULL)
-		printf("Driver %s unknown", t);
-	    free(t);
 	}
-    }
-    i = 0;
-    while (context == NULL) {
-	if (aa_drivers[i] == NULL)
-	    return NULL;
-	context = aa_init(aa_drivers[i], params, NULL);
-	i++;
-    }
-    return (context);
+	i = 0;
+	while (context == NULL) {
+		if (aa_drivers[i] == NULL)
+			return NULL;
+		context = aa_init(aa_drivers[i], params, NULL);
+		i++;
+	}
+	return (context);
 }
