@@ -4,5 +4,5 @@ lz77s: lz77s.cpp mystream.cpp
 unlz77s: unlz77s.cpp mystream.cpp
 	g++ unlz77s.cpp mystream.cpp -o unlz77s
 clean:
-	rm *.exe
-	rm *.obj
+	rm -f lz77s   lz77s.exe
+	rm -f unlz77s unlz77s.exe
