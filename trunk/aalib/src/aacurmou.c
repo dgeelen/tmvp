@@ -41,13 +41,20 @@ static void curses_mouse(aa_context * c, int *x, int *y, int *b)
 	// bit of a hack here to work around a bug in aalib sdl driver
 	// TODO: should really be fixed there and not here...
 	static int prev_x = -1, prev_y = -1, prev_b = 0;
+	static int count = 10;
 	*x = __curses_x;
 	*y = __curses_y;
-	if (*x == prev_x && *y == prev_y)
-		*b = __curses_buttons;
-	else
-		*b = prev_b;
+	*b = prev_b;
+	if (*x == prev_x && *y == prev_y) {
+		if (--count == 0) {
+			count = 10;
+			*b = __curses_buttons;
+		};
+	} else {
+		count = 10;
+	}
 
+//	fprintf(stderr, "curses: (%i,%i,%i)\n", *x, *y, *b);
 	prev_x = *x;
 	prev_y = *y;
 	prev_b = *b;
