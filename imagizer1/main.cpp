@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <string>
 #include <dos>
+#include <algorithm>
 #include "assert.h"
 #include "mystream.cpp"
 
@@ -365,7 +366,13 @@ void __fastcall TForm1::ButtonRenderClick(TObject *Sender)
 		r_renderer->DoRender(&r_sourceimage, &r_textimage);
 
 		Memo1->Lines->Add((GetCurTimeStr() + " - rendered image").c_str());
-
+/*
+		r_font.DisableMap();
+		for (int x = 0; x < 16; ++x)
+			for (int y = 0; y < 16; ++y)
+				r_textimage.SetChar(x,y, y*16 + x, 7, 0);
+		r_font.CalcRatios();
+*/
 		DoOutPut(r_textimage, frame);
 
 		Memo1->Lines->Add((GetCurTimeStr() + " - did output").c_str());
@@ -397,12 +404,13 @@ void __fastcall TForm1::ComboBoxPalleteMethodChange(TObject *Sender)
 	r_palcalc = NULL;
 	switch (ComboBoxPalleteMethod->ItemIndex) {
 		case 0: r_palcalc = new TPalStandard; break;
-		case 1: r_palcalc = new TPalMedianCut; break;
-		case 2: r_palcalc = new TPalMedianCutSort(0); break;
-		case 3: r_palcalc = new TPalMedianCutSort(250); break;
-		case 4: r_palcalc = new TPalMedianCutSort(500); break;
-		case 5: r_palcalc = new TPalMedianCutSort(750); break;
-		case 6: r_palcalc = new TPalMedianCutSort(1000); break;
+		case 1: r_palcalc = new TPalAnsiCygwin; break;
+		case 2: r_palcalc = new TPalMedianCut; break;
+		case 3: r_palcalc = new TPalMedianCutSort(0); break;
+		case 4: r_palcalc = new TPalMedianCutSort(250); break;
+		case 5: r_palcalc = new TPalMedianCutSort(500); break;
+		case 6: r_palcalc = new TPalMedianCutSort(750); break;
+		case 7: r_palcalc = new TPalMedianCutSort(1000); break;
 	}
 	assert(r_palcalc != NULL);
 }
@@ -412,16 +420,32 @@ void __fastcall TForm1::ComboBoxCharsetChange(TObject *Sender)
 {
 	string fname;
 	switch (ComboBoxCharset->ItemIndex) {
-		case 0: fname = "C:\\render\\charmap\\charmap.png"; break;
-		case 1: fname = "C:\\render\\charmap\\charmap-block.png"; break;
+		case 0: {
+			fname = "C:\\render\\charmap\\ascii.fon";
+			r_font.lorval = 32;
+			r_font.hirval = 126;
+		} break;
+		case 1: {
+			fname = "C:\\render\\charmap\\ascii.fon";
+			r_font.lorval = 0;
+			r_font.hirval = 255;
+		} break;
+		case 2: {
+			fname = "C:\\render\\charmap\\blocks.fon";
+			r_font.lorval = 0;
+			r_font.hirval = 255;
+		} break;
+		case 3: {
+			fname = "C:\\render\\charmap\\asc_ord_hi.fon";
+			r_font.lorval = 128+32;
+			r_font.hirval = 255;
+			break;
+		}
 	}
 
 	assert(fname != "");
-	
-	RawRGBImage fontimage;
-	fontimage.LoadFromPNG(fname);
 
-	r_font.LoadFromRGBImage(&fontimage);
+	r_font.LoadFromRAWFile(fname);
 }
 //---------------------------------------------------------------------------
 
@@ -582,6 +606,159 @@ void __fastcall TForm1::DoSpecialOutput(TextImage &textimage, RawRGBImage &rgbim
 void __fastcall TForm1::ButtonSpecialEndClick(TObject *Sender)
 {
 //
+}
+//---------------------------------------------------------------------------
+
+void blah() {};
+
+
+void helpchar(uint8 chr, uint x, uint y, TextFont *font , RawRGBImage* img)
+{
+			for (int sx = 0; sx < 8; ++sx)
+				for (int sy = 0; sy < 8; ++sy)
+					if (font->data[chr][sx][sy]) {
+						img->SetPixel(x + sx, y + sy, 0xFFFFFFul);
+					} else {
+						img->SetPixel(x + sx, y + sy, 0ul);
+					}
+}
+
+vector<int> sortlist;
+
+void __fastcall TForm1::Button1Click(TObject *Sender)
+{
+/*	RawRGBImage fimage;
+	fimage.SetSize(8+8+8+1+8+1+8+1, 256 * (8+1) + 1);
+
+	for (int x=0; x<fimage.GetWidth(); ++x)
+		fimage.SetPixel(x,256 * (8+1),0x7F7F7Ful);
+
+	for (int i=0; i<256; ++i) {
+		for (int x=0; x<fimage.GetWidth(); ++x) {
+			for (int y=1; y < 9; ++y)
+				fimage.SetPixel(x,i*9+y,0ul);
+			fimage.SetPixel(x,i*9+ 0,0x7F7F7Ful);
+		}
+
+		for (int y=0; y < 9; ++y) {
+			fimage.SetPixel(8+8+8+0,i*9+y,0x7F7F7Ful);
+			fimage.SetPixel(8+8+8+1+8+0,i*9+y,0x7F7F7Ful);
+			fimage.SetPixel(8+8+8+1+8+1+8+0,i*9+y,0x7F7F7Ful);
+		}
+
+		helpchar(sortlist[i], 8+8+8+1, i*9+1, &r_font, &fimage);
+
+		helpchar('0' + i / 100% 10, 0    , i*9+1, &r_font, &fimage);
+		helpchar('0' + i / 10 % 10, 8+0  , i*9+1, &r_font, &fimage);
+		helpchar('0' + i / 1  % 10, 8+8+0, i*9+1, &r_font, &fimage);
+	}
+	fimage.SaveToPNG("c:/tfont.png");
+*/
+//	r_font.LoadFromRAWFile("c:/blocks.fon");
+	r_font.SaveToRAWFile("c:/blocks3.fon");
+}
+//---------------------------------------------------------------------------
+
+class MyComp {
+public:
+	bool operator() (int &l, int &r){
+		int ql[4];
+		int qr[4];
+		int nl, nr;
+
+		ql[0] = ((l >> 0) & 3);
+		ql[1] = ((l >> 2) & 3);
+		ql[2] = ((l >> 4) & 3);
+		ql[3] = ((l >> 6) & 3);
+
+		qr[0] = ((r >> 0) & 3);
+		qr[1] = ((r >> 2) & 3);
+		qr[2] = ((r >> 4) & 3);
+		qr[3] = ((r >> 6) & 3);
+
+		nl = 0;
+		if (ql[1] != ql[0]) ++nl;
+		if (ql[2] != ql[0] && ql[2] != ql[1]) ++nl;
+		if (ql[3] != ql[0] && ql[3] != ql[1] && ql[3] != ql[2]) ++nl;
+
+		nr = 0;
+		if (qr[1] != qr[0]) ++nr;
+		if (qr[2] != qr[0] && qr[2] != qr[1]) ++nr;
+		if (qr[3] != qr[0] && qr[3] != qr[1] && qr[3] != qr[2]) ++nr;
+
+		if (nl == nr) return
+		 (ql[0]+ql[1]+ql[2]+ql[3])
+		 <
+		 (qr[0]+qr[1]+qr[2]+qr[3]);
+		return nl < nr;
+	}
+};
+
+void __fastcall TForm1::Button2Click(TObject *Sender)
+{
+	sortlist.clear();
+	for (int i = 0; i < 256; ++i)
+		sortlist.push_back(i);
+
+	MyComp mycomp;
+
+	sort(sortlist.begin(), sortlist.end(), mycomp);
+
+	TextImage fimage;
+	RawRGBImage rgbimage;
+
+	fimage.font = &r_font;
+
+	TextFont nfont;
+
+	TextPal fpal;
+	fimage.pal = &fpal;
+	TPalStandard rpal;
+	rpal.CalcPal(&rgbimage, &fpal);
+
+	r_font.LoadFromRAWFile("C:\\render\\charmap\\ascii.fon");
+	r_font.DisableMap();
+	for (int i = 0; i < 255; ++i)
+	{
+		for (int x = 0; x < 8; ++x)
+			for (int y = 0; y < 8; ++y)
+				nfont.data[i][x][y] = r_font.data[i][x][y];
+		nfont.data[i][2][2] = 1;
+	}
+
+	r_font.LoadFromRAWFile("C:\\render\\charmap\\ordered.fon");
+	r_font.DisableMap();
+
+	for (int i = 32; i < 127; ++i)
+	{
+		for (int x = 0; x < 8; ++x)
+			for (int y = 0; y < 8; ++y)
+				nfont.data[i][x][y] = r_font.data[i-32][x][y];
+	}
+
+	fimage.SaveToRawRGBImage(&rgbimage);
+
+	r_font.LoadFromRGBImage(&rgbimage);
+
+	nfont.SaveToRAWFile("c:/asc_ord.fon");
+
+	DrawRGBImageToScreen(&rgbimage);
+
+	FILE *fp = fopen("c:/map.acm", "wb");
+	if (!fp) {
+		return ;
+	}
+
+	uint8 tbuf[2048];
+
+	for (int i = 0; i < 256; ++i)
+	{
+		tbuf[i] = i;
+	}
+
+	fwrite(tbuf, 1, 256, fp);
+
+	fclose(fp);
 }
 //---------------------------------------------------------------------------
 

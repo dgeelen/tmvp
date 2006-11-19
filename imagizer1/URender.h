@@ -15,6 +15,11 @@ class TPalStandard : public TCalcPallete {
 	virtual void CalcPal(RawRGBImage* src, TextPal* dst);
 };
 
+class TPalAnsiCygwin : public TCalcPallete {
+ public:
+	virtual void CalcPal(RawRGBImage* src, TextPal* dst);
+};
+
 class TPalMedianCut : public TCalcPallete {
  public:
 	void CalcPal(RawRGBImage* src, TextPal* dst);

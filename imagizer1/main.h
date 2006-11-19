@@ -44,6 +44,8 @@ __published:	// IDE-managed Components
 	TEdit *EditSpecial;
 	TButton *ButtonSpecialReset;
 	TButton *ButtonSpecialEnd;
+	TButton *Button1;
+	TButton *Button2;
 	void __fastcall Button4Click(TObject *Sender);
 	void __fastcall Button5Click(TObject *Sender);
 	void __fastcall Button6Click(TObject *Sender);
@@ -57,6 +59,8 @@ __published:	// IDE-managed Components
 	void __fastcall ButtonSpecialResetClick(TObject *Sender);
 	void __fastcall DoSpecialOutput(TextImage &textimage, RawRGBImage &rgbimage);
 	void __fastcall ButtonSpecialEndClick(TObject *Sender);
+	void __fastcall Button1Click(TObject *Sender);
+	void __fastcall Button2Click(TObject *Sender);
 private:	// User declarations
 public:		// User declarations
 	__fastcall TForm1(TComponent* Owner);

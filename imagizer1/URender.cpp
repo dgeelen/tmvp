@@ -31,6 +31,26 @@ void TPalStandard::CalcPal(RawRGBImage* src, TextPal* dst)
 	dst->SetColor( 15, 0xFFFFFFul);  // white black
 }
 
+void TPalAnsiCygwin::CalcPal(RawRGBImage* src, TextPal* dst)
+{
+	dst->SetColor(  0, 0x000000ul);  // black
+	dst->SetColor(  1, 0x800000ul);  // dark blue
+	dst->SetColor(  2, 0x008000ul);  // dark green
+	dst->SetColor(  3, 0x808000ul);  // dark cyan
+	dst->SetColor(  4, 0x000080ul);  // dark red
+	dst->SetColor(  5, 0x800080ul);  // dark purple
+	dst->SetColor(  6, 0x008080ul);  // brown
+	dst->SetColor(  7, 0xC0C0C0ul);  // light gray
+	dst->SetColor(  8, 0x808080ul);  // dark gray
+	dst->SetColor(  9, 0xFF0000ul);  // bright blue
+	dst->SetColor( 10, 0x00FF00ul);  // bright green
+	dst->SetColor( 11, 0xFFFF00ul);  // bright cyan
+	dst->SetColor( 12, 0x0000FFul);  // bright red
+	dst->SetColor( 13, 0xFF00FFul);  // bright purple
+	dst->SetColor( 14, 0x00FFFFul);  // yellow
+	dst->SetColor( 15, 0xFFFFFFul);  // white black
+}
+
 void TPalMedianCut::CalcPal(RawRGBImage* src, TextPal* dst)
 {
 	APoint* points = new APoint[src->GetHeight() * src->GetWidth()];
