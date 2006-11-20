@@ -80,7 +80,29 @@ static void curses_uninit(aa_context * c)
 }
 static int curses_getchar(aa_context * c1, int wait)
 {
+	int retval = AA_UNKNOWN;
+	static int delay = 0;
+	static int lastchar = AA_UNKNOWN;
+	static int newchar = AA_UNKNOWN;
 	int c;
+	if (newchar != AA_UNKNOWN) {
+		retval = newchar;
+		newchar = AA_UNKNOWN;
+		lastchar = retval;
+		return retval;
+	}
+	if (lastchar != AA_UNKNOWN) {
+		if (++delay == 10) {
+			delay = 0;
+			retval = lastchar;
+			lastchar = AA_UNKNOWN;
+			return (retval | AA_RELEASE);
+		}
+	} else {
+		delay = 0;
+	}
+	
+
 	if (wait) {
 		nodelay(stdscr, FALSE);
 		setjmp(buf);
@@ -97,21 +119,29 @@ static int curses_getchar(aa_context * c1, int wait)
 	} else
 #endif
 		c = wgetch(stdscr);
-	if (c == 27)
-		return (AA_ESC);
-	if (c > 0 && c < 127 && c != 127)
-		return (c);
+
 	switch (c) {
+	case 27:
+		retval = AA_ESC;
+		break;
 	case ERR:
 		return (AA_NONE);
+		break;
 	case KEY_LEFT:
-		return (AA_LEFT);
+		retval = (AA_LEFT);
+		break;
 	case KEY_RIGHT:
-		return (AA_RIGHT);
+		retval = (AA_RIGHT);
+		break;
 	case KEY_UP:
-		return (AA_UP);
+		retval = (AA_UP);
+		break;
 	case KEY_DOWN:
-		return (AA_DOWN);
+		retval = (AA_DOWN);
+		break;
+	case 96:	// backtick `
+		retval = 41;
+		break;
 #ifdef KEY_MOUSE
 	case KEY_MOUSE:
 #ifdef GPM_MOUSEDRIVER
@@ -137,12 +167,27 @@ static int curses_getchar(aa_context * c1, int wait)
 				__curses_buttons &= ~AA_BUTTON3;
 		}
 		return (AA_MOUSE);
+		break;
 #endif
-	case KEY_BACKSPACE:
+	case KEY_BACKSPACE: //263
 	case 127:
-		return (AA_BACKSPACE);
+		retval = (AA_BACKSPACE);
+		break;
+	default:
+		if (c > 0 && c < 127)
+			retval = c;
+		break;
 	}
-	return (AA_UNKNOWN);
+
+	if (retval != AA_UNKNOWN && lastchar != AA_UNKNOWN) {
+		newchar = retval;
+		retval = lastchar;
+		lastchar = AA_UNKNOWN;
+		return (retval | AA_RELEASE);
+	}
+
+	lastchar = retval;
+	return (retval);
 }
 
 
