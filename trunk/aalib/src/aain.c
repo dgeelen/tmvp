@@ -25,6 +25,15 @@ void aa_getmouse(struct aa_context *c, int *x, int *y, int *z)
 	if (c->mousedriver) {
 		c->mousedriver->getmouse(c, x, y, z);
 	}
+	// little bit of a hack here to fix bug in aalib sdl driver
+	// TODO: should really be fixed there and not here...
+	static int prev_x=-1, prev_y=-1, prev_b=0;
+	if (prev_x != *x || prev_y != *y)
+		*z = prev_b;
+	prev_x = *x;
+	prev_y = *y;
+	prev_b = *z;
+//	fprintf(stderr, "aa_getmouse: (%i,%i,%i)\n", *x, *y, *z);
 }
 int aa_getevent(aa_context * c, int wait)
 {
