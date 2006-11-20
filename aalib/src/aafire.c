@@ -48,7 +48,7 @@ __AA_CONST static int pal[] =
   63, 63, 56, 63, 63, 57, 63, 63, 58, 63, 63, 59, 63, 63, 60, 63, 63, 61, 63, 63, 62, 63, 63, 63};
 
 
-static void 
+static void
 initialize (void)
 {
   int i;
@@ -67,13 +67,15 @@ initialize (void)
 				   pal[i * 3 + 2] * 4);
   aa_hidecursor (context);
 }
-static void 
+
+static void
 uninitialize (void)
 {
   aa_close (context);
   exit (0);
 }
-static void 
+
+static void
 gentable (void)
 {
   unsigned int i, p2;
@@ -91,8 +93,9 @@ gentable (void)
 		table[i] = 0;
 	}
 }
+
 #define MA 5
-static void 
+static void
 firemain (void)
 {
   register unsigned int i;
@@ -109,7 +112,7 @@ firemain (void)
 }
 
 #define min(x,y) ((x)<(y)?(x):(y))
-static void 
+static void
 drawfire (void)
 {
   unsigned int i, last1, i1, i2;
@@ -140,7 +143,8 @@ drawfire (void)
   aa_renderpalette (context, palette, params, 0, 0, aa_scrwidth (context), aa_scrheight (context));
   aa_flush (context);
 }
-static void 
+
+static void
 game (void)
 {
   gentable ();
@@ -149,7 +153,8 @@ game (void)
 	  drawfire ();
 	}
 }
-int 
+
+int
 main (int argc, char **argv)
 {
   if (!aa_parseoptions (NULL, NULL, &argc, argv) || argc != 1)
