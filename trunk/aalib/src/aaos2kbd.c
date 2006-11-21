@@ -38,7 +38,7 @@ static int check_keys(KBDKEYINFO k) {
 	default:
 	  return AA_UNKNOWN;
 	}
-  } 
+  }
   return (AA_NONE);
 }
 

@@ -101,7 +101,7 @@ static int curses_getchar(aa_context * c1, int wait)
 	} else {
 		delay = 0;
 	}
-	
+
 
 	if (wait) {
 		nodelay(stdscr, FALSE);

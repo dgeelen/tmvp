@@ -72,8 +72,8 @@ static void os2_getmouse(aa_context * c, int *x, int *y, int *b) {
   m = 0; hidemouse
   */
 static void os2_cursormode(aa_context * c, int m) {
-  USHORT statusHide = 0x0;  
-  USHORT statusShow = 0x100;  
+  USHORT statusHide = 0x0;
+  USHORT statusShow = 0x100;
   if(!m) {
 	MouSetDevStatus(&statusShow, hMou);
 	MouDrawPtr(hMou);

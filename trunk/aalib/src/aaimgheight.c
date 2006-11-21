@@ -2,7 +2,7 @@
 #define NOFAST
 #include "aaint.h"
 #undef aa_imgheight
-int 
+int
 aa_imgheight (aa_context *a)
 {
   return a->imgheight;

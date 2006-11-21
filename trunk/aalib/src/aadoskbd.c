@@ -39,8 +39,8 @@
 #define KB_INALTSEQ_FLAG      4096
 
 #define KEY_ESC               1     /* keyboard scan codes  */
-#define KEY_1                 2 
-#define KEY_2                 3 
+#define KEY_1                 2
+#define KEY_2                 3
 #define KEY_3                 4
 #define KEY_4                 5
 #define KEY_5                 6
@@ -52,7 +52,7 @@
 #define KEY_MINUS             12
 #define KEY_EQUALS            13
 #define KEY_BACKSPACE         14
-#define KEY_TAB               15 
+#define KEY_TAB               15
 #define KEY_Q                 16
 #define KEY_W                 17
 #define KEY_E                 18
@@ -149,7 +149,7 @@
 static int three_finger_flag = TRUE;
 static int key_led_flag = TRUE;
 
-static int keyboard_installed = FALSE; 
+static int keyboard_installed = FALSE;
 
 static volatile char key[128];                   /* key pressed flags */
 
@@ -280,7 +280,7 @@ __AA_CONST static int key_special_table[128] =
 
 #define KEY_BUFFER_SIZE    256
 
-static volatile int key_buffer[KEY_BUFFER_SIZE]; 
+static volatile int key_buffer[KEY_BUFFER_SIZE];
 static volatile int key_buffer_start = 0;
 static volatile int key_buffer_end = 0;
 static volatile int key_extended = 0;
@@ -347,7 +347,7 @@ static int keypressed()
  *  Returns the next character code from the keyboard buffer. If the
  *  buffer is empty, it waits until a key is pressed. The low byte of
  *  the return value contains the ASCII code of the key, and the high
- *  byte the scan code. 
+ *  byte the scan code.
  */
 static int readkey()
 {
@@ -455,7 +455,7 @@ static int my_keyint()
    temp = inportb(0x60);            /* read keyboard byte */
 
    if (temp == 0xE0) {
-	  key_extended = 1; 
+	  key_extended = 1;
    }
    else {
 	  release = (temp & 0x80);      /* bit 7 means key was released */
@@ -464,8 +464,8 @@ static int my_keyint()
 	  if (key_extended) {           /* if is an extended code */
 		 key_extended = 0;
 
-		 if (((temp == KEY_END) || (temp == KEY_DEL)) && 
-			 ((key_shifts & KB_CTRL_ALT_FLAG) == KB_CTRL_ALT_FLAG) && 
+		 if (((temp == KEY_END) || (temp == KEY_DEL)) &&
+			 ((key_shifts & KB_CTRL_ALT_FLAG) == KB_CTRL_ALT_FLAG) &&
 			 (!release) && (three_finger_flag)) {
 			asm (
 			   "  movb $0x79, %%al ; "
@@ -483,7 +483,7 @@ static int my_keyint()
 
 			case 1:
 			   /* ignore the key */
-			   goto exit_keyboard_handler; 
+			   goto exit_keyboard_handler;
 
 			case 2:
 			   if (release) {
@@ -491,7 +491,7 @@ static int my_keyint()
 				  t = (temp+AA_UNKNOWN)|AA_RELEASE;
 				  add_key(t);
 			   }
-			   else { 
+			   else {
 				  /* report the scan code + the shift state */
 				  key[temp] = TRUE;
 				  t = temp+AA_UNKNOWN;
@@ -508,7 +508,7 @@ static int my_keyint()
 					t = temp|AA_RELEASE;
 					add_key(t);
 				 }
-				 else { 
+				 else {
 					/* report the scan code + the shift state */
 					key[temp] = TRUE;
 					t = temp;
@@ -518,14 +518,14 @@ static int my_keyint()
 			   }
 			   break;
 		 }
-	  } 
+	  }
 
 	  if (release) {                /* key was released */
 		 key[temp] = FALSE;
 
 		 if ((flag = key_special_table[temp]) != 0) {
 			if ((flag < KB_SCROLOCK_FLAG) && (flag != KB_ALT_FLAG)) {
-				key_shifts &= ~flag; 
+				key_shifts &= ~flag;
 			}
 			else if (flag == KB_ALT_FLAG) {
 			   key_shifts &= ~flag;
@@ -552,7 +552,7 @@ static int my_keyint()
 		 }
 		 else {                     /* normal key */
 			if (key_shifts & KB_ALT_FLAG) {
-			   if ((temp >= 0x47) && (key_extended_table[temp] == 2)) { 
+			   if ((temp >= 0x47) && (key_extended_table[temp] == 2)) {
 				  if (key_shifts & KB_INALTSEQ_FLAG) {
 					 key_pad_seq = key_pad_seq*10 + key_numlock_table[temp]-'0';
 				  }
@@ -600,9 +600,9 @@ static END_OF_FUNCTION(my_keyint);
 
 
 /* install_keyboard:
- *  Installs Allegro's keyboard handler. You must call this before using 
- *  any of the keyboard input routines. Note that Allegro completely takes 
- *  over the keyboard, so the debugger will not work properly, and under 
+ *  Installs Allegro's keyboard handler. You must call this before using
+ *  any of the keyboard input routines. Note that Allegro completely takes
+ *  over the keyboard, so the debugger will not work properly, and under
  *  DOS even ctrl-alt-del will have no effect. Returns -1 on failure.
  */
 static _go32_dpmi_seginfo pmint,oldint;
@@ -666,7 +666,7 @@ static int install_keyboard()
 	  key_shifts |= KB_CAPSLOCK_FLAG;
 
 
-   
+
    pmint.pm_selector = _my_cs();
    pmint.pm_offset = (unsigned)&my_keyint;
    /*_go32_dpmi_set_protected_mode_interrupt_vector(9, &pmint);*/

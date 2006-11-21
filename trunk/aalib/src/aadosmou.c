@@ -19,14 +19,14 @@ static int dos_init(struct aa_context *context, int mode)
 	r.x.cx=0;
 	r.x.dx=8*aa_scrheight(context)-8;
 	__dpmi_int(0x33,&r);
-	r.x.ax=1; 
+	r.x.ax=1;
 	__dpmi_int(0x33,&r);
 	return 1;
 }
 static void dos_uninit(aa_context * c)
 {
   __dpmi_regs r;
-  r.x.ax=2; 
+  r.x.ax=2;
   __dpmi_int(0x33,&r);
 }
 
@@ -50,7 +50,7 @@ static void dos_mousemode(aa_context *c,int m)
   __dpmi_regs r;
   if(m)
 	r.x.ax=1; else
-	r.x.ax=2; 
+	r.x.ax=2;
   __dpmi_int(0x33,&r);
 }
 
