@@ -405,12 +405,13 @@ void __fastcall TForm1::ComboBoxPalleteMethodChange(TObject *Sender)
 	switch (ComboBoxPalleteMethod->ItemIndex) {
 		case 0: r_palcalc = new TPalStandard; break;
 		case 1: r_palcalc = new TPalAnsiCygwin; break;
-		case 2: r_palcalc = new TPalMedianCut; break;
-		case 3: r_palcalc = new TPalMedianCutSort(0); break;
-		case 4: r_palcalc = new TPalMedianCutSort(250); break;
-		case 5: r_palcalc = new TPalMedianCutSort(500); break;
-		case 6: r_palcalc = new TPalMedianCutSort(750); break;
-		case 7: r_palcalc = new TPalMedianCutSort(1000); break;
+		case 2: r_palcalc = new TPalAnsiPutty; break;
+		case 3: r_palcalc = new TPalMedianCut; break;
+		case 4: r_palcalc = new TPalMedianCutSort(0); break;
+		case 5: r_palcalc = new TPalMedianCutSort(250); break;
+		case 6: r_palcalc = new TPalMedianCutSort(500); break;
+		case 7: r_palcalc = new TPalMedianCutSort(750); break;
+		case 8: r_palcalc = new TPalMedianCutSort(1000); break;
 	}
 	assert(r_palcalc != NULL);
 }
@@ -759,6 +760,22 @@ void __fastcall TForm1::Button2Click(TObject *Sender)
 	fwrite(tbuf, 1, 256, fp);
 
 	fclose(fp);
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TForm1::Button3Click(TObject *Sender)
+{
+	for(int i = 0; i < 16; ++i) {
+		string ts = "";
+		for(int j = 0; j < 16; ++j) {
+			int val = r_font.imap[i*16 + j];
+			if (val < 100) ts.push_back(' ');
+			if (val < 10) ts.push_back(' ');
+			ts = ts + (IntToStr(val).c_str());
+			ts = ts + ',';
+		}
+		Memo1->Lines->Add(ts.c_str());
+	}
 }
 //---------------------------------------------------------------------------
 
