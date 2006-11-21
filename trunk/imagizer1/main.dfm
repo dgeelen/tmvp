@@ -62,13 +62,14 @@ object Form1: TForm1
     Width = 145
     Height = 21
     ItemHeight = 13
-    ItemIndex = 2
+    ItemIndex = 3
     TabOrder = 2
     Text = 'Median Cut'
     OnChange = ComboBoxPalleteMethodChange
     Items.Strings = (
-      'Standard Dos Colors'
+      'Dos Colors (dosbox)'
       'Ansi Colors (cygwin)'
+      'Ansi Colors (putty)'
       'Median Cut'
       'Median Cut + sort'
       'Median Cut + sort (250)'
@@ -329,5 +330,14 @@ object Form1: TForm1
     Caption = 'Button2'
     TabOrder = 22
     OnClick = Button2Click
+  end
+  object Button3: TButton
+    Left = 760
+    Top = 600
+    Width = 75
+    Height = 25
+    Caption = 'Button3'
+    TabOrder = 23
+    OnClick = Button3Click
   end
 end
