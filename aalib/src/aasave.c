@@ -491,7 +491,7 @@ static void save_flush(aa_context * c1)
  * and %e for extension and %c for coordinates in format %x_%y.
  * You might now add after filename simply %c%e to get filename
  * blahX_Y.txt or blah.txt
- * Also avoided memory owerflows. 
+ * Also avoided memory owerflows.
  */
 static char *generate_filename(__AA_CONST char *template, char *result, int x, int y, int pages, __AA_CONST char *extension)
 {
@@ -501,7 +501,7 @@ static char *generate_filename(__AA_CONST char *template, char *result, int x, i
 	b = template - 1, a = result - 1;
 	while ((*++a = *++b)) {
 		if (a >= end)
-			break;                /*Too long filename - probably bug in caller, 
+			break;                /*Too long filename - probably bug in caller,
 								   since filenames longer than 4KB are useless :) */
 		if (*b == '%') {
 			switch (b[1]) {

@@ -1,5 +1,5 @@
 
-/* 
+/*
  *               AA-lib, an ascii-art gfx library
  *                  Copyright (C) 1998,1999,2001 by
  *
@@ -86,7 +86,7 @@ AA_SPECIAL=5             /* Render characters in a way easilly visible on the
 						but this mode ought to be used to output texts you
 						want to make easilly visible in the image.  */
 };
- 
+
 enum aa_dithering_mode {
    AA_NONE=0,
    AA_ERRORDISTRIB=1,        /* Error distribution.  */
@@ -124,9 +124,9 @@ struct aa_hardware_params {
 										AA_BOLD_MASK, AA_BOLDFONT_MASK,
 										AA_REVERSE_MASK
 									   */
-	int minwidth, minheight;              /*Minimal alowed screen size 
+	int minwidth, minheight;              /*Minimal alowed screen size
 										in characters  */
-	int maxwidth, maxheight;              /*Maximal alowed screen size 
+	int maxwidth, maxheight;              /*Maximal alowed screen size
 										in characters  */
 	int recwidth, recheight;              /*Recommended screen size (driver
 										attempts to find resolution nearest
@@ -136,7 +136,7 @@ struct aa_hardware_params {
 	int width, height;                      /*Current screen size  */
 	double dimmul __AA_ALIGN;              /*Bright value of dim characters (0 black,
 										1 white)  */
-	double boldmul __AA_ALIGN;              /*Bright value of bold characters 
+	double boldmul __AA_ALIGN;              /*Bright value of bold characters
 										(0 black, 1 white)  */
 };
 
@@ -145,7 +145,7 @@ struct aa_hardware_params {
  * of AA-lib functions.  The full definition of structure is present just
  * for compatibility with older programs. Dirrect access to it's fields
  * is not recommended, because you might surfer to problems with future
- * releases of AA-lib.  Use standard AA-lib functions instead.  
+ * releases of AA-lib.  Use standard AA-lib functions instead.
  */
 struct aa_context {
 	__AA_CONST struct aa_driver *driver;  /*Current display driver  */
@@ -163,12 +163,12 @@ struct aa_context {
 	unsigned char *attrbuffer;  /* Virtual buffer containing attributes */
 	unsigned short *table;      /* Precalculated values used by rendering
 								   algorithm.
-								   
+
 								   WARNING!
 								   It is _strongly_ depreached
 								   to access fields behind this point, because
 								   they can change in future releases.*/
-	unsigned short *filltable;  
+	unsigned short *filltable;
 	struct parameters *parameters;
 	int cursorx, cursory, cursorstate;  /* Cursor possition. */
 	int mousex, mousey, buttons,mousemode; /* Mouse state.  */
@@ -246,7 +246,7 @@ struct aa_font {
 };
 
 /*
- * Output format specification used by aa_save driver. 
+ * Output format specification used by aa_save driver.
  */
 struct aa_format {
 	int width, height;
@@ -263,11 +263,11 @@ struct aa_format {
 	__AA_CONST char * __AA_CONST prints[AA_NATTRS];
 	__AA_CONST char * __AA_CONST begin[AA_NATTRS];
 	__AA_CONST char * __AA_CONST ends[AA_NATTRS];
-	__AA_CONST char * __AA_CONST *conversions;        
+	__AA_CONST char * __AA_CONST *conversions;
 };
 
 /*
- * Initialization data used by aa_save driver. 
+ * Initialization data used by aa_save driver.
  */
 struct aa_savedata {
 	char *name; /* Base name of the output file. The page number and extension
@@ -290,16 +290,16 @@ typedef int aa_palette[256];
 
 
 /*
- * AA-lib driver used to save ascii-art image into file in used specified format. 
+ * AA-lib driver used to save ascii-art image into file in used specified format.
  * Initialize this driver using aa_init function and specify the driver
  * dependent parameters in aa_savedata structure to save image into file.
  * See the texinfo documentation for details.
  */
-extern __AA_CONST struct aa_driver save_d; 
+extern __AA_CONST struct aa_driver save_d;
 
 /*
- * AA-lib memory driver.  
- * Used to render ascii-art images into memory. 
+ * AA-lib memory driver.
+ * Used to render ascii-art images into memory.
  * You might use this driver to render images into memory and then use your
  * own routines to handle them in case you want to avoid AA-lib's output
  * mechanizms.
@@ -445,7 +445,7 @@ __AA_CONST struct aa_font *aa_currentfont(
 			   aa_context *a);
 
 /*
- * easy to use AA-lib initialization function. 
+ * easy to use AA-lib initialization function.
  * Attempts to find available output driver supporting the specified
  * parameters.  First attempts to initialize the recommended drivers
  * and then in order drivers available in the aa_drivers array
@@ -458,7 +458,7 @@ aa_context *aa_autoinit(
 						   for default values.  */
 						__AA_CONST struct aa_hardware_params *params);
 /*
- * easy to use AA-lib keyboard initialization function. 
+ * easy to use AA-lib keyboard initialization function.
  * Attempts to find available keyboard driver supporting the specified
  * mode.  First attempts to initialize the recommended drivers
  * and then in order drivers available in the aa_kbddrivers array
@@ -477,7 +477,7 @@ int aa_autoinitkbd(
 					  too. */
 				   int mode);
 /*
- * easy to use AA-lib mouse initialization function. 
+ * easy to use AA-lib mouse initialization function.
  * Attempts to find available mouse driver supporting the specified
  * mode.  First attempts to initialize the recommended drivers
  * and then in order drivers available in the aa_kbddrivers array
@@ -513,7 +513,7 @@ char *aa_getfirst(aa_linkedlist ** l);
 /*init functions */
 
 /*
- * open the output display for AA-lib. 
+ * open the output display for AA-lib.
  * This is the most primitive AA-lib initialization function.
  * Allows better control over the process than the easier to use
  * aa_autoinit function.
@@ -521,50 +521,50 @@ char *aa_getfirst(aa_linkedlist ** l);
  * Every AA-lib program ought to have call to aa_parseoptions before
  * first call to aa_init.
  *
- * returns pointer to new AA-lib context or NULL if failed.  
+ * returns pointer to new AA-lib context or NULL if failed.
  */
 
 aa_context *aa_init(
 					  /* Driver you want to use.  Available drivers are listed
 						 in the NULL terminated aa_drivers array.  */
-					__AA_CONST struct aa_driver *driver,  
+					__AA_CONST struct aa_driver *driver,
 					  /* Hardware parameters you want.  Use aa_defparams
 						 for default values.  */
-					__AA_CONST struct aa_hardware_params *defparams, 
+					__AA_CONST struct aa_hardware_params *defparams,
 					  /* This pointer is passed dirrectly to driver used
 						 to specify additional driver dependent parameters. */
 					__AA_CONST void *driverdata);
 
 /*
- * initialize the AA-lib keyboard driver. 
+ * initialize the AA-lib keyboard driver.
  * This is the most primitive AA-lib keyboard initialization function.
  * Allows better control over the process than the easier to use
  * aa_autoinitkbd function.
- * returns 1 on success and 0 on fail.  
+ * returns 1 on success and 0 on fail.
  */
 
 int aa_initkbd(
 			   /* Specifies the AA-lib context to operate on.  */
-			   struct aa_context *context,  
+			   struct aa_context *context,
 			   /* Driver you wish to use */
-			   __AA_CONST struct aa_kbddriver *drv, 
+			   __AA_CONST struct aa_kbddriver *drv,
 			   /* Mask of extra features you request. Can contain
 				  AA_SENDRELEASE if you are interested in release events
 				  too. */
 			   int mode);
 /*
- * initialize the AA-lib mouse driver. 
+ * initialize the AA-lib mouse driver.
  * This is the most primitive AA-lib keyboard initialization function.
  * Allows better control over the process than the easier to use
  * aa_autoinitmouse function.
- * returns 1 on success and 0 on fail.  
+ * returns 1 on success and 0 on fail.
  */
 
 int aa_initmouse(
 				   /* Specifies the AA-lib context to operate on.  */
-				 struct aa_context *c, 
+				 struct aa_context *c,
 				   /* Driver you wish to use.  */
-				__AA_CONST struct aa_mousedriver *d, 
+				__AA_CONST struct aa_mousedriver *d,
 				   /* Mask of extra features you request.  No such features
 					  are available in the current AA-lib version.  */
 				 int mode);
@@ -579,7 +579,7 @@ int aa_initmouse(
 void aa_close(aa_context * c /* Specifies the AA-lib context to operate on.  */
 			  );
 /*
- * uninitialize the keyboard driver. 
+ * uninitialize the keyboard driver.
  * Calls "uninitialize" function of the keyboard driver. It ought to undo
  * all actions done by "initialize" function.
  */
@@ -587,7 +587,7 @@ void aa_uninitkbd(
 				  /* Specifies the AA-lib context to operate on.  */
 				  aa_context *context);
 /*
- * uninitialize the mouse driver. 
+ * uninitialize the mouse driver.
  * Calls "uninitialize" function of the mouse driver. It ought to undo
  * all actions done by "initialize" function.
  */
@@ -607,7 +607,7 @@ void aa_uninitmouse(
  */
 void aa_fastrender(
 				   /* Specifies the AA-lib context to operate on.  */
-				   aa_context * c, 
+				   aa_context * c,
 				   /* column of top left coner of rendered area
 					  (in characters!) */
 				   int x1,
@@ -633,7 +633,7 @@ void aa_render(
 			   /* Rendering parametters used to specify brightness, gamma
 				  correction and other usefull stuff. Use aa_defrenderparams
 				  for default values. */
-			   __AA_CONST aa_renderparams * p, 
+			   __AA_CONST aa_renderparams * p,
 			   /* column of top left coner of rendered area
 				  (in characters!) */
 			   int x1,
@@ -666,7 +666,7 @@ void aa_puts(
 /*
  * print text to AA-lib output buffers.
  * Print given text to AA-lib output buffers.  To see the effect you need to
- * call aa_flush too.  
+ * call aa_flush too.
  */
 int aa_printf(
 			 /* Specifies the AA-lib context to operate on.  */
@@ -680,9 +680,9 @@ int aa_printf(
 			 /* Text to output in standard printf format.  */
 			  __AA_CONST char *fmt, ...);
 /*
- * move the hardware cursor (if any) to specified position. 
- * Move the hardware cursor (if any) to specified position. 
- * To see the effect you need to call aa_flush too.  
+ * move the hardware cursor (if any) to specified position.
+ * Move the hardware cursor (if any) to specified position.
+ * To see the effect you need to call aa_flush too.
  */
 void aa_gotoxy(
 			 /* Specifies the AA-lib context to operate on.  */
@@ -710,25 +710,25 @@ void aa_showcursor(
 /*
  * Get mouse position as specified by last mouse event read by aa_getevent.
  */
-void aa_getmouse( 
+void aa_getmouse(
 				 /* Specifies the AA-lib context to operate on.  */
 				 aa_context * c,
 				 /* Used to return X coordinate of mouse in characters.  */
 				 int *x,
 				 /* Used to return Y coordinate of mouse in characters.  */
 				 int *y,
-				 /* Used to return button mask of mouse. 
+				 /* Used to return button mask of mouse.
 					(values used are AA_BUTTON1, AA_BUTTON2 and AA_BUTTON3)*/
 				 int *b);
 /*
  * hide the mouse cursor.
- * Hide the mouse cursor. 
+ * Hide the mouse cursor.
  * This function may be ignored by some drivers.
  */
 void aa_hidemouse(aa_context *c);
 /*
  * show the mouse cursor.
- * Show the mouse cursor. 
+ * Show the mouse cursor.
  * This function may be ignored by some drivers.
  */
 void aa_showmouse(aa_context *c);
@@ -743,7 +743,7 @@ int aa_registerfont(
 /*
  * alter the "supported" field of hardware_params structure used by AA-lib
  * This function can be used to alter "supported" field of hardware-params
- * structure used by AA-lib. 
+ * structure used by AA-lib.
  */
 void aa_setsupported(
 					 /* Specifies the AA-lib context to operate on.  */
@@ -787,7 +787,7 @@ int aa_getkey(
 				int wait);
 
 /*resize functions */
-/* 
+/*
  * Do resize action. This function ought to be called when application
  * takes into account the AA_RESIZE event.  The context is reinitialized
  * and set to new sizes.
@@ -838,7 +838,7 @@ int aa_parseoptions(
  */
 void aa_edit(
 			 /* Specifies the AA-lib context to operate on.  */
-			 aa_context * c, 
+			 aa_context * c,
 			 /* X coordinate of the edited text.  */
 			 int x,
 			 /* Y coordinate of the edited text.  */
@@ -860,7 +860,7 @@ void aa_edit(
  */
 struct aa_edit *aa_createedit(
 			 /* Specifies the AA-lib context to operate on.  */
-			 aa_context * c, 
+			 aa_context * c,
 			 /* X coordinate of the edited text.  */
 			 int x,
 			 /* Y coordinate of the edited text.  */
@@ -884,7 +884,7 @@ void aa_editkey(
  */
 void aa_putpixel(
 				 /* Specifies the AA-lib context to operate on.  */
-				 aa_context * c, 
+				 aa_context * c,
 				 /* X coordinate. */
 				 int x,
 				 /* Y coordinate. */

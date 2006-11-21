@@ -39,10 +39,10 @@ static int width = 80, height = 32;
 
 void breakfunc(int signo) {
   BYTE bCell[2];
-  
+
   bCell[0] = 0x20;
   bCell[1] = ( WM_BLACK << 4 ) + WM_PALEGRAY;
-  
+
   VioScrollDn(TOP_ROW,LEFT_COL,0xFFFF,0xFFFF,0xFFFF,bCell,(HVIO) 0);
   VioSetMode(&oldMode, (HVIO) 0);
   VioSetCurPos(0, 0, (HVIO)0);
@@ -85,9 +85,9 @@ static int os2vio_init(__AA_CONST struct aa_hardware_params *p,__AA_CONST  void 
 #ifdef __EMX__
   int idx;
   struct sigaction   sa;
-#endif  
+#endif
   *dest=def;
-  
+
   /* check size or prompt for it */
   if(p->width)
 	width = p->width;
@@ -160,13 +160,13 @@ static int os2vio_init(__AA_CONST struct aa_hardware_params *p,__AA_CONST  void 
   sigemptyset(&sa.sa_mask);
   for (idx=SIGHUP;idx<=SIGTERM;idx++)  sigaction(idx,&sa,NULL);
 #endif
-  
+
   hidecur.attr = -1;
   VioSetCurType(&hidecur, (HVIO)0);
-  
+
   bCell[0] = 0x20;
   bCell[1] = ( WM_BLACK << 4 ) + WM_PALEGRAY;
-  
+
   VioScrollDn(TOP_ROW,LEFT_COL,0xFFFF,0xFFFF,0xFFFF,bCell,(HVIO) 0);
 
 #ifdef 0
@@ -189,10 +189,10 @@ static int os2vio_init(__AA_CONST struct aa_hardware_params *p,__AA_CONST  void 
 static void os2vio_uninit(aa_context * c)
 {
   BYTE bCell[2];
-  
+
   bCell[0] = 0x20;
   bCell[1] = ( WM_BLACK << 4 ) + WM_PALEGRAY;
-  
+
   VioScrollDn(TOP_ROW,LEFT_COL,0xFFFF,0xFFFF,0xFFFF,bCell,(HVIO) 0);
   VioSetMode(&oldMode, (HVIO) 0);
   VioSetCurPos(0, 0, (HVIO)0);
