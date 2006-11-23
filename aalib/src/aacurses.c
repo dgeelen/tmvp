@@ -21,6 +21,9 @@ __AA_CONST struct aa_driver curses_d;
 int __curses_is_up;
 int __resized_curses;
 static int uninitcurses;
+static int ncattr[256];
+
+extern int r_pal[16];
 
 static int curses_init(__AA_CONST struct aa_hardware_params *p, __AA_CONST void *none, struct aa_hardware_params *dest, void **param)
 {
@@ -29,6 +32,9 @@ static int curses_init(__AA_CONST struct aa_hardware_params *p, __AA_CONST void 
 		fflush(stdout);
 		if ((initscr()) == NULL)
 			return 0;
+
+		//fprintf(stderr, "has_color: %i\n", has_colors());
+		start_color();
 		__curses_is_up = 1;
 		uninitcurses = 1;
 	}
@@ -49,6 +55,38 @@ static int curses_init(__AA_CONST struct aa_hardware_params *p, __AA_CONST void 
 #endif
 	intrflush(stdscr, FALSE);
 	aa_recommendlowkbd("curses");
+
+	int fg, bg, i;
+	for (fg = 0; fg < 8; ++fg)
+		for (bg = 0; bg < 8; ++bg)
+		{
+			int pairnum = (7-fg) + (bg * 8);
+			init_pair(pairnum , fg, bg);
+			ncattr[(fg  )+((bg  )*16)] = COLOR_PAIR(pairnum);
+			ncattr[(fg+8)+((bg  )*16)] = COLOR_PAIR(pairnum) | A_BOLD;
+			ncattr[(fg  )+((bg+8)*16)] = COLOR_PAIR(pairnum)          | A_BLINK;
+			ncattr[(fg+8)+((bg+8)*16)] = COLOR_PAIR(pairnum) | A_BOLD | A_BLINK;
+		}
+
+	/*
+	if (can_change_color()) {
+		refresh();
+
+		for (i = 1; i < 16; ++i) {
+			int r = (i%8)*32;
+			int g = i < 8 ? 0 : (i%8)*32;
+			int b = 0;
+
+			if (i < COLORS)
+				init_color(i, (r*999)/255, (g*999)/255, (b*999)/255);
+			else
+				fprintf(stdout, "\033]P%1x%02x%02x%02x", i, r, g, b);
+
+			r_pal[i] = (r << 16) | (g << 8) | (b << 0);
+		}
+	}
+	*/
+
 	return 1;
 }
 static void curses_uninit(aa_context * c)
@@ -81,6 +119,9 @@ static void curses_getsize(aa_context * c, int *width, int *height)
 }
 static void curses_setattr(aa_context * c, int attr)
 {
+	//fprintf(stderr, "setting attr: %i,%i\n", attr, ncattr[attr]);
+	attrset(ncattr[attr]);
+	return;
 	switch (attr) {
 	case AA_NORMAL:
 		attrset(A_NORMAL);

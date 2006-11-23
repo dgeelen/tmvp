@@ -933,7 +933,7 @@ void aa_recommendlowdisplay(
 /* The putpixel macro can be implemented reliably only using GNU-C extension.  */
 #define aa_putpixel(c,x,y,color) ({aa_context *___aa_context=(c);  ((___aa_context)->imagebuffer[(x)+(y)*(aa_imgwidth(___aa_context))]=(color)); 0;})
 #endif
-#define aa_setpalette(palette,index,r,g,b) ((palette)[index]=(((r)*30+(g)*59+(b)*11)>>8))
+#define aa_setpalette(palette,index,r,g,b) ((palette)[index]=((((r)&0xFF) << 16) | (((g)&0xFF) << 8) | ((b)&0xFF)))
 #define aa_recommendhikbd(t) aa_recommendhi(&aa_kbdrecommended,t);
 #define aa_recommendhimouse(t) aa_recommendhi(&aa_mouserecommended,t);
 #define aa_recommendhidisplay(t) aa_recommendhi(&aa_displayrecommended,t);
