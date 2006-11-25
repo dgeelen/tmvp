@@ -277,7 +277,7 @@ void aa_renderpalette(aa_context * c, __AA_CONST aa_palette palette, __AA_CONST 
 
 	//int rx = myrand();
 
-	RGBColor lookup[16][16][4];
+	static RGBColor lookup[16][16][4];
 if (--state == 0){
 	state = 64;
 
