@@ -104,7 +104,7 @@ void RawRGBImage::LoadFromPNG(string filename, uint32 awidth, uint32 aheight)
 		png_set_rows(png_ptr, info_ptr, row_pointers);
 	}
 
-	png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_STRIP_ALPHA, NULL);
+	png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_STRIP_ALPHA, NULL);
 
 	if (awidth != -1 && aheight != -1)
 	{
