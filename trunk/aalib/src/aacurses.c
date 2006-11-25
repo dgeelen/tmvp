@@ -149,6 +149,23 @@ static void curses_print(aa_context * c, __AA_CONST char *text)
 }
 static void curses_flush(aa_context * c)
 {
+	int i;
+	if (can_change_color()) {
+		for (i = 1; i < 16; ++i) {
+			int r = (r_pal[i] >> 16) & 0xFF;
+			int g = (r_pal[i] >>  8) & 0xFF;
+			int b = (r_pal[i] >>  0) & 0xFF;
+
+			if (i < COLORS) {
+				init_color(i, (r*999)/255, (g*999)/255, (b*999)/255);
+			} else {
+				char buf[21];
+				snprintf(buf, 20, "\033]P%1x%02x%02x%02x", i, r, g, b);
+				putp(buf);
+			}
+		}
+	}
+
 	refresh();
 }
 static void curses_gotoxy(aa_context * c, int x, int y)
