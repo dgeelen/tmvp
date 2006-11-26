@@ -95,10 +95,10 @@ proc install_audio_interrupt
   mov  [dword ptr DecodeBufHead], eax
   mov  [dword ptr DecodeBufTail], eax
   mov  [dword ptr AudioDataPtr], eax
+  mov  [dword ptr FrameCounter], eax
   mov  [dword ptr SampleTimer], AUDSAMP_SIZE
   mov  ebx, large 0b800h       ; SEG(video_ram)
-  inc  al                      ; al = 1
-  inc  al                      ; mov ax, 2
+  add  al,2                    ; mov ax, 2
   int  031h                    ; Segment to selector, ax = selector
   jnc  @@GotVidSegSel
   lea  eax, [strVidSegSelError]
@@ -243,7 +243,24 @@ endif
   out  020h, al                ; signal End of Interrupt
   sti                          ; renable interrupts   DANGEROUS: RENTRY?
   mov  [dword ptr FlipTimer], AUDIO_INT_FREQ/FPS; reset FlipTimer
+  inc  [dword ptr FrameCounter]
   mov  esi, [dword ptr DecodeBufHead]
+
+
+;;;;;;;;;;; ; fake flip
+;  add  esi, FRAME_SIZE + AUDSAMP_SIZE
+;  cmp  esi, (offset DecodeBuffer) + DECBUF_SIZE
+;  jb   short @@NoRe32324324 ; If we've exceeded the buffer size, reset
+;  mov  esi, offset DecodeBuffer
+;@@NoRe32324324:
+;  mov  [dword ptr DecodeBufHead], esi; update head pointer
+;  pop  esi
+;  pop  eax
+;  pop  ds
+;  iret
+;;;;;;;;;;;
+
+
   push es edi ecx edx          ; save registers needed to flip
   mov  es, [word ptr vidmem_selector]; selector for the video_ram
   xor  edi, edi                ; start filling ram from address 0 (b800h:0000h)
@@ -274,6 +291,7 @@ strNoIntUninstallError db 'uninstall_audio_interrupt(): Errr... no interrupt got
 strVidSegSelError db 'Error: could not get selector for video segment',newline, 36, 0
 
 udataseg
+FrameCounter dd ?
 AudioBuffer db AUDSAMP_SIZE * RENDER_AHEAD dup (?); interrupt consumes 1000 bytes / frame (1/20s)
                                                   ; NOTE: If possible, we should read this also directly from [DecodeBuffer]
 vidmem_selector dw ?

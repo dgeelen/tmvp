@@ -30,6 +30,10 @@ global DecodeBuffer:byte:DECBUF_SIZE
 global AudioBuffer:byte:AUDSAMP_SIZE * RENDER_AHEAD
 global Filehandle:dword
 global DecoderMode:dword
+global FileSize:dword
+global DecodeableBytes:dword
+global SeekOffsetCount:dword
+global FrameCounter:dword
 if BEEP_ON_FREAD eq True
   global WaveSample:dword
 endif

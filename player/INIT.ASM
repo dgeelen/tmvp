@@ -23,9 +23,46 @@ proc Initialise
   call filemagic               ; test if this is a real TMVP file and what decoder to use
   test eax, eax
   jnz  @@exit_fail             ; nonzero indicates error code
-  call InitVidBuf              ; Fill the videobuffer with '0' (or a test pat.)
+
+  ; Calculate #decodable bytes
+  mov  ebx, [dword ptr FileHandle]
+  mov  al, 02h                 ; seek from end-of-file
+  xor  ecx, ecx
+  _fseek                       ; returns eax = new file position from start of file
+  mov  [dword ptr FileSize    ], eax
+  mov  ecx, eax
+  sub  ecx, 4                  ; seek 4 bytes from EOF, so we can read #frames-skips
+  mov  al, 00h                 ; seek from start-of-file
+  _fseek                       ; returns eax = new file position from start of file
+  mov  ecx, 4
+  lea  edx, [SeekOffsetCount]  ; each 5 bytes
+  _fread                       ; ebx == filehandle, ecx == nr bytes to read, ds:edx == ptr to buffer
+  mov  eax, [dword ptr SeekOffsetCount] ; a*5
+  shl  eax, 2                           ; = (a*4)
+  add  eax, [dword ptr SeekOffsetCount] ;         + a
+  mov  edx, [dword ptr FileSize]
+  sub  edx, 2048 + 16 + 4      ; cut header and last 4 bytes
+  sub  edx, eax                ; cut frame offsets
+  mov  [dword ptr DecodeableBytes], edx ; God I hope this is correct ...
+  mov  ecx, 16                 ; set ecx to just beyond fileheader or somewhere there about..
+  mov  al, 0                   ;
+  _fseek
+;  mov  eax, -2
+;  jmp  short @@exit_fail
+
+  call InitVidBuf              ; Fill the videobuffer with '0' (or a test pat.) FIXME: WE CAN SKIP THIS *DEPRECATED*
   call Set80x50
   call SetFont
+;;;;
+;if not SetFont then still seek + 2048
+;  mov  ebx, [dword ptr FileHandle]
+;  xor  cx, cx
+;  mov  dx, 2048
+;  mov  al, CURRENT_FILE_POS
+;  _fseek                       ;ebx=filehandle, cx:dx=new file pos, eax(al)=origin of move, returns dx:ax=new pos
+;  xor  eax,eax
+;;;;
+
   test eax, eax
   jz   @@FontSetOK
   push eax
@@ -43,7 +80,7 @@ proc Initialise
   jmp  short @@exit_fail
 @@FontSetOK:
   call NoBlink
-  call install_audio_interrupt ; assume no failure
+  call install_audio_interrupt ; assume no failure, or continue anyway :)
 @@exit_succes:
   xor  eax, eax
 @@exit_fail:
