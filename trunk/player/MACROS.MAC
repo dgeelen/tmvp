@@ -2,25 +2,24 @@
 ; 'Less' and 'greater' are for SIGNED ints
 ; 'below' and 'above' are for UNSIGNED ints
 
-                 ;  MAYOR         MEDIUM       MINOR      TINY
-TMVP_VERSION EQU (00 shl 24) + (00 shl 16) + (00 shl 8) + 01
-
-CrLf EQU 0ah, 0dh
-newline EQU CrLf
-True EQU 1
-False EQU 0
-
-FPS EQU 20
-
-AUDIO_INT_FREQ EQU 8000 ;20000
-QUARTZ_TICKS EQU 01234DDh ; 1193181hz
-
-FRAME_SIZE EQU 80*50*2
-AUDSAMP_SIZE EQU (AUDIO_INT_FREQ/FPS)
-PALETTE_SIZE EQU 48
-RENDER_AHEAD EQU 32
-DECBUF_SIZE EQU ((FRAME_SIZE + PALETTE_SIZE + AUDSAMP_SIZE) * RENDER_AHEAD)
-DECWIN_SIZE EQU 32 * 1024
+                   ;  MAYOR         MEDIUM       MINOR      TINY
+TMVP_VERSION    EQU (00 shl 24) + (00 shl 16) + (00 shl 8) + 01
+CrLf            EQU 0ah, 0dh
+newline         EQU CrLf
+True            EQU 1
+False           EQU 0
+FPS             EQU 20
+AUDIO_INT_FREQ  EQU 8000 ;20000
+QUARTZ_TICKS    EQU 01234DDh ; 1193181hz
+FRAME_SIZE      EQU 80*50*2
+AUDSAMP_SIZE    EQU (AUDIO_INT_FREQ/FPS)
+PALETTE_SIZE    EQU 48
+RENDER_AHEAD    EQU 32
+DECBUF_SIZE     EQU ((FRAME_SIZE + PALETTE_SIZE + AUDSAMP_SIZE) * RENDER_AHEAD)
+DECWIN_SIZE     EQU 32 * 1024
+SEEKINTERVAL    EQU 200
+FONT_SIZE       EQU 2048
+FILEHEADER_SIZE EQU 16
 
 ;DEBUG EQU True
 DEBUG EQU False
@@ -143,6 +142,48 @@ endm
 ;---File manipulation macros---
 ; Most of these look like they are really shorthands
 ; for their DOS Function code ;)
+
+;---_fseek()---
+SEEK_SET EQU 0
+SEEK_CUR EQU 1
+SEEK_END EQU 2
+macro _fseek
+  local exit, strSkip, strfseek
+  ; Pre : ebx == filehandle, ecx = new file position, eax(al)=origin of move
+  ; Post: Carry is clear, and dx:ax indicates new file position from start of file
+  ;       Carry set, and eax indicates an error code
+  ; Modifies eax, edx
+
+  if debug eq true             ; this debug section may be bugged!
+  push  ebx                    ; No seriously this has *NOT* been tested with 'DEBUG eq True'
+  movzx ebx, al
+  lea  eax, [strfseek]
+  push eax
+  push ebx
+  call _printf                 ; destroys eax, ebx
+  pop  eax
+  pop  ebx
+  pop  ebx
+  mov  al, bl
+  jmp  short strSkip
+  strfseek db '_fseek(): seeking from %i, to %i',newline,36,0
+  strSkip:
+  endif                        ; delete above lines to disable dbg
+
+  push  ecx edx
+  ;need to set cx:dx to point to filepos
+  mov  dx, cx
+  shr  ecx, 16
+  mov  ah, 042h                ; lseek, set current file position
+  int  021h
+  ;need to set eax to new filepos
+  shl  edx,16
+  and  eax, 00000ffffh
+  and  edx, 0ffff0000h
+  or   eax, edx
+  pop  edx ecx
+exit:
+endm
 
 ;---_fread()---
 macro _fread
@@ -269,10 +310,6 @@ macro _fopen modechar
   ;       If file does not exist, it is created
   ; Modifies: eax, ebx
 
-  ifb <filenameptr>
-    display "<MACROS.MAC> _fopen: Need a filenameptr"
-    err
-  endif
   ifb <modechar>
     display "<MACROS.MAC> _fopen: Warning, no modechar specified, assuming READONLY"
     modechar EQU READONLY

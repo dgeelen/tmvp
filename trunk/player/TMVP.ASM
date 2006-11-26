@@ -92,5 +92,6 @@ dataseg
 ;---GLOBAL VARIABLES---
 udataseg
 Filehandle  dd ?
+FileSize    dd ?
 end tmvp ; needs entry point
 
