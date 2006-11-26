@@ -1,3 +1,4 @@
+
 //---------------------------------------------------------------------------
 
 #pragma hdrstop
@@ -9,6 +10,7 @@
 #include "mystream.h"
 #include <string>
 #include <stdio.h>
+#include <list>
 /* LZ77 (Simple) */
 
 /*
@@ -31,10 +33,32 @@ const uint32 WIND_MASK = WIND_SIZE - 1;
 
 #define nexthash(new) lookupind = (((lookupind<<6)^(new))&HASH_MASK)
 
-int main(int argc, char* argv[])
-{
+uint32 NextFrame=0;
+uint32 ofpos=0;
+uint32 framesskipped=200;
+struct frameptr {
+  unsigned long int offset;
+  int32 adjust;
+  };
+list<frameptr> FrameBoundary;
+struct frameptr lstFrameptr;
+
+void CheckFrameBounds(uint32 ifpos){
+      if( (ifpos >= NextFrame) ) {
+      lstFrameptr.offset = ofpos;
+      lstFrameptr.adjust = ifpos-NextFrame;
+      if((++framesskipped)>200) {                   // we set a seekable position every 10 seconds
+        FrameBoundary.push_front(lstFrameptr);
+        framesskipped=0;
+        }
+      NextFrame+=8000 + 400 + 48 ; //FIXME: FrameSize + AudiodataSize + PaletteSize
+      }
+  }
+
+int main(int argc, char* argv[]) {
 	string ifname = "-";
 	string ofname = "-";
+  bool KeyFrameAble=true;
 
 	// TODO: maybe read other cmd line params???
 	if (argc > 1) ifname = argv[1];
@@ -66,9 +90,13 @@ int main(int argc, char* argv[])
 	nexthash(instr[1]);
 	nexthash(instr[2]);
 	nexthash(instr[3]);
-
 	while (instr.check(ifpos))
 	{
+     //if this is a place where we could insert a keyframe
+    if(KeyFrameAble) {
+      CheckFrameBounds(ifpos);
+      }
+    KeyFrameAble=false;
 		mlen = 0;
 		// check for a match (of at least length 4)
 		if (instr.check(ifpos+3)) {
@@ -103,17 +131,20 @@ int main(int argc, char* argv[])
 		// if match or nomatch limit exceeded, output nomatch (literal) codes
 		if ((mlen!=0 && nmlen!=0) || nmlen == 127)
 		{
-			outstr.write(nmlen | (1<<7));
-			for (uint i = ifpos-nmlen; i < ifpos; ++i)
+			outstr.write(nmlen | (1<<7)); ofpos++;
+			for (uint i = ifpos-nmlen; i < ifpos; ++i) {
 				outstr.write(instr[i]);
+        ofpos++;
+        }
 			nmlen = 0;
+     KeyFrameAble=true;
 		}
 		// if match output codes for copy (and add lookups)
 		if (mlen!=0) {
 			mind = ifpos - mind;
-			outstr.write(mind >> 8);
-			outstr.write(mind & 0xFF);
-			outstr.write(mlen);
+			outstr.write(mind >> 8); ofpos++;
+			outstr.write(mind & 0xFF); ofpos++;
+			outstr.write(mlen); ofpos++;
 			while (instr.check(ifpos) && (mlen > 0)) {
 				if (instr.check(ifpos+3)) {
 					hashprev[ifpos & WIND_MASK] = hashhead[lookupind];
@@ -123,24 +154,46 @@ int main(int argc, char* argv[])
 				--mlen;
 				nexthash(instr[ifpos+3]);
 			}
+     KeyFrameAble=true;
 		}
 	}
 
 	if (nmlen!=0)
 	{
-		outstr.write(nmlen | (1<<7));
-		for (uint i = ifpos-nmlen; i < ifpos; ++i)
+		outstr.write(nmlen | (1<<7)); ofpos++;
+		for (uint i = ifpos-nmlen; i < ifpos; ++i) {
 			outstr.write(instr[i]);
+      ofpos++;
+      }
 //		nmlen = 0;
 	}
 
-	outstr.flush();
 
 	delete[] hashhead;
 	delete[] hashprev;
 
 	if (ifname != "-") fclose(ifhandle);
 	if (ofname != "-") fclose(ofhandle);
-	return 0;
+  //fprintf(stderr, "Finally: ifpos=%u, ofpos=%u\n", ifpos, ofpos);
+  unsigned long int cnt=FrameBoundary.size();
+  while(FrameBoundary.size() > 0) {  // yes insane arbitrary architecture desisions rule
+    lstFrameptr= FrameBoundary.front();
+    //fprintf(stderr,"Seeks: %u, %i\n", lstFrameptr.offset, int32(lstFrameptr.adjust));
+    outstr.write((lstFrameptr.offset      )& 0x000000ff);
+    outstr.write((lstFrameptr.offset >> 8 )& 0x000000ff);
+    outstr.write((lstFrameptr.offset >> 16)& 0x000000ff);
+    outstr.write((lstFrameptr.offset >> 24)& 0x000000ff);
+    outstr.write(lstFrameptr.adjust);
+    FrameBoundary.pop_front();
+    fprintf(stderr,"Seeks: %08x, %08x\n", lstFrameptr.offset, int32(lstFrameptr.adjust));
+    }
+  //cnt*=5;
+  outstr.write((cnt      )& 0x000000ff);
+  outstr.write((cnt >>  8)& 0x000000ff);
+  outstr.write((cnt >> 16)& 0x000000ff);
+  outstr.write((cnt >> 24)& 0x000000ff);
+  fprintf(stderr,"Total seeks: %x\n", cnt);
+  outstr.flush();
+ 	return 0;
 }
 
