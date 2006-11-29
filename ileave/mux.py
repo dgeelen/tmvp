@@ -55,7 +55,7 @@ if __name__ == "__main__":
     print " ......................................................................... 000%",
     done=False
     bytesread=0
-    vid_in = video_in.read(2048) #Fontdata
+    vid_in = video_in.read(2048+16) #Fontdata + header
     bytesread=bytesread+len(vid_in)
     video_out.write(vid_in)
     while not done==True:

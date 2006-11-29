@@ -3,10 +3,10 @@
 <KDevPrjSession>
  <DocsAndViews NumberOfDocuments="11" >
   <Doc0 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/compress1/lz77s.cpp" >
-   <View0 line="50" Type="Source" />
+   <View0 Type="Source" />
   </Doc0>
   <Doc1 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/mpngtocaas.cpp" >
-   <View0 Type="Source" />
+   <View0 line="297" Type="Source" />
   </Doc1>
   <Doc2 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/lz77s.h" >
    <View0 Type="Source" />
@@ -18,22 +18,22 @@
    <View0 Type="Source" />
   </Doc4>
   <Doc5 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/compress1/UTypes.h" >
-   <View0 line="0" Type="Source" />
+   <View0 Type="Source" />
   </Doc5>
   <Doc6 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/lzw.h" >
-   <View0 line="28" Type="Source" />
+   <View0 Type="Source" />
   </Doc6>
   <Doc7 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/colorize.cpp" >
-   <View0 line="0" Type="Source" />
+   <View0 Type="Source" />
   </Doc7>
   <Doc8 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/aaify.cpp" >
-   <View0 line="0" Type="Source" />
+   <View0 Type="Source" />
   </Doc8>
   <Doc9 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/imagizer.cpp" >
-   <View0 line="331" Type="Source" />
+   <View0 line="75" Type="Source" />
   </Doc9>
   <Doc10 NumberOfViews="1" URL="file:///home/dafox/Projects/tmvp/imagizer2/src/palette.cpp" >
-   <View0 line="84" Type="Source" />
+   <View0 line="136" Type="Source" />
   </Doc10>
  </DocsAndViews>
  <pluginList>
