@@ -78,7 +78,7 @@ unsigned long int random_sort( unsigned char *pal,unsigned char *prevpal ) {
     return -1;
     }
   unsigned char r=0;
-  #define randomize (fread(&r,1,1,rnd))
+  #define randomize (r = rand())
   while(max_dist>0) {
     //try a swap
     unsigned char i=r&0xf; randomize;
