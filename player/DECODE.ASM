@@ -25,6 +25,8 @@ proc decoder
   cli                          ; Prevent FLIP from occurring to early
   mov  [dword ptr DecodeBufHead], edx
   mov  [dword ptr DecodeBufTail], edx ; head == tail ==> Buffer Empty, head == tail - 1 ==> Buffer Full
+  mov  [dword ptr L7SDecodeBufHead], edx
+  mov  [dword ptr L7SDecodeBufTail], edx
   mov  [dword ptr AudioDataPtr] , eax
   sti
 
@@ -58,7 +60,7 @@ proc decoder
   jnz  @@TestRawBufferEmpty
   call near @@ProcessKeypress
 @@TestRawBufferEmpty:
-  BufferSpaceLeft DecodeBufHead, DecodeBufTail, DECBUF_SIZE ; eax == empty bytes left in buffer
+  BufferSpaceLeft L7SDecodeBufHead, L7SDecodeBufTail, DECBUF_SIZE ; eax == empty bytes left in buffer
   ; dont refill if the buffer is still >50% full
   cmp  eax, DECBUF_SIZE shr 1
   jbe  @@RawDecoder
@@ -86,7 +88,7 @@ proc decoder
 @@NoWrap:
 
   ; move tail ptr back into memory
-  mov  [dword ptr DecodeBufTail], edx
+  mov  [dword ptr L7SDecodeBufTail], edx
   test eax, eax
   jz  @@Done
   jmp  @@RawDecoder          ; ---------------------------------------------------------------------------------------------ENDRAW---
@@ -98,8 +100,32 @@ proc decoder
   call keypressed              ; TODO: LESS CHECKING ?
   jnz  @@TestLZ77sBufferEmpty
   call near @@ProcessKeypress
+
 @@TestLZ77sBufferEmpty:
-  BufferSpaceLeft DecodeBufHead, DecodeBufTail, DECBUF_SIZE ; eax == empty bytes left in buffer
+
+
+;>--------- seek fixing-----------------
+  mov eax, [dword ptr DecodeBufTail]			; compare out tail and the interrupts tail
+  add eax, FRAME_SIZE + AUDSAMP_SIZE + PALETTE_SIZE
+  cmp eax, offset DecodeBuffer + DECBUF_SIZE		; add 8448 to int tail to get next frame start (current frame end)
+  jb @@nowrapseeker					; do wrapping
+  mov eax, offset DecodeBuffer
+@@nowrapseeker:
+  mov ebx, eax						; save next frame start value in ebx
+  sub eax, [dword ptr L7SDecodeBufTail]			; compare it with out decoding position (tail)
+  neg eax
+  js @@noseekerframeinc
+  cmp eax, FRAME_SIZE + AUDSAMP_SIZE + PALETTE_SIZE
+  jnb @@noseekerframeinc
+  mov [dword ptr DecodeBufTail], ebx
+@@noseekerframeinc:  
+
+  mov eax, [dword ptr DecodeBufHead]
+  mov [dword ptr L7SDecodeBufHead], eax
+
+;<--------- seek fixing-----------------
+
+  BufferSpaceLeft L7SDecodeBufHead, L7SDecodeBufTail, DECBUF_SIZE ; eax == empty bytes left in buffer
   ; do crappy refill for now....
   cmp eax, 0FFh ;//decwinsize????
   jbe @@lz77sDecoder
@@ -154,7 +180,7 @@ proc decoder
 
   push ebx
 
-  mov edi, [dword ptr DecodeBufTail]
+  mov edi, [dword ptr L7SDecodeBufTail]
 
   shl ax, 8
   lodsb
@@ -206,13 +232,13 @@ proc decoder
        @@golz77copy:
         rep movsb
   pop ebx
-  mov [dword ptr DecodeBufTail], edi
+  mov [dword ptr L7SDecodeBufTail], edi
   jmp @@TestLZ77sBufferEmpty
 
 @@literalcopy:
   mov cl, al
   and ecx, 07Fh
-  mov edi, [dword ptr DecodeBufTail]
+  mov edi, [dword ptr L7SDecodeBufTail]
 
   ;{ edx := #bytes left till buffer end }
   mov edx, offset DecodeBuffer + DECBUF_SIZE
@@ -234,7 +260,7 @@ proc decoder
 @@golitcopy:
   rep movsb
 
-  mov [dword ptr DecodeBufTail], edi
+  mov [dword ptr L7SDecodeBufTail], edi
   mov [dword ptr InputBufHead], esi
 
   jmp @@TestLZ77sBufferEmpty           ; ----------------------------------------------------------------------------------------------END LZ77s---
@@ -268,9 +294,9 @@ proc decoder
   retn                         ; resume play
 @@pauseplayer:
   cli
-  mov  eax, [dword ptr DecodeBufHead] ; save head
-  mov  edx, [dword ptr DecodeBufTail] ; and get tail
-  mov [dword ptr DecodeBufHead], edx  ; 'empty' buffer
+  mov  eax, [dword ptr L7SDecodeBufHead] ; save head
+  mov  edx, [dword ptr L7SDecodeBufTail] ; and get tail
+  mov [dword ptr L7SDecodeBufHead], edx  ; 'empty' buffer
   sti
   push eax                            ; eax used in following
 @@paused:
@@ -279,7 +305,7 @@ proc decoder
   jnz  @@paused
   call getkey                  ; read and discard key
   pop  eax
-  mov  [dword ptr DecodeBufHead], eax
+  mov  [dword ptr L7SDecodeBufHead], eax
   retn
 @@Seek:                        ; Seek to next/previous 'keyframe'
   mov  eax, [dword ptr FrameCounter]
@@ -318,12 +344,16 @@ proc decoder
   mov  [dword ptr DecodedBytes], eax
   mov  eax, offset DecodeBuffer + FRAME_SIZE + PALETTE_SIZE
   mov  [dword ptr AudioDataPtr ], eax
+  mov  [dword ptr SampleTimer]  , AUDSAMP_SIZE
   mov  eax, offset InputBuffer
   mov  [dword ptr InputBufHead ], eax
   mov  [dword ptr InputBufTail ], eax
   movzx eax, [byte ptr SeekFixup]
   add  eax, offset DecodeBuffer
-  mov  [dword ptr DecodeBufTail], eax
+  mov  [dword ptr L7SDecodeBufTail], eax
+  mov  [dword ptr L7SDecodeBufHead], eax
+  mov  [dword ptr DecodeBufTail], offset DecodeBuffer
+  mov  [dword ptr DecodeBufHead], offset DecodeBuffer
   pop  edx                     ; index we saved earlier
   FASTIMUL eax, edx, 200       ; dest, src, mulconst : make TASM do shifts/mul
   mov  [dword ptr framecounter], eax
@@ -341,8 +371,11 @@ proc decoder
   mov  eax, offset DecodeBuffer
   mov  [dword ptr DecodeBufHead], eax
   mov  [dword ptr DecodeBufTail], eax
+  mov  [dword ptr L7SDecodeBufHead], eax
+  mov  [dword ptr L7SDecodeBufTail], eax
   add  eax, FRAME_SIZE + PALETTE_SIZE
   mov  [dword ptr AudioDataPtr ], eax
+  mov  [dword ptr SampleTimer]  , AUDSAMP_SIZE
   mov  eax, offset InputBuffer
   mov  [dword ptr InputBufHead ], eax
   mov  [dword ptr InputBufTail ], eax
@@ -362,8 +395,8 @@ proc decoder
   jnz  @@doneNotKeyPress
   call near @@ProcessKeypress
 @@doneNotKeyPress:
-  mov  eax, [dword ptr DecodeBufHead]
-  cmp  eax, [dword ptr DecodeBufTail]
+  mov  eax, [dword ptr L7SDecodeBufHead]
+  cmp  eax, [dword ptr L7SDecodeBufTail]
   jne   @@done                 ; wait for interrupt to play remaining frames (empty the buffer)
 @@exit:                        ; Then exit
   ret
@@ -380,6 +413,8 @@ udataseg
 DecodeBuffer db DECBUF_SIZE dup (?) ; (1 frame + 1/20s audio) * 32 == 268800bytes
 DecodeBufHead dd ?             ; HEAD points to the first unread element in the buffer
 DecodeBufTail dd ?             ; TAIL points one past the element last added to the buffer
+L7SDecodeBufHead dd ?          ; HEAD points to the first unread element in the buffer
+L7SDecodeBufTail dd ?          ; TAIL points one past the element last added to the buffer
 InputBuffer db INPBUF_SIZE dup (?); data is read into this buffer from input file
 InputBufHead dd ?              ; HEAD points to the first unread element in the buffer
 InputBufTail dd ?              ; TAIL points one past the element last added to the buffer
