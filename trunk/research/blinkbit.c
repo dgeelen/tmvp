@@ -46,10 +46,12 @@ procfile_read(char *buffer,
 
 	// convert to ascii char
 	b += '0';
-
-	// fill the buffer, return the buffer size
-	memcpy(buffer, &b, 1);
-	return 1;
+        unsigned char c[2];
+        c[0]=b;
+        c[1]='\n';
+ 	// fill the buffer, return the buffer size
+	memcpy(buffer, &c, 2);
+	return 2;
 }
 
 /**

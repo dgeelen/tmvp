@@ -1,10 +1,10 @@
-
-MPLAYER="/cygdrive/c/stuff/mplayer/mplayer/mplayer.exe"
-MENCODER="/cygdrive/c/stuff/mplayer/mplayer/mencoder.exe"
-ILEAVE="../ileave/ileave.exe"
-IMAGIZER="../imagizer1/imagize.exe"
-COMPRESS="../compress1/lz77s.exe"
-NORMALIZER="../normalizer/normalize.exe"
+#!/bin/sh
+MPLAYER="`which mplayer`"
+MENCODER="`which mencoder`"
+ILEAVE="../ileave/ileave"
+IMAGIZER="../imagizer1/imagize"
+COMPRESS="../compress1/lz77s"
+NORMALIZER="../normalizer/normalize"
 
 INFILE="$1"
 OUTFILE="out.tmv"

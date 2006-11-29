@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
     bool done=false;
     FILE *op = fopen(argv[1], "wb");
 
-    //Output FileMagic
+    /*/Output FileMagic
     char *FileMagic = new char [16];
     FileMagic[00]='T';
     FileMagic[01]='M';
@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
     fwrite(FileMagic, 1, 16, op);
     delete FileMagic;
     FILE *raw_wav_file = fopen(argv[2], "rb");
-    //FILE *debug = fopen("debug", "wb");
+    //FILE *debug = fopen("debug", "wb");/*/
     unsigned long int palettesize=48;
     unsigned long int frames=0;
     if(op!=NULL) {
@@ -126,7 +126,7 @@ int main(int argc, char *argv[]) {
         fclose(op);
         return EXIT_FAILURE;
         }
-      fwrite(font,1,2048,op);
+//      fwrite(font,1,2048,op);
       fclose(ffont);
       //extern unsigned long int totals;  //Total bytes
       unsigned long int max_pal_dist = 0;
@@ -143,10 +143,10 @@ int main(int argc, char *argv[]) {
       unsigned char * imgdata = new unsigned char [160*100*4];
       unsigned char * palette = new unsigned char [palettesize];
       unsigned char * prevpalette = new unsigned char [palettesize];
-      unsigned char * wavdata = new unsigned char [AUDIO_BYTES_PER_FRAME];
+//      unsigned char * wavdata = new unsigned char [AUDIO_BYTES_PER_FRAME];
       memset(b800h, 0, 8000);
       memset(prev, 0, 8000);
-      memset(wavdata, 0, AUDIO_BYTES_PER_FRAME);
+//      memset(wavdata, 0, AUDIO_BYTES_PER_FRAME);
       int hax=0;
       switch(mode){
         case thomas:
@@ -218,10 +218,10 @@ int main(int argc, char *argv[]) {
             palette6bit(palette);
             fwrite(b800h,  1,  8000,  op);
             fwrite(palette, 1, 48, op);
-            if(raw_wav_file!=NULL) {
+/*            if(raw_wav_file!=NULL) {
               fread(wavdata, 1,  AUDIO_BYTES_PER_FRAME, raw_wav_file);
               }
-            fwrite(wavdata, 1, AUDIO_BYTES_PER_FRAME, op);
+            fwrite(wavdata, 1, AUDIO_BYTES_PER_FRAME, op); */
 #endif
 
 #ifdef lz77s
@@ -286,7 +286,7 @@ int main(int argc, char *argv[]) {
           delete output;
           delete palette;
           delete prevpalette;
-          delete wavdata;
+//          delete wavdata;
 //          uninit_caca();
 //          do_uninit_aalib();
           uninitialize_imagizer();
@@ -297,9 +297,9 @@ int main(int argc, char *argv[]) {
       fprintf(stderr, "Frames written : %lu = %lu bytes\nAfter RLE : %lu = %.2f%% of original\nAfter LZW : %i bytes = %.2f%% of original\n",\
               frames, uncompressedbytes,rlecompressedbytes, float(rlecompressedbytes)/(float(uncompressedbytes)/100.0), compressedbytes, float(compressedbytes)/(float(uncompressedbytes)/100.0));
       fclose(op);
-      if(raw_wav_file!=NULL) {
+/*      if(raw_wav_file!=NULL) {
          fclose(raw_wav_file);
-         }
+         } */
       delete filename;
       }
     else {

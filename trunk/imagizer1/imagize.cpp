@@ -22,10 +22,12 @@ int main(int argc, char* argv[])
 	string ofname = "-";
 
 	uint palthreshold = 250;
+  uint charthreshold = 64;
 
 	if (argc > 1) ifname = argv[1];
 	if (argc > 2) ofname = argv[2];
 	if (argc > 3) palthreshold = atoi(argv[3]);
+  if (argc > 4) charthreshold = atoi(argv[4]);
 
 	FILE* ifhandle = (ifname == "-") ? stdin  : fopen(ifname.c_str(), "rb");
 	FILE* ofhandle = (ofname == "-") ? stdout : fopen(ofname.c_str(), "wb");
