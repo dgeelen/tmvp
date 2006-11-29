@@ -85,6 +85,27 @@ int main(int argc, char *argv[]) {
     memcpy(filename, "00000001.png",13);
     bool done=false;
     FILE *op = fopen(argv[1], "wb");
+
+    //Output FileMagic
+    char *FileMagic = new char [16];
+    FileMagic[00]='T';
+    FileMagic[01]='M';
+    FileMagic[02]='V';
+    FileMagic[03]='P';
+    FileMagic[04]= 1;
+    FileMagic[05]= 0;
+    FileMagic[06]= 0;
+    FileMagic[07]= 0;
+    FileMagic[ 8]= 1;
+    FileMagic[ 9]= 0;
+    FileMagic[10]= 0;
+    FileMagic[11]= 0;
+    FileMagic[12]= 0;
+    FileMagic[13]= 0;
+    FileMagic[14]= 0;
+    FileMagic[15]= 0;
+    fwrite(FileMagic, 1, 16, op);
+    delete FileMagic;
     FILE *raw_wav_file = fopen(argv[2], "rb");
     //FILE *debug = fopen("debug", "wb");
     unsigned long int palettesize=48;
