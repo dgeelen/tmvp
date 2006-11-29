@@ -118,7 +118,7 @@ proc decoder
   cmp eax, FRAME_SIZE + AUDSAMP_SIZE + PALETTE_SIZE
   jnb @@noseekerframeinc
   mov [dword ptr DecodeBufTail], ebx
-@@noseekerframeinc:  
+@@noseekerframeinc:
 
   mov eax, [dword ptr DecodeBufHead]
   mov [dword ptr L7SDecodeBufHead], eax
@@ -294,9 +294,9 @@ proc decoder
   retn                         ; resume play
 @@pauseplayer:
   cli
-  mov  eax, [dword ptr L7SDecodeBufHead] ; save head
-  mov  edx, [dword ptr L7SDecodeBufTail] ; and get tail
-  mov [dword ptr L7SDecodeBufHead], edx  ; 'empty' buffer
+  mov  eax, [dword ptr DecodeBufHead] ; save head
+  mov  edx, [dword ptr DecodeBufTail] ; and get tail
+  mov [dword ptr DecodeBufHead], edx  ; 'empty' buffer
   sti
   push eax                            ; eax used in following
 @@paused:
@@ -305,7 +305,7 @@ proc decoder
   jnz  @@paused
   call getkey                  ; read and discard key
   pop  eax
-  mov  [dword ptr L7SDecodeBufHead], eax
+  mov  [dword ptr DecodeBufHead], eax
   retn
 @@Seek:                        ; Seek to next/previous 'keyframe'
   mov  eax, [dword ptr FrameCounter]
@@ -395,8 +395,8 @@ proc decoder
   jnz  @@doneNotKeyPress
   call near @@ProcessKeypress
 @@doneNotKeyPress:
-  mov  eax, [dword ptr L7SDecodeBufHead]
-  cmp  eax, [dword ptr L7SDecodeBufTail]
+  mov  eax, [dword ptr DecodeBufHead]
+  cmp  eax, [dword ptr DecodeBufTail]
   jne   @@done                 ; wait for interrupt to play remaining frames (empty the buffer)
 @@exit:                        ; Then exit
   ret
