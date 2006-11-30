@@ -37,6 +37,13 @@ class TPalMedianCutSort : public TPalMedianCut {
 	void CalcPal(RawRGBImage* src, TextPal* dst);
 };
 
+class TPalMedianCutRandomSort : public TPalMedianCut {
+  uint32 threshold;
+ public:
+  TPalMedianCutRandomSort(uint32 t);
+  void CalcPal(RawRGBImage* src, TextPal* dst);
+};
+
 class TRenderMethod {
  public:
 	virtual void DoRender(RawRGBImage* src, TextImage* dst) = 0;

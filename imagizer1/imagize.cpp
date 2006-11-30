@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 	string ifname = "-";
 	string ofname = "-";
 
-	uint palthreshold = 250;
+	uint palthreshold = 250;// 10000;
   uint charthreshold = 64;
 
 	if (argc > 1) ifname = argv[1];
@@ -44,7 +44,8 @@ int main(int argc, char* argv[])
 
 	//r_renderer = new TRenderBruteBlock;
 	r_renderer = new TRenderSemiBruteBlock;
-	r_palcalc = new TPalMedianCutSort(palthreshold);
+	//r_palcalc = new TPalMedianCutSort(palthreshold);
+  r_palcalc = new TPalMedianCutRandomSort(palthreshold);
 
 	r_textimage.font = &r_font;
 	r_textimage.pal = &r_pal;
