@@ -31,37 +31,37 @@ elif [ "${2}" == "simon" ] ; then
 fi
 
 if [ ! -f "${MPLAYER}" ] ; then
-   echo "Error: MPlayer not found!"
+  echo "Error: MPlayer not found!"
   exit
 fi
 
 if [ ! -f "${MENCODER}" ] ; then
-   echo "Error: MEncoder not found!"
+  echo "Error: MEncoder not found!"
   exit
 fi
 
 if [ ! -f "${ILEAVE}" ] ; then
-   echo "Error: Audio Interleaver not found!"
+  echo "Error: Audio Interleaver not found!"
   exit
 fi
 
 if [ ! -f "${IMAGIZER}" ] ; then
-   echo "Error: Imagizer not found!"
+  echo "Error: Imagizer not found!"
   exit
 fi
 
 if [ ! -f "${COMPRESS}" ] ; then
-   echo "Error: Compressor not found!"
+  echo "Error: Compressor not found!"
   exit
 fi
 
 if [ ! -f "${NORMALIZER}" ] ; then
-   echo "Error: Normalize not found!"
+  echo "Error: Normalize not found!"
   exit
 fi
 
 if [ ! -f "${FMAGIC}" ] ; then
-   echo "Error: Cannot find \`${FMAGIC}'! (Required for FileMagic)"
+  echo "Error: Cannot find \`${FMAGIC}'! (Required for FileMagic)"
   exit #GOTO EXIT :p
 fi
 
@@ -76,8 +76,8 @@ if [ "${1}" != "" ] ; then
     OUTFILE=test.tmv
   else
     INFILE="$1"
-    OUTFILE="`echo ${1} | sed 's:\(.*\)\(\.[^\.]*\):\1.tmv:'`"
-    if ! echo "${OUTFILE}" | grep tmv ; then
+    OUTFILE="`echo ${1} | sed 's:\.[^\.]*$:\.tmv:'`"
+    if ! echo "${OUTFILE}" | grep tmv > /dev/null ; then
       OUTFILE="${OUTFILE}.tmv"
     fi
     echo Transcoding \`${1}\' to \`${OUTFILE}\'
