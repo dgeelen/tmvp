@@ -20,8 +20,7 @@ if [ "${2}" == "dafox" ] ; then
   FMAGIC="filemagic.dat"
   FONT="blocks.fon"
   VIDFILTERS="filmdint=io=23976:20000,scale=320:-2,pp7=0:1,unsharp,2xsai,scale=-1:-2,hqdn3d,dsize=160:100,scale=160:100,format=rgb24"
-else
-if [ "${2}" == "simon" ] ; then
+elif [ "${2}" == "simon" ] ; then
   MPLAYER="/cygdrive/c/stuff/mplayer/mplayer/mplayer.exe"
   MENCODER="/cygdrive/c/stuff/mplayer/mplayer/mencoder.exe"
   ILEAVE="../ileave.exe"
