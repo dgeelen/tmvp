@@ -1,7 +1,7 @@
 #!/bin/sh
 
-MPLAYER="`which mplayer`"
-MENCODER="`which mencoder`"
+MPLAYER="`which mplayer 2> /dev/null`"
+MENCODER="`which mencoder 2> /dev/null`"
 ILEAVE=../ileave
 IMAGIZER=../imagize
 COMPRESS=../lz77s
@@ -23,10 +23,10 @@ if [ "${2}" == "dafox" ] ; then
 elif [ "${2}" == "simon" ] ; then
   MPLAYER="/cygdrive/c/stuff/mplayer/mplayer/mplayer.exe"
   MENCODER="/cygdrive/c/stuff/mplayer/mplayer/mencoder.exe"
-  ILEAVE="../ileave.exe"
-  IMAGIZER="../imagize.exe"
-  COMPRESS="../lz77s.exe"
-  NORMALIZER="../normalize.exe"
+  ILEAVE="../ileave/ileave.exe"
+  IMAGIZER="../imagizer1/imagize.exe"
+  COMPRESS="../compress1/lz77s.exe"
+  NORMALIZER="../normalizer/normalize.exe"
   VIDFILTERS="filmdint=io=23976:20000,hqdn3d,scale=160:100,hqdn3d,dsize=160:100,scale=-1:-2,format=rgb24"
 fi
 
