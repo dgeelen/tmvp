@@ -1,27 +1,34 @@
 #!/bin/sh
-if [ "${2}" == "" ] ; then
+
+MPLAYER="`which mplayer`"
+MENCODER="`which mencoder`"
+ILEAVE=../ileave
+IMAGIZER=../imagize
+COMPRESS=../lz77s
+NORMALIZER=../normalize
+FMAGIC="fmagic.txt"
+FONT="blocks.fon"
+VIDFILTERS="filmdint=io=23976:20000,scale=160:100,format=rgb24"
+
+if [ "${2}" == "dafox" ] ; then
   MPLAYER="`which mplayer`"
   MENCODER="`which mencoder`"
-  ILEAVE=../ileave
-  IMAGIZER=../imagize
-  COMPRESS=../lz77s
-  NORMALIZER=../normalize
-  FMAGIC="fmagic.txt"
+  ILEAVE=~/Projects/tmvp/ileave/ileave
+  IMAGIZER=~/Projects/tmvp/imagizer1/imagize
+  COMPRESS=~/Projects/tmvp/compress1/lz77s
+  NORMALIZER=~/Projects/tmvp/normalizer/normalize
+  FMAGIC="filemagic.dat"
   FONT="blocks.fon"
+  VIDFILTERS="filmdint=io=23976:20000,scale=320:-2,pp7=0:1,unsharp,2xsai,scale=-1:-2,hqdn3d,dsize=160:100,scale=160:100,format=rgb24"
 else
-  if [ "${2}" == "dafox" ] ; then
-    MPLAYER="`which mplayer`"
-    MENCODER="`which mencoder`"
-    ILEAVE=~/Projects/tmvp/ileave/ileave
-    IMAGIZER=~/Projects/tmvp/imagizer1/imagize
-    COMPRESS=~/Projects/tmvp/compress1/lz77s
-    NORMALIZER=~/Projects/tmvp/normalizer/normalize
-    FMAGIC="filemagic.dat"
-    FONT="blocks.fon"
-  else
-    echo "Error: Unknown developer!"
-    exit
-  fi
+if [ "${2}" == "simon" ] ; then
+  MPLAYER="/cygdrive/c/stuff/mplayer/mplayer/mplayer.exe"
+  MENCODER="/cygdrive/c/stuff/mplayer/mplayer/mencoder.exe"
+  ILEAVE="../ileave.exe"
+  IMAGIZER="../imagize.exe"
+  COMPRESS="../lz77s.exe"
+  NORMALIZER="../normalize.exe"
+  VIDFILTERS="filmdint=io=23976:20000,hqdn3d,scale=160:100,hqdn3d,dsize=160:100,scale=-1:-2,format=rgb24"
 fi
 
 if [ ! -f "${MPLAYER}" ] ; then
@@ -101,6 +108,7 @@ echo ">Starting audio decoder (mplayer)"
 #Volnorm=2:1 => uses several samples for better accuracy. However results in ~1s of soft sound at the start of the file
 "$MPLAYER" "$INFILE" -vc null -vo null -ao pcm:fast:file=/tmp/audfifo1:nowaveheader	\
   -af volnorm=2:1,resample=8000,channels=1:2:0:0:1:0,format=u8			\
+  ${3} \
   -quiet &> aud.log &
 
 echo ">Starting video decoder (mencoder)"
@@ -108,7 +116,8 @@ echo ">Starting video decoder (mencoder)"
 #  -vf filmdint=io=23976:20000,hqdn3d,scale=160:100,hqdn3d,scale,format=rgb24	\
 #  -quiet &> vid.log &
 "$MENCODER" "$INFILE" -o /tmp/vidfifo -of rawvideo -ovc raw -oac copy     \
-  -vf-add filmdint=io=23976:20000,scale=320:-2,pp7=0:1,unsharp,2xsai,scale=-1:-2,hqdn3d,dsize=160:100,scale=160:100,format=rgb24 \
+  -vf-add $VIDFILTERS \
+  ${3} \
   -quiet &> vid.log &
 
 echo ">Starting audio normalizer"
