@@ -143,6 +143,55 @@ void TPalMedianCutSort::CalcPal(RawRGBImage* src, TextPal* dst)
 			dst->SetColor(i, newpal.GetColor(i));
 }
 
+TPalMedianCutRandomSort::TPalMedianCutRandomSort(uint32 t)
+{
+  threshold = t;
+}
+
+void TPalMedianCutRandomSort::CalcPal(RawRGBImage* src, TextPal* dst)
+{
+  TextPal newpal = (*dst);
+  TextPal oldpal = (*dst);
+  TPalMedianCut::CalcPal(src, &newpal);
+  uint32 loopcount=16*1024;
+  uint32 olddist=0;
+  uint32 dist=0;
+  uint32 best_dist=0;
+  for (uint i = 0; i < 16; ++i)
+    dist+=MRGBDistInt(oldpal.GetColor(i), newpal.GetColor(i));
+  best_dist=dist;
+  uint32 i, j;
+  RGBColor tmpcolor;
+  while(loopcount>0) {
+    // Select 2 random indices
+    i=rand()&0x0f;
+    j=rand()&0x0f;
+    if(i!=j) {
+      olddist=dist;
+      dist -= MRGBDistInt(oldpal.GetColor(i), newpal.GetColor(i)) + MRGBDistInt(oldpal.GetColor(j), newpal.GetColor(j));
+      tmpcolor=newpal.GetColor(i);
+      newpal.SetColor(i, newpal.GetColor(j));
+      newpal.SetColor(j, tmpcolor);
+      //we did a swap, now check the new distance
+      dist += MRGBDistInt(oldpal.GetColor(i), newpal.GetColor(i)) + MRGBDistInt(oldpal.GetColor(j), newpal.GetColor(j));
+      if(dist<best_dist + (loopcount>>1) ) {
+        best_dist = dist;
+        }
+      else { //this is not better, let's undo the damage :p
+        tmpcolor = newpal.GetColor(i);
+        newpal.SetColor(i, newpal.GetColor(j));
+        newpal.SetColor(j, tmpcolor);
+        dist=olddist;
+        }
+    }
+    loopcount--;
+  }
+
+  if ( dist < threshold )
+    (*dst)=oldpal;
+  else
+    (*dst)=newpal;
+}
 
 void TRenderBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 {
@@ -265,7 +314,7 @@ void TRenderSemiBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 				}
 				chosen[pcol[i]] = true;
 			}
-			
+
 			unsigned char best_bg;
 			unsigned char best_fg;
 			unsigned char best_char;
@@ -314,7 +363,7 @@ void TRenderSemiBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 						best_fg=pcol[fg];
 					}
 				}
-			}  
+			}
 			if (best_char == 0) best_fg = best_bg;
 			if (best_bg == best_fg) best_char = (best_bg << 4) | best_bg;
 			dst->SetChar(x>>1, y>>1, best_char, best_fg, best_bg);
