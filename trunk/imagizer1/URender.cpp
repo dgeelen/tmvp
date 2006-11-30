@@ -174,7 +174,7 @@ void TPalMedianCutRandomSort::CalcPal(RawRGBImage* src, TextPal* dst)
       newpal.SetColor(j, tmpcolor);
       //we did a swap, now check the new distance
       dist += MRGBDistInt(oldpal.GetColor(i), newpal.GetColor(i)) + MRGBDistInt(oldpal.GetColor(j), newpal.GetColor(j));
-      if(dist<best_dist + (loopcount>>1) ) {
+      if(dist<best_dist) {
         best_dist = dist;
         }
       else { //this is not better, let's undo the damage :p
@@ -195,7 +195,6 @@ void TPalMedianCutRandomSort::CalcPal(RawRGBImage* src, TextPal* dst)
 
 void TRenderBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 {
-
 	RGBColor lookup[16][16][4];
 	for( unsigned char bg=0;bg<16;bg++) {
 		RGBColor bgcol = dst->pal->GetColor(bg);
@@ -271,6 +270,8 @@ void TRenderBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 
 void TRenderSemiBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 {
+	int keeptest = 0;
+
 	// TODO: save this lookup, and only recreate it when our pallete changes
 	RGBColor lookup[16][16][4];
 	for( unsigned char bg=0;bg<16;bg++) {
@@ -364,11 +365,43 @@ void TRenderSemiBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 					}
 				}
 			}
-			if (best_char == 0) best_fg = best_bg;
-			if (best_bg == best_fg) best_char = (best_bg << 4) | best_bg;
+
+			if(128>0) {
+				static uint16 oldbuffer[8000];
+				uint8 old_char  = oldbuffer[x +     y*80];
+				uint8 old_color = oldbuffer[x + 1 + y*80];
+				uint8 lfg = old_color & 0xF;
+				uint8 lbg = old_color >> 4;
+				uint8 old_quad[4];
+				old_quad[0]=old_char&0x03;
+				old_quad[1]=(old_char>>2)&0x03;
+				old_quad[2]=(old_char>>4)&0x03;
+				old_quad[3]=(old_char>>6)&0x03;
+				bool keepme=true;
+				char_dist=0;
+
+				for(uint8 region=0; region < 4 ; region ++) { // try all regions
+					RGBColor ttcol = tcol[region];
+					keepme = keepme && (MRGBDistInt(ttcol, lookup[lfg][lbg][old_quad[region]]) < 128);
+				}
+				if(keepme){
+					++keeptest;
+					best_char = old_char;
+					best_fg = old_color&0x0f;//old_best_fg;
+					best_bg = (old_color>>4)&0x0f;//old_best_bg;
+				} else {
+					oldbuffer[x +     y*80] = best_char;
+					oldbuffer[x + 1 + y*80] = best_fg | (best_bg <<4);
+				}
+			}
+
+			//if (best_char == 0) best_fg = best_bg;
+			//if (best_bg == best_fg) best_char = (best_bg << 4) | best_bg;
 			dst->SetChar(x>>1, y>>1, best_char, best_fg, best_bg);
 		}
 	}
+
+	keeptest = 0;
 }
 
 #pragma package(smart_init)
