@@ -27,9 +27,7 @@ global DecodeBufHead:dword
 global DecodeBufTail:dword
 global AudioDataPtr:dword
 global SampleTimer:dword
-global FlipTimer:dword
 global DecodeBuffer:byte:DECBUF_SIZE
-global AudioBuffer:byte:AUDSAMP_SIZE * RENDER_AHEAD
 global Filehandle:dword
 global DecoderMode:dword
 global FileSize:dword

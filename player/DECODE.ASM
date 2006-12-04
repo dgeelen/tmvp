@@ -21,13 +21,11 @@ proc decoder
   ; First some generic initialisation shared by all decoders (2 atm)
   mov  ebx, [dword ptr Filehandle] ; Set filehandle
   lea  edx, [DecodeBuffer]
-  lea  eax, [edx + FRAME_SIZE + PALETTE_SIZE]
   cli                          ; Prevent FLIP from occurring to early
   mov  [dword ptr DecodeBufHead], edx
   mov  [dword ptr DecodeBufTail], edx ; head == tail ==> Buffer Empty, head == tail - 1 ==> Buffer Full
   mov  [dword ptr L7SDecodeBufHead], edx
   mov  [dword ptr L7SDecodeBufTail], edx
-  mov  [dword ptr AudioDataPtr] , eax
   sti
 
   ; Set up LZ77s decompressor
@@ -351,7 +349,6 @@ proc decoder
   mov  eax, (offset DecodeBuffer) + PALETTE_SIZE + FRAME_SIZE
   mov  [dword ptr AudioDataPtr ], eax
   mov  [dword ptr SampleTimer]  , AUDSAMP_SIZE  ; reset currently playing audio block
-  mov  [dword ptr FlipTimer], AUDIO_INT_FREQ/FPS; reset FlipTimer
   mov  eax, offset InputBuffer
   mov  [dword ptr InputBufHead ], eax
   mov  [dword ptr InputBufTail ], eax
@@ -383,7 +380,6 @@ proc decoder
   add  eax, FRAME_SIZE + PALETTE_SIZE
   mov  [dword ptr AudioDataPtr ], eax
   mov  [dword ptr SampleTimer]  , AUDSAMP_SIZE
-  mov  [dword ptr FlipTimer], AUDIO_INT_FREQ/FPS; reset FlipTimer
   mov  eax, offset InputBuffer
   mov  [dword ptr InputBufHead ], eax
   mov  [dword ptr InputBufTail ], eax
