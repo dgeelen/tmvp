@@ -71,7 +71,9 @@ proc Initialise
   call _printf
   add  esp, 4*2
 @@l1:
-;  hlt  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
+  IF PRIVMODE eq True
+    hlt
+  ENDIF  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
   call keypressed
   jnz  @@l1
   call getkey

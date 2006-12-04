@@ -96,6 +96,9 @@ proc install_audio_interrupt
   mov  [dword ptr DecodeBufTail], eax
   mov  [dword ptr AudioDataPtr], eax
   mov  [dword ptr FrameCounter], eax
+if AUDDBL_SAMPLE eq True
+  mov  [dword ptr DoubleSample], eax
+endif
   mov  [dword ptr SampleTimer], AUDSAMP_SIZE
   mov  ebx, large 0b800h       ; SEG(video_ram)
   add  al,2                    ; mov ax, 2
@@ -210,6 +213,13 @@ if LPT_DAC eq True             ; TODO: OPTIMILISATIONIZE THIS DX CRAP
   endif
   pop  dx
 endif
+if AUDDBL_SAMPLE eq True
+  xor  [dword ptr DoubleSample], large 00000001h
+  jz   @@AUDDBL_SAMPLE_NextSample
+  dec  esi
+  jmp  short @@StillInBuffer
+@@AUDDBL_SAMPLE_NextSample:
+endif
   dec  [dword ptr SampleTimer]
   jnz  short @@StillInBuffer   ; We're still in the current datablock, thus certainly in the buffer
   add  esi, PALETTE_SIZE + FRAME_SIZE ;Select next audiodata block
@@ -219,12 +229,13 @@ endif
   mov  esi, (offset DecodeBuffer) + PALETTE_SIZE + FRAME_SIZE
 @@StillInBuffer:
   mov  [dword ptr AudioDataPtr], esi
+
   dec  [dword ptr FlipTimer]   ; *FIXME* : Inc pre or post check?
   jz   short @@Flipper         ; time to display the next frame
 @@NoFlip:
   dec  [dword ptr ChainTimer]  ; *FIXME* : Inc pre or post check?
   jnz  short @@exit            ; time to call the original handler (update system clock etc)
-  mov  [dword ptr ChainTimer], (119318000/((((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) * 182) + 5)/10; reset ChainTimer
+  mov  [dword ptr ChainTimer], ((QUARTZ_TICKS*100)/((((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) * 182) + 5)/10; reset ChainTimer
   pop  esi                     ; clear the stack
   pop  eax                     ; of the registers
   pop  ds                      ; that we used
@@ -266,8 +277,10 @@ endif
   xor  edi, edi                ; start filling ram from address 0 (b800h:0000h)
   mov  ecx, large FRAME_SIZE shr 2 ; Bytes to dword
   vsync                        ; modifies dx, al
+;  cli
   rep  movsd                   ; Flip
   setpalette                   ; ds:esi -> Palette data, uses al, cl, dx
+;  sti
   add  esi, AUDSAMP_SIZE       ; We don't want to display audiodata
   cmp  esi, (offset DecodeBuffer) + DECBUF_SIZE
   jb   short @@NoResetFramePtr ; If we've exceeded the buffer size, reset
@@ -291,14 +304,18 @@ strNoIntUninstallError db 'uninstall_audio_interrupt(): Errr... no interrupt got
 strVidSegSelError db 'Error: could not get selector for video segment',newline, 36, 0
 
 udataseg
-FrameCounter dd ?
+;FrameCounter dd ?
 AudioBuffer db AUDSAMP_SIZE * RENDER_AHEAD dup (?); interrupt consumes 1000 bytes / frame (1/20s)
                                                   ; NOTE: If possible, we should read this also directly from [DecodeBuffer]
 vidmem_selector dw ?
-FlipTimer dd ?
+;FlipTimer dd ?
 ChainTimer dd ?
 SampleTimer dd ?
 if BEEP_ON_FREAD eq True
   WaveSample dd ?
 endif
+if AUDDBL_SAMPLE eq True
+  DoubleSample dd ?
+endif
 end
+
