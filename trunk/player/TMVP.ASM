@@ -30,7 +30,9 @@ proc tmvp
 
   ; now we *should* wait for the user to press any key
 ;@@WaitUserPressKey:
-;;  hlt  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
+  IF PRIVMODE eq True
+    hlt
+  ENDIF  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
 ;  call keypressed
 ;  jnz  @@WaitUserPressKey
 ;  call getkey                  ; read and discard key

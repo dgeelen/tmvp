@@ -55,7 +55,9 @@ proc decoder
 ;******************************************************************************************************************************
 
 @@RawDecoder:                  ; ----------------------------------------------------------------------------------------------RAW---
-;  hlt  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
+  IF PRIVMODE eq True
+    hlt
+  ENDIF  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
   call keypressed              ; TODO: LESS CHECKING ?
   jnz  @@TestRawBufferEmpty
   call near @@ProcessKeypress
@@ -96,7 +98,9 @@ proc decoder
 ;******************************************************************************************************************************
 
 @@lz77sDecoder:              ; ---------------------------------------------------------------------------------------------LZ77s---
-;  hlt  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
+  IF PRIVMODE eq True
+    hlt
+  ENDIF  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
   call keypressed              ; TODO: LESS CHECKING ?
   jnz  @@TestLZ77sBufferEmpty
   call near @@ProcessKeypress
@@ -300,7 +304,9 @@ proc decoder
   sti
   push eax                            ; eax used in following
 @@paused:
-;  hlt  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
+  IF PRIVMODE eq True
+    hlt
+  ENDIF  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
   call keypressed
   jnz  @@paused
   call getkey                  ; read and discard key
@@ -342,9 +348,10 @@ proc decoder
   cli                          ; disable interrupts to prevent interference from audio interrupts
   mov  eax, [dword ptr SeekPtr];
   mov  [dword ptr DecodedBytes], eax
-  mov  eax, offset DecodeBuffer + FRAME_SIZE + PALETTE_SIZE
+  mov  eax, (offset DecodeBuffer) + PALETTE_SIZE + FRAME_SIZE
   mov  [dword ptr AudioDataPtr ], eax
-  mov  [dword ptr SampleTimer]  , AUDSAMP_SIZE
+  mov  [dword ptr SampleTimer]  , AUDSAMP_SIZE  ; reset currently playing audio block
+  mov  [dword ptr FlipTimer], AUDIO_INT_FREQ/FPS; reset FlipTimer
   mov  eax, offset InputBuffer
   mov  [dword ptr InputBufHead ], eax
   mov  [dword ptr InputBufTail ], eax
@@ -376,6 +383,7 @@ proc decoder
   add  eax, FRAME_SIZE + PALETTE_SIZE
   mov  [dword ptr AudioDataPtr ], eax
   mov  [dword ptr SampleTimer]  , AUDSAMP_SIZE
+  mov  [dword ptr FlipTimer], AUDIO_INT_FREQ/FPS; reset FlipTimer
   mov  eax, offset InputBuffer
   mov  [dword ptr InputBufHead ], eax
   mov  [dword ptr InputBufTail ], eax
@@ -390,7 +398,9 @@ proc decoder
 ;******************************************************************************************************************************
 
 @@done:
-;  hlt  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
+  IF PRIVMODE eq True
+    hlt
+  ENDIF  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
   call keypressed              ; Check for keypress incase file is b0rken
   jnz  @@doneNotKeyPress
   call near @@ProcessKeypress

@@ -10,9 +10,10 @@ True            EQU 1
 False           EQU 0
 FPS             EQU 20
 AUDIO_INT_FREQ  EQU 8000 ;20000
+AUDDBL_SAMPLE   EQU False ; True       ; don't forget to double AUDIO_INT_FREQ!
 QUARTZ_TICKS    EQU 01234DDh ; 1193181hz
+AUDSAMP_SIZE    EQU (AUDIO_INT_FREQ/(FPS*(AUDDBL_SAMPLE+1)))
 FRAME_SIZE      EQU 80*50*2
-AUDSAMP_SIZE    EQU (AUDIO_INT_FREQ/FPS)
 PALETTE_SIZE    EQU 48
 RENDER_AHEAD    EQU 32
 DECBUF_SIZE     EQU ((FRAME_SIZE + PALETTE_SIZE + AUDSAMP_SIZE) * RENDER_AHEAD)
@@ -20,6 +21,7 @@ DECWIN_SIZE     EQU 32 * 1024
 SEEKINTERVAL    EQU 200
 FONT_SIZE       EQU 2048
 FILEHEADER_SIZE EQU 16
+PRIVMODE        EQU True ; False
 
 ;DEBUG EQU True
 DEBUG EQU False
@@ -60,6 +62,7 @@ macro setpalette
   ; indexes 0-6 are colors 0 - 5 and 7
   ; indexes 7-14 are colors 8-15
   ; index 15 is color 6
+
   mov cl, 0                    ; first 8 palette entries
   xor cx, cx
   mov dx, 03C9h
