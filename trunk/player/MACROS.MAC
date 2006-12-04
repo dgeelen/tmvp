@@ -9,10 +9,11 @@ newline         EQU CrLf
 True            EQU 1
 False           EQU 0
 FPS             EQU 20
-AUDIO_INT_FREQ  EQU 8000 ;20000
-AUDDBL_SAMPLE   EQU False ; True       ; don't forget to double AUDIO_INT_FREQ!
+AUDIO_INT_FREQ  EQU 8000; 16000; 8000 ;20000
+AUDDBL_SAMPLE   EQU False; True       ; don't forget to double AUDIO_INT_FREQ!
 QUARTZ_TICKS    EQU 01234DDh ; 1193181hz
 AUDSAMP_SIZE    EQU (AUDIO_INT_FREQ/(FPS*(AUDDBL_SAMPLE+1)))
+;AUDSAMP_SIZE equ 400
 FRAME_SIZE      EQU 80*50*2
 PALETTE_SIZE    EQU 48
 RENDER_AHEAD    EQU 32
