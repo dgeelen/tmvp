@@ -90,11 +90,11 @@ proc install_audio_interrupt
   mov es, ax
 
   mov  [dword ptr ChainTimer], (119318000/((((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) * 182) + 5)/10
-  mov  eax, (offset DecodeBuffer) - AUDSAMP_SIZE - FRAME_SIZE - PALETTE_SIZE + DECBUF_SIZE ; Start at end of buffer because of implementation AudioInt
+  mov  eax, (offset DecodeBuffer) - AUDSAMP_SIZE - AUDSAMP_SIZE - FRAME_SIZE - PALETTE_SIZE + DECBUF_SIZE ; Start at end of buffer because of implementation AudioInt
   mov  [dword ptr DecodeBufHead], eax
   mov  [dword ptr DecodeBufTail], eax
   xor  eax, eax
-  mov  [dword ptr AudioDataPtr], offset DecodeBuffer + DECBUF_SIZE
+  mov  [dword ptr AudioDataPtr], offset DecodeBuffer + DECBUF_SIZE - AUDSAMP_SIZE - FRAME_SIZE - PALETTE_SIZE
   mov  [dword ptr FrameCounter], eax
   inc  eax
 if AUDDBL_SAMPLE eq True
@@ -223,6 +223,9 @@ if AUDDBL_SAMPLE eq True
 endif
 
 ;A-V/SYNC
+  ; TODO: See if it is possible to merge AudioDataPtr and DecodeBufHead as well
+  cmp  esi, [dword ptr DecodeBufTail]
+  je   @@BufferEmpty           ; FIXME: See if this can be done more cleanly (with less checking). Needed for detect EndOfFile because of Audio
   mov  [dword ptr AudioDataPtr], esi
   dec  [dword ptr SampleTimer]
   jnz  short @@NoFlip          ; We're still in the current datablock, thus certainly in the buffer
@@ -236,7 +239,8 @@ endif
   mov  esi, [dword ptr DecodeBufHead]
   add  esi, AUDSAMP_SIZE
   jmp  short @@Flipper
-
+@@BufferEmpty:
+  mov  [dword ptr DecodeBufHead], esi
 @@NoFlip:
   dec  [dword ptr ChainTimer]  ; *FIXME* : Inc pre or post check?
   jnz  short @@exit            ; time to call the original handler (update system clock etc)

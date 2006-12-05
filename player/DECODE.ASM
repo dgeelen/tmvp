@@ -22,6 +22,7 @@ proc decoder
   mov  ebx, [dword ptr Filehandle] ; Set filehandle
   ;lea  edx, [DecodeBuffer]
   mov  edx, [dword ptr DecodeBufHead]
+  add  edx, AUDSAMP_SIZE
   cli                          ; Prevent FLIP from occurring to early
   mov  [dword ptr L7SDecodeBufHead], edx
   mov  [dword ptr L7SDecodeBufTail], edx
@@ -336,9 +337,9 @@ proc decoder
   add  eax, 5                  ; skip 6 * 10 sec
 @@fwd:
   inc  eax
-  cmp  eax, [SeekOffsetCount]  ; number of seekable bytes
-  jbe  @@doskip
-  jmp  @@done
+  cmp  eax, [SeekOffsetCount]  ; number of seekable keyframes
+  jb   @@doskip
+  retn
 @@bwd:
   dec  eax
   cmp  eax, -1
@@ -367,17 +368,19 @@ proc decoder
   cli                          ; disable interrupts to prevent interference from audio interrupts
   mov  eax, [dword ptr SeekPtr];
   mov  [dword ptr DecodedBytes], eax
-  mov  [dword ptr AudioDataPtr ], offset DecodeBuffer + DECBUF_SIZE
+  mov  [dword ptr AudioDataPtr], offset DecodeBuffer + DECBUF_SIZE - AUDSAMP_SIZE - FRAME_SIZE - PALETTE_SIZE
   mov  [dword ptr SampleTimer]  , 1 ; reset currently playing audio block
   mov  eax, offset InputBuffer
   mov  [dword ptr InputBufHead ], eax
   mov  [dword ptr InputBufTail ], eax
-  movzx eax, [byte ptr SeekFixup]
-  add  eax, (offset DecodeBuffer) - AUDSAMP_SIZE - FRAME_SIZE - PALETTE_SIZE + DECBUF_SIZE
-  mov  [dword ptr L7SDecodeBufTail], eax
-  mov  [dword ptr L7SDecodeBufHead], eax
+  movzx edx, [byte ptr SeekFixup]
+  mov  eax, (offset DecodeBuffer) - AUDSAMP_SIZE - AUDSAMP_SIZE - FRAME_SIZE - PALETTE_SIZE + DECBUF_SIZE
   mov  [dword ptr DecodeBufTail], eax
   mov  [dword ptr DecodeBufHead], eax
+  add  eax, edx
+  add  eax, AUDSAMP_SIZE
+  mov  [dword ptr L7SDecodeBufTail], eax
+  mov  [dword ptr L7SDecodeBufHead], eax
   pop  edx                     ; index we saved earlier
   FASTIMUL eax, edx, 200       ; dest, src, mulconst : make TASM do shifts/mul
   mov  [dword ptr framecounter], eax
@@ -392,12 +395,13 @@ proc decoder
   int  021h
   mov  [dword ptr DecodedBytes], 0   ; ebx == Reset number of bytes read
   cli
-  mov  eax, (offset DecodeBuffer) - AUDSAMP_SIZE - FRAME_SIZE - PALETTE_SIZE + DECBUF_SIZE
+  mov  eax, (offset DecodeBuffer) - AUDSAMP_SIZE - AUDSAMP_SIZE - FRAME_SIZE - PALETTE_SIZE + DECBUF_SIZE
   mov  [dword ptr DecodeBufHead], eax
   mov  [dword ptr DecodeBufTail], eax
+  add  eax, AUDSAMP_SIZE
   mov  [dword ptr L7SDecodeBufHead], eax
   mov  [dword ptr L7SDecodeBufTail], eax
-  mov  [dword ptr AudioDataPtr ], offset DecodeBuffer + DECBUF_SIZE
+  mov  [dword ptr AudioDataPtr], offset DecodeBuffer + DECBUF_SIZE - AUDSAMP_SIZE - FRAME_SIZE - PALETTE_SIZE
   mov  [dword ptr SampleTimer]  , 1
   mov  eax, offset InputBuffer
   mov  [dword ptr InputBufHead ], eax
