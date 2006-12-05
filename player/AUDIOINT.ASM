@@ -89,17 +89,17 @@ proc install_audio_interrupt
   jc  @@pError
   mov es, ax
 
-  xor  eax, eax
   mov  [dword ptr ChainTimer], (119318000/((((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) * 182) + 5)/10
+  mov  eax, (offset DecodeBuffer) - AUDSAMP_SIZE - FRAME_SIZE - PALETTE_SIZE + DECBUF_SIZE ; Start at end of buffer because of implementation AudioInt
   mov  [dword ptr DecodeBufHead], eax
   mov  [dword ptr DecodeBufTail], eax
+  xor  eax, eax
   mov  [dword ptr AudioDataPtr], offset DecodeBuffer + DECBUF_SIZE
   mov  [dword ptr FrameCounter], eax
   inc  eax
 if AUDDBL_SAMPLE eq True
   mov  [dword ptr DoubleSample], eax
 endif
-  ;inc  eax
   mov  [dword ptr SampleTimer], eax
   dec  eax
   mov  ebx, large 0b800h       ; SEG(video_ram)
@@ -190,7 +190,7 @@ proc audio_int nolanguage ; this is an interrupt, let's do our own push-ups!
   mov  esi, [dword ptr DecodeBufHead]
   cmp  [dword ptr DecodeBufTail], esi ; CMP MEM, REG is 1 clock faster than CMP REG,MEM?!
   je   short @@NoFlip          ; if empty do nothing
-  ; Play a sample of audio     ; ** TODO: Figure out if A/V Sync is neccesary and how to implement it **
+  ; Play a sample of audio
   mov  esi, [dword ptr AudioDataPtr] ; load pointer
   lodsb                        ; get data byte
 if BEEP_ON_FREAD eq True
@@ -222,6 +222,7 @@ if AUDDBL_SAMPLE eq True
 @@AUDDBL_SAMPLE_NextSample:
 endif
 
+;A-V/SYNC
   mov  [dword ptr AudioDataPtr], esi
   dec  [dword ptr SampleTimer]
   jnz  short @@NoFlip          ; We're still in the current datablock, thus certainly in the buffer
@@ -232,6 +233,8 @@ endif
 @@NoWrap:
   mov  [dword ptr AudioDataPtr], esi
   mov  [dword ptr SampleTimer], AUDSAMP_SIZE ; reset timer
+  mov  esi, [dword ptr DecodeBufHead]
+  add  esi, AUDSAMP_SIZE
   jmp  short @@Flipper
 
 @@NoFlip:
@@ -256,7 +259,7 @@ endif
   out  020h, al                ; signal End of Interrupt
   sti                          ; renable interrupts   DANGEROUS: RENTRY?
   inc  [dword ptr FrameCounter]
-  mov  esi, [dword ptr DecodeBufHead]
+  ;mov  esi, [dword ptr DecodeBufHead]
 
 
 ;;;;;;;;;;; ; fake flip
@@ -284,10 +287,10 @@ endif
   setpalette                   ; ds:esi -> Palette data, uses al, cl, dx
 ;  pop  esi
 ;  sti
-  add  esi, AUDSAMP_SIZE       ; We don't want to display audiodata
-  cmp  esi, (offset DecodeBuffer) + DECBUF_SIZE
+  ;add  esi, AUDSAMP_SIZE       ; We don't want to display audiodata
+  cmp  esi, (offset DecodeBuffer) + DECBUF_SIZE - AUDSAMP_SIZE
   jb   short @@NoResetFramePtr ; If we've exceeded the buffer size, reset
-  mov  esi, offset DecodeBuffer
+  mov  esi, ( offset DecodeBuffer ) - AUDSAMP_SIZE
 @@NoResetFramePtr:
   mov  [dword ptr DecodeBufHead], esi; update head pointer
   pop  edx ecx edi es
@@ -300,17 +303,17 @@ endp
 
 endp
 dataseg
-strIntset db 'interrupt installed!',newline,36,0
-strProtmodeInstallError db 'Error while installing Protected mode interrupt',newline,36,0
-strProtmodeUninstallError db 'Error while uninstalling Protected mode interrupt',newline,36,0
-strNoIntUninstallError db 'uninstall_audio_interrupt(): Errr... no interrupt got installed?',newline,36,0
-strVidSegSelError db 'Error: could not get selector for video segment',newline, 36, 0
+  strIntset db 'interrupt installed!',newline,36,0
+  strProtmodeInstallError db 'Error while installing Protected mode interrupt',newline,36,0
+  strProtmodeUninstallError db 'Error while uninstalling Protected mode interrupt',newline,36,0
+  strNoIntUninstallError db 'uninstall_audio_interrupt(): Errr... no interrupt got installed?',newline,36,0
+  strVidSegSelError db 'Error: could not get selector for video segment',newline, 36, 0
 
 udataseg
-FrameCounter dd ?
-vidmem_selector dw ?
-ChainTimer dd ?
-SampleTimer dd ?
+  FrameCounter dd ?
+  vidmem_selector dw ?
+  ChainTimer dd ?
+  SampleTimer dd ?
 if BEEP_ON_FREAD eq True
   WaveSample dd ?
 endif
