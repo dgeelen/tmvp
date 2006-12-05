@@ -20,10 +20,9 @@ proc decoder
 
   ; First some generic initialisation shared by all decoders (2 atm)
   mov  ebx, [dword ptr Filehandle] ; Set filehandle
-  lea  edx, [DecodeBuffer]
+  ;lea  edx, [DecodeBuffer]
+  mov  edx, [dword ptr DecodeBufHead]
   cli                          ; Prevent FLIP from occurring to early
-  mov  [dword ptr DecodeBufHead], edx
-  mov  [dword ptr DecodeBufTail], edx ; head == tail ==> Buffer Empty, head == tail - 1 ==> Buffer Full
   mov  [dword ptr L7SDecodeBufHead], edx
   mov  [dword ptr L7SDecodeBufTail], edx
   sti
@@ -289,8 +288,14 @@ proc decoder
   xor  bl, bl                  ; @seek, bl==0 => FWD
   cmp  al, 'M'                 ; Arrow Right
   je   @@Seek
-  inc  bl                      ; @seek, bl!=0 => BWD
+  inc  bl                      ; @seek, bl==1 => BWD
   cmp  al, 'K'                 ; Arrow Left
+  je   @@Seek
+  inc  bl                      ; @seek, bl==2 => FFWD
+  cmp  al, 'H'                 ; Arrow up
+  je   @@Seek
+  inc  bl                      ; @seek, bl==3 => FBWD
+  cmp  al, 'P'                 ; Arrow down
   je   @@Seek
 @@ExitKeyhandler:
   retn                         ; resume play
@@ -316,14 +321,30 @@ proc decoder
   mov  ecx, SEEKINTERVAL       ; 200 frames
   xor  edx, edx                ; used in div
   div  ecx                     ; eax is index ptr div 5
-  test bl, bl                  ; bl==0 => Seek fwd, else seek bwd
-  jz   short @@fwd
-  test eax, eax                ; eax==0 /\ bl!=0 => seek bwd before start of file
-  jz   short @@doskip          ; so we skip to the first keyframe
-  dec  eax                     ; select previous keyframe w/r to where we are now
-  jmp  short @@doskip
+  ;Decide where we are seeking to (bl indicates fwd, bwd, ffwd, fbwd)
+  inc  bl                      ; bl == 1 .. 4
+  dec  bl
+  jz   @@fwd
+  dec  bl
+  jz   @@bwd
+  dec  bl
+  jz   @@ffwd
+  ;fbwd
+  sub  eax, 5                  ; skip -6 * 10 sec
+  jmp  short @@bwd
+@@ffwd:
+  add  eax, 5                  ; skip 6 * 10 sec
 @@fwd:
-  inc  eax                     ; select next keyframe w/r to where we are now
+  inc  eax
+  cmp  eax, [SeekOffsetCount]  ; number of seekable bytes
+  jbe  @@doskip
+  jmp  @@done
+@@bwd:
+  dec  eax
+  cmp  eax, -1
+  jg   short @@doskip
+  jmp  @@RestartMovie
+
 @@doskip:
   mov  edx, eax
   push eax                     ; later we use this to set the #decframes
@@ -346,18 +367,17 @@ proc decoder
   cli                          ; disable interrupts to prevent interference from audio interrupts
   mov  eax, [dword ptr SeekPtr];
   mov  [dword ptr DecodedBytes], eax
-  mov  eax, (offset DecodeBuffer) + PALETTE_SIZE + FRAME_SIZE
-  mov  [dword ptr AudioDataPtr ], eax
-  mov  [dword ptr SampleTimer]  , AUDSAMP_SIZE  ; reset currently playing audio block
+  mov  [dword ptr AudioDataPtr ], offset DecodeBuffer + DECBUF_SIZE
+  mov  [dword ptr SampleTimer]  , 1 ; reset currently playing audio block
   mov  eax, offset InputBuffer
   mov  [dword ptr InputBufHead ], eax
   mov  [dword ptr InputBufTail ], eax
   movzx eax, [byte ptr SeekFixup]
-  add  eax, offset DecodeBuffer
+  add  eax, (offset DecodeBuffer) - AUDSAMP_SIZE - FRAME_SIZE - PALETTE_SIZE + DECBUF_SIZE
   mov  [dword ptr L7SDecodeBufTail], eax
   mov  [dword ptr L7SDecodeBufHead], eax
-  mov  [dword ptr DecodeBufTail], offset DecodeBuffer
-  mov  [dword ptr DecodeBufHead], offset DecodeBuffer
+  mov  [dword ptr DecodeBufTail], eax
+  mov  [dword ptr DecodeBufHead], eax
   pop  edx                     ; index we saved earlier
   FASTIMUL eax, edx, 200       ; dest, src, mulconst : make TASM do shifts/mul
   mov  [dword ptr framecounter], eax
@@ -372,14 +392,13 @@ proc decoder
   int  021h
   mov  [dword ptr DecodedBytes], 0   ; ebx == Reset number of bytes read
   cli
-  mov  eax, offset DecodeBuffer
+  mov  eax, (offset DecodeBuffer) - AUDSAMP_SIZE - FRAME_SIZE - PALETTE_SIZE + DECBUF_SIZE
   mov  [dword ptr DecodeBufHead], eax
   mov  [dword ptr DecodeBufTail], eax
   mov  [dword ptr L7SDecodeBufHead], eax
   mov  [dword ptr L7SDecodeBufTail], eax
-  add  eax, FRAME_SIZE + PALETTE_SIZE
-  mov  [dword ptr AudioDataPtr ], eax
-  mov  [dword ptr SampleTimer]  , AUDSAMP_SIZE
+  mov  [dword ptr AudioDataPtr ], offset DecodeBuffer + DECBUF_SIZE
+  mov  [dword ptr SampleTimer]  , 1
   mov  eax, offset InputBuffer
   mov  [dword ptr InputBufHead ], eax
   mov  [dword ptr InputBufTail ], eax
