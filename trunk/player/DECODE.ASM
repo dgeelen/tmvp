@@ -298,6 +298,12 @@ proc decoder
   inc  bl                      ; @seek, bl==3 => FBWD
   cmp  al, 'P'                 ; Arrow down
   je   @@Seek
+  inc  bl                      ; @seek, bl==4 => FFFWD
+  cmp  al, 'I'                 ; page up
+  je   @@Seek
+  inc  bl                      ; @seek, bl==5 => FFBWD
+  cmp  al, 'Q'                 ; page down
+  je   @@Seek
 @@ExitKeyhandler:
   retn                         ; resume play
 @@pauseplayer:
@@ -330,7 +336,20 @@ proc decoder
   jz   @@bwd
   dec  bl
   jz   @@ffwd
-  ;fbwd
+  dec  bl
+  jz   @@fbwd
+  dec  bl
+  jz   @@fffwd
+  dec  bl
+  je   @@ffbwd
+  retn
+@@ffbwd:
+  sub  eax, 54
+  jmp  short @@fbwd
+@@fffwd:
+  add  eax, 54
+  jmp  short @@ffwd
+@@fbwd:
   sub  eax, 5                  ; skip -6 * 10 sec
   jmp  short @@bwd
 @@ffwd:
