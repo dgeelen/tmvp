@@ -289,8 +289,14 @@ proc decoder
   xor  bl, bl                  ; @seek, bl==0 => FWD
   cmp  al, 'M'                 ; Arrow Right
   je   @@Seek
-  inc  bl                      ; @seek, bl!=0 => BWD
+  inc  bl                      ; @seek, bl==1 => BWD
   cmp  al, 'K'                 ; Arrow Left
+  je   @@Seek
+  inc  bl                      ; @seek, bl==2 => FFWD
+  cmp  al, 'H'                 ; Arrow up
+  je   @@Seek
+  inc  bl                      ; @seek, bl==3 => FBWD
+  cmp  al, 'P'                 ; Arrow down
   je   @@Seek
 @@ExitKeyhandler:
   retn                         ; resume play
@@ -316,14 +322,30 @@ proc decoder
   mov  ecx, SEEKINTERVAL       ; 200 frames
   xor  edx, edx                ; used in div
   div  ecx                     ; eax is index ptr div 5
-  test bl, bl                  ; bl==0 => Seek fwd, else seek bwd
-  jz   short @@fwd
-  test eax, eax                ; eax==0 /\ bl!=0 => seek bwd before start of file
-  jz   short @@doskip          ; so we skip to the first keyframe
-  dec  eax                     ; select previous keyframe w/r to where we are now
-  jmp  short @@doskip
+  ;Decide where we are seeking to (bl indicates fwd, bwd, ffwd, fbwd)
+  inc  bl                      ; bl == 1 .. 4
+  dec  bl
+  jz   @@fwd
+  dec  bl
+  jz   @@bwd
+  dec  bl
+  jz   @@ffwd
+  ;fbwd
+  sub  eax, 5                  ; skip -6 * 10 sec
+  jmp  short @@bwd
+@@ffwd:
+  add  eax, 5                  ; skip 6 * 10 sec
 @@fwd:
-  inc  eax                     ; select next keyframe w/r to where we are now
+  inc  eax
+  cmp  eax, [SeekOffsetCount]  ; number of seekable keyframes
+  jb   @@doskip
+  retn
+@@bwd:
+  dec  eax
+  cmp  eax, -1
+  jg   short @@doskip
+  jmp  @@RestartMovie
+
 @@doskip:
   mov  edx, eax
   push eax                     ; later we use this to set the #decframes
