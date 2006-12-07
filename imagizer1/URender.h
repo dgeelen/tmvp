@@ -44,6 +44,13 @@ class TPalMedianCutRandomSort : public TPalMedianCut {
   void CalcPal(RawRGBImage* src, TextPal* dst);
 };
 
+class TPalMedianCutSmartSort : public TPalMedianCut {
+  uint32 threshold;
+ public:
+  TPalMedianCutSmartSort(uint32 t);
+  void CalcPal(RawRGBImage* src, TextPal* dst);
+};
+
 class TRenderMethod {
  public:
 	virtual void DoRender(RawRGBImage* src, TextImage* dst) = 0;
@@ -56,7 +63,10 @@ class TRenderBruteBlock : public TRenderMethod {
 
 class TRenderSemiBruteBlock : public TRenderMethod {
  public:
+  TRenderSemiBruteBlock(uint32 t);
 	void DoRender(RawRGBImage* src, TextImage* dst);
+ private:
+  uint32 threshold;
 };
 
 #include "URenderSimAnn.h"
