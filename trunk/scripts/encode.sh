@@ -14,7 +14,8 @@ if [ "${2}" == "dafox" ] ; then
   MPLAYER="`which mplayer`"
   MENCODER="`which mencoder`"
   ILEAVE=~/Projects/tmvp/ileave/ileave
-  IMAGIZER=~/Projects/tmvp/imagizer1/imagize
+#  IMAGIZER=~/Projects/tmvp/imagizer1/imagize
+  IMAGIZER=~/Projects/tmvp/imagizer1/kdev/imagize/optimized/src/imagize
   COMPRESS=~/Projects/tmvp/compress1/lz77s
   NORMALIZER=~/Projects/tmvp/normalizer/normalize
   FMAGIC="filemagic.dat"
@@ -127,7 +128,7 @@ cat ${FMAGIC} > "$OUTFILE"
 cat ${FONT} >> "$OUTFILE"
 
 echo ">Starting imagizer + interleaver + compressor"
-  "$IMAGIZER" /tmp/vidfifo 		\
+  "$IMAGIZER" /tmp/vidfifo - 750\
 | "$ILEAVE" - /tmp/audfifo2 - 	\
 | "$COMPRESS" 			\
 >> "$OUTFILE"
