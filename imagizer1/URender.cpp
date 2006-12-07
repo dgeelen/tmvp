@@ -482,8 +482,7 @@ void TRenderSemiBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 				}
 			}
 
-      #define BLAAT 148
-			if(BLAAT>0) {
+			if(threshold>0) {
 				static uint16 oldbuffer[8000];
 				uint8 old_char  = oldbuffer[x +     y*80];
 				uint8 old_color = oldbuffer[x + 1 + y*80];
@@ -499,7 +498,7 @@ void TRenderSemiBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 
 				for(uint8 region=0; region < 4 ; region ++) { // try all regions
 					RGBColor ttcol = tcol[region];
-					keepme = keepme && (MRGBDistInt(ttcol, lookup[lfg][lbg][old_quad[region]]) < BLAAT);
+					keepme = keepme && (MRGBDistInt(ttcol, lookup[lfg][lbg][old_quad[region]]) < threshold);
 				}
 				if(keepme){
 					++keeptest;
