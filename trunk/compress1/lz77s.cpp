@@ -58,7 +58,6 @@ void CheckFrameBounds(uint32 ifpos){
 int main(int argc, char* argv[]) {
 	string ifname = "-";
 	string ofname = "-";
-  bool KeyFrameAble=true;
 
 	// TODO: maybe read other cmd line params???
 	if (argc > 1) ifname = argv[1];
@@ -83,7 +82,7 @@ int main(int argc, char* argv[]) {
 	uint32 nmlen = 0;
 
 	uint32 ifpos = 0;
-
+  CheckFrameBounds(ifpos);
 	uint32 lookupind = 0;
 
 	nexthash(instr[0]);
@@ -92,11 +91,6 @@ int main(int argc, char* argv[]) {
 	nexthash(instr[3]);
 	while (instr.check(ifpos))
 	{
-     //if this is a place where we could insert a keyframe
-    if(KeyFrameAble) {
-      CheckFrameBounds(ifpos);
-      }
-    KeyFrameAble=false;
 		mlen = 0;
 		// check for a match (of at least length 4)
 		if (instr.check(ifpos+3)) {
@@ -137,7 +131,7 @@ int main(int argc, char* argv[]) {
         ofpos++;
         }
 			nmlen = 0;
-     KeyFrameAble=true;
+     CheckFrameBounds(ifpos);
 		}
 		// if match output codes for copy (and add lookups)
 		if (mlen!=0) {
@@ -154,7 +148,7 @@ int main(int argc, char* argv[]) {
 				--mlen;
 				nexthash(instr[ifpos+3]);
 			}
-     KeyFrameAble=true;
+     CheckFrameBounds(ifpos);
 		}
 	}
 
