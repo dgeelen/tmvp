@@ -77,7 +77,7 @@ void TPalMedianCut::CalcPal(RawRGBImage* src, TextPal* dst)
 	memcpy(points, src->data, src->GetHeight() * src->GetWidth() * 3);
 	std::list<APoint> tpal = medianCut(points, src->GetHeight() * src->GetWidth(), 16);
 
-	uint ti = 0;
+	uint32 ti = 0;
 	for (std::list<APoint>::iterator iter = tpal.begin() ; iter != tpal.end(); iter++) {
 		dst->SetColor(ti,(*iter).x);
 		++ti;
@@ -139,13 +139,125 @@ void TPalMedianCutSort::CalcPal(RawRGBImage* src, TextPal* dst)
 	}
 
 	if (total_dist > threshold)
-		for (uint i = 0; i < 16; ++i)
+		for (uint32 i = 0; i < 16; ++i)
 			dst->SetColor(i, newpal.GetColor(i));
 }
 
 TPalMedianCutRandomSort::TPalMedianCutRandomSort(uint32 t)
 {
   threshold = t;
+}
+
+TPalMedianCutSmartSort::TPalMedianCutSmartSort(uint32 t)
+{
+  threshold = t;
+}
+
+void TPalMedianCutSmartSort::CalcPal(RawRGBImage* src, TextPal* dst) {
+  /*TODO: Pair matching important for best pair or just for best match per index in new palette ?
+   *
+   * /
+
+  TextPal newpal = (*dst);
+  TextPal oldpal = (*dst);
+  TPalMedianCut::CalcPal(src, &newpal);
+
+  uint32 best_dist=ULONG_MAX;
+  uint32 dist=0;
+  uint32 index=0;
+  uint32 match=0;
+  bool avail[16];
+  for(uint32 i=0; i < 16; i++) {
+    avail[i]=true;
+  }
+  for (uint32 i = 0; i < 16; ++i) { // for every color in the new palette
+    dist=0;
+    best_dist=ULONG_MAX;
+    for (uint32 i = 0; j < 16; ++j) { // calculate 'best' match with a color from the old palette
+      if(avail[i]){
+        dist=MRGBDistInt(newpal.GetColor(i), oldpal.GetColor(j));
+        if(dist<best_dist){
+          dist=best_dist;
+          match=j;
+        }
+      }
+    }
+    //match is the best color match from oldpal[] for newpal[i], and best_dist the distance of the match
+    if(best_dist<threshold) {
+      (*dst).SetColor(i,oldpal.GetColor(match));
+    }
+    else {
+      (*dst).SetColor(i,newpal.GetColor(match));
+    }
+    avail[match]=false;
+  }
+
+  /**/
+  TextPal newpal = (*dst);
+  TextPal oldpal = (*dst);
+  TPalMedianCut::CalcPal(src, &newpal);
+  struct match {
+    uint32 index;
+    uint32 dist;
+    };
+  struct match m[16];
+  struct match r[16];
+  bool avail_new[16];
+  bool avail_old[16];
+  for(uint32 i=0; i < 16; i++) {
+    avail_new[i]=true;
+    avail_old[i]=true;
+  }
+  uint32 best_dist=ULONG_MAX;
+  uint32 dist=0;
+  uint32 index=0;
+  for (uint32 l = 0; l < 16; ++l) { // for every color
+    for (uint32 i = 0; i < 16; ++i) { // calculate 'best' match
+      if(avail_new[i]) {
+        best_dist=ULONG_MAX;
+        dist=0;
+        for (uint32 j = 0; j < 16; ++j) { // amidst remaining colors
+          if(avail_old[j]) {
+            dist=MRGBDistInt(newpal.GetColor(i), oldpal.GetColor(j));
+            if(dist<best_dist) {
+              dist=best_dist;
+              m[i].dist = best_dist;
+              m[i].index = j;
+            }
+          }
+        }
+      }
+    }
+    //m is array with for every color in NewPal the index for the best matching color in Oldpal
+    dist=0;
+    best_dist=ULONG_MAX;
+    index=0;
+    for(uint32 i = 0; i < 16; i++) {
+      if(avail_new[i]){
+        if(m[i].dist < best_dist) {
+          best_dist=m[i].dist;
+          index=i;
+        }
+      }
+      m[i].dist=ULONG_MAX;
+    }
+    //index is the best match for color [index] in newpal with oldpal m[index].index
+    avail_new[index]=false;
+    avail_old[index]=false;
+    r[index].dist=m[index].dist;
+    r[index].index=m[index].index;
+  }
+  TextPal result;
+  for(uint32 i=0; i<16; i++) {
+    if(r[i].dist < threshold) {
+      result.SetColor(i, oldpal.GetColor(r[i].index));
+    }
+    else {
+      result.SetColor(i, newpal.GetColor(r[i].index));
+    }
+  }
+  (*dst)=result;
+  /**/
 }
 
 void TPalMedianCutRandomSort::CalcPal(RawRGBImage* src, TextPal* dst)
@@ -157,7 +269,7 @@ void TPalMedianCutRandomSort::CalcPal(RawRGBImage* src, TextPal* dst)
   uint32 olddist=0;
   uint32 dist=0;
   uint32 best_dist=0;
-  for (uint i = 0; i < 16; ++i)
+  for (uint32 i = 0; i < 16; ++i)
     dist+=MRGBDistInt(oldpal.GetColor(i), newpal.GetColor(i));
   best_dist=dist;
   uint32 i, j;
@@ -209,8 +321,8 @@ void TRenderBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 		}
 	}
 
-	for(uint y = 0 ; y < src->GetHeight(); y+=2) {
-		for(uint x = 0 ; x < src->GetWidth(); x+=2) { // for every quad region
+	for(uint32 y = 0 ; y < src->GetHeight(); y+=2) {
+		for(uint32 x = 0 ; x < src->GetWidth(); x+=2) { // for every quad region
 			RGBColor tcol[4];
 			tcol[0] = src->GetPixel(x + 0,y + 0);
 			tcol[1] = src->GetPixel(x + 1,y + 0);
@@ -268,6 +380,10 @@ void TRenderBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 	}
 }
 
+TRenderSemiBruteBlock::TRenderSemiBruteBlock(uint32 t){
+  threshold = t;
+}
+
 void TRenderSemiBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 {
 	int keeptest = 0;
@@ -287,8 +403,8 @@ void TRenderSemiBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 		}
 	}
 
-	for(uint y = 0 ; y < src->GetHeight(); y+=2) {
-		for(uint x = 0 ; x < src->GetWidth(); x+=2) { // for every quad region
+	for(uint32 y = 0 ; y < src->GetHeight(); y+=2) {
+		for(uint32 x = 0 ; x < src->GetWidth(); x+=2) { // for every quad region
 			RGBColor tcol[4];
 			tcol[0] = src->GetPixel(x + 0,y + 0);
 			tcol[1] = src->GetPixel(x + 1,y + 0);
@@ -366,7 +482,8 @@ void TRenderSemiBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 				}
 			}
 
-			if(128>0) {
+      #define BLAAT 148
+			if(BLAAT>0) {
 				static uint16 oldbuffer[8000];
 				uint8 old_char  = oldbuffer[x +     y*80];
 				uint8 old_color = oldbuffer[x + 1 + y*80];
@@ -382,7 +499,7 @@ void TRenderSemiBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 
 				for(uint8 region=0; region < 4 ; region ++) { // try all regions
 					RGBColor ttcol = tcol[region];
-					keepme = keepme && (MRGBDistInt(ttcol, lookup[lfg][lbg][old_quad[region]]) < 128);
+					keepme = keepme && (MRGBDistInt(ttcol, lookup[lfg][lbg][old_quad[region]]) < BLAAT);
 				}
 				if(keepme){
 					++keeptest;

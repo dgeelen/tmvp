@@ -8,7 +8,8 @@
 
 #include "UColor.h"
 #include "URender.h"
-
+#include "UTypes.h"
+#include "UCmdLineParser.h"
 
 #pragma hdrstop
 //---------------------------------------------------------------------------
@@ -16,12 +17,24 @@
 using namespace std;
 
 #pragma argsused
+
+OPT_START(CmdLnParser);
+OPT_STRING(ifname      , 'i',        "input", 1,   "-", "Read from file"                  );
+OPT_STRING(ofname      , 'o',       "output", 1,   "-", "Write to file"                   );
+OPT_INT   (palthreshold, 'p', "palthreshold", 1,    64, "Set the pallete change threshold");
+OPT_BOOL  (getVersion  , 'v',      "version", 0, false, "Display version info"            );
+OPT_END(CmdLnParser);
+
 int main(int argc, char* argv[])
 {
+  CmdLnParser.parse(argc, argv);
+  fprintf(stderr, "ifname: %s\nofname: %s\ngetVersion: %s\npaltheshold=%i\n",ifname.c_str() ,ofname.c_str() ,getVersion?"true":"false",palthreshold);
+  //return 0;
+
 	string ifname = "-";
 	string ofname = "-";
 
-	uint palthreshold = 250;// 10000;
+	uint palthreshold = 750;// 10000;
   uint charthreshold = 64;
 
 	if (argc > 1) ifname = argv[1];
@@ -43,9 +56,10 @@ int main(int argc, char* argv[])
 	TRenderMethod *r_renderer = NULL;
 
 	//r_renderer = new TRenderBruteBlock;
-	r_renderer = new TRenderSemiBruteBlock;
+	r_renderer = new TRenderSemiBruteBlock(charthreshold);
 	//r_palcalc = new TPalMedianCutSort(palthreshold);
-  r_palcalc = new TPalMedianCutRandomSort(palthreshold);
+  r_palcalc = new TPalMedianCutSmartSort(palthreshold);
+  //r_palcalc = new TPalMedianCutRandomSort(palthreshold);
 
 	r_textimage.font = &r_font;
 	r_textimage.pal = &r_pal;
