@@ -8,7 +8,7 @@ COMPRESS=../lz77s
 NORMALIZER=../normalize
 FMAGIC="fmagic.txt"
 FONT="asc_ord_hi.fon"
-VIDFILTERS="filmdint=io=23976:20000,scale=160:100,format=rgb24"
+VIDFILTERS="scale=160:100,format=rgb24"
 
 if [ "${2}" == "dafox" ] ; then
   MPLAYER="`which mplayer`"
@@ -18,9 +18,9 @@ if [ "${2}" == "dafox" ] ; then
   IMAGIZER=~/Projects/tmvp/imagizer1/kdev/imagize/optimized/src/imagize
   COMPRESS=~/Projects/tmvp/compress1/lz77s
   NORMALIZER=~/Projects/tmvp/normalizer/normalize
-  FMAGIC="filemagic.dat"
-  FONT="blocks.fon"
-  VIDFILTERS="filmdint=io=23976:20000,scale=320:-2,pp7=0:1,unsharp,2xsai,scale=-1:-2,hqdn3d,dsize=160:100,scale=160:100,format=rgb24"
+  FMAGIC="fmagic.txt"
+#  FONT="blocks.fon"
+  VIDFILTERS="scale=320:-2,pp7=0:1,unsharp,2xsai,scale=-1:-2,hqdn3d,dsize=160:100,scale=160:100,format=rgb24"
 elif [ "${2}" == "simon" ] ; then
   MPLAYER="/cygdrive/c/stuff/mplayer/mplayer/mplayer.exe"
   MENCODER="/cygdrive/c/stuff/mplayer/mplayer/mencoder.exe"
@@ -28,7 +28,7 @@ elif [ "${2}" == "simon" ] ; then
   IMAGIZER="../imagizer1/imagize.exe"
   COMPRESS="../compress1/lz77s.exe"
   NORMALIZER="../normalizer/normalize.exe"
-  VIDFILTERS="filmdint=io=23976:20000,hqdn3d,scale=160:100,hqdn3d,dsize=160:100,scale=-1:-2,format=rgb24"
+  VIDFILTERS="hqdn3d,scale=160:100,hqdn3d,dsize=160:100,scale=-1:-2,format=rgb24"
 fi
 
 if [ ! -f "${MPLAYER}" ] ; then
@@ -103,6 +103,11 @@ rm /tmp/audfifo2 &> /dev/null
 mkfifo /tmp/vidfifo
 mkfifo /tmp/audfifo1
 mkfifo /tmp/audfifo2
+
+echo -n "Calculating fps... "
+FPS="`${MPLAYER} \"${INFILE}\" -frames 0 2>&1 | grep -o '[^0-9][0-9\.]* fps' | sed 's:[^0-9]::g'`"
+VIDFILTERS="filmdint=io=${FPS}:20000,${VIDFILTERS}"
+echo "detected as \`${FPS}' fps"
 
 echo ">Starting audio decoder (mplayer)"
 #Volnorm=2:1 => uses several samples for better accuracy. However results in ~1s of soft sound at the start of the file
