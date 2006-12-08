@@ -95,21 +95,20 @@ private:
 
 // macro magic!
 #define OPT_START(parsername) \
+	CmdLineParser parsername; \
 	namespace TN1_ ## parsername { \
-		CmdLineParser parser; \
-	}; \
-	\
-	namespace TN2_ ## parsername { \
-		using namespace TN1_ ## parsername; \
-		namespace TN3_ ## parsername { \
+		CmdLineParser& parser = parsername; \
+		\
+		namespace TN2_ ## parsername { \
+		\
 
 #define OPT_END(parsername) \
 		} \
 	}; \
 	\
-	using namespace TN2_ ## parsername::TN3_ ## parsername; \
+	using namespace TN1_ ## parsername::TN2_ ## parsername; \
 	\
-	CmdLineParser& parsername = TN1_ ## parsername::parser \
+
 
 #define OPT_GENERAL(atype, vtype, vname, ochr, ostr, anum, def, desc)\
 	vtype vname = parser.AddOption(&vname, ochr, ostr, anum, atype, (vtype)def, desc)
