@@ -7,7 +7,7 @@ IMAGIZER=../imagize
 COMPRESS=../lz77s
 NORMALIZER=../normalize
 FMAGIC="fmagic.txt"
-FONT="blocks.fon"
+FONT="asc_ord_hi.fon"
 VIDFILTERS="filmdint=io=23976:20000,scale=160:100,format=rgb24"
 
 if [ "${2}" == "dafox" ] ; then
@@ -128,7 +128,7 @@ cat ${FMAGIC} > "$OUTFILE"
 cat ${FONT} >> "$OUTFILE"
 
 echo ">Starting imagizer + interleaver + compressor"
-  "$IMAGIZER" /tmp/vidfifo - 750\
+  "$IMAGIZER" /tmp/vidfifo - 750 148 ${FONT} \
 | "$ILEAVE" - /tmp/audfifo2 - 	\
 | "$COMPRESS" 			\
 >> "$OUTFILE"

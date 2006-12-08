@@ -1,6 +1,6 @@
 object Form1: TForm1
-  Left = 456
-  Top = 303
+  Left = 383
+  Top = 211
   Width = 944
   Height = 659
   Caption = 'Form1'
@@ -44,9 +44,9 @@ object Form1: TForm1
     Width = 145
     Height = 21
     ItemHeight = 13
-    ItemIndex = 0
+    ItemIndex = 1
     TabOrder = 1
-    Text = 'Blocks - Brute Force '
+    Text = 'Blocks - Semi Brute Force'
     OnChange = ComboBoxRenderMethodChange
     Items.Strings = (
       'Blocks - Brute Force '
@@ -62,12 +62,13 @@ object Form1: TForm1
     Width = 145
     Height = 21
     ItemHeight = 13
-    ItemIndex = 3
+    ItemIndex = 4
     TabOrder = 2
     Text = 'Median Cut'
     OnChange = ComboBoxPalleteMethodChange
     Items.Strings = (
       'Dos Colors (dosbox)'
+      'Dos Grays'
       'Ansi Colors (cygwin)'
       'Ansi Colors (putty)'
       'Median Cut'
@@ -75,7 +76,17 @@ object Form1: TForm1
       'Median Cut + sort (250)'
       'Median Cut + sort (500)'
       'Median Cut + sort (750)'
-      'Median Cut + sort (1000)')
+      'Median Cut + sort (1000)'
+      'Random Sort (5000)'
+      'Random Sort (7500)'
+      'Random Sort (10000)'
+      'Random Sort (12500)'
+      'Random Sort (15000)'
+      'Smart Sort (0)'
+      'Smart Sort (64)'
+      'Smart Sort (128)'
+      'Smart Sort (192)'
+      'Smart Sort (256)')
   end
   object ComboBoxCharset: TComboBox
     Left = 656
