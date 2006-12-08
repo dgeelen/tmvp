@@ -161,6 +161,7 @@ static void curses_flush(aa_context * c)
 			} else {
 				char buf[21];
 				snprintf(buf, 20, "\033]P%1x%02x%02x%02x", i, r, g, b);
+				buf[20] = 0;
 				putp(buf);
 			}
 		}
