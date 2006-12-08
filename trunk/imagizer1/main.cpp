@@ -102,23 +102,30 @@ void DoInput(RawRGBImage &image, int32 frame)
 void DoOutPut(TextImage &textimage, int32 frame)
 {
 	static RawRGBImage image;
-/*
+
 	static RawRGBImage image2;
 
+//	image2.SaveToPNG("c:\\debug.png");
+
+	if (Form1->CheckBoxSaveScreen->Checked || Form1->CheckBoxSavePng->Checked)
+		textimage.SaveToRawRGBImage(&image);
+         /*
 	image2.SetSize(320,320);
+//	image.SetSize(80*8,50*8);
 	for (int i=0; i < 16; ++i) {
-		for (int j=0; j < 16; ++j) {
-			for (int k=0; k < 16; ++k) {
-				image2.SetPixel((frame-60)*16+j, i*16+k, textimage.pal->GetColor(i));
+		for (int j=0; j < 8; ++j) {
+			for (int k=0; k < 8; ++k) {
+				image2.SetPixel((frame-60)*8+j, i*8+k, textimage.pal->GetColor(i));
 			}
 		}
 	}
 
-	image2.SaveToPNG("c:\\debug.png");
-	*/
-	if (Form1->CheckBoxSaveScreen->Checked || Form1->CheckBoxSavePng->Checked)
-		textimage.SaveToRawRGBImage(&image);
-
+	for (int i=0; i < (frame-60+1)*8; ++i) {
+		for (int j=0; j < 16*8; ++j) {
+			image.SetPixel(i,j, image2.GetPixel(i, j));
+		}
+	}
+					*/
 	if (Form1->CheckBoxSpecial->Checked)
 		Form1->DoSpecialOutput(textimage, image);
 
@@ -390,7 +397,7 @@ void __fastcall TForm1::ComboBoxRenderMethodChange(TObject *Sender)
 	r_renderer = NULL;
 	switch (ComboBoxRenderMethod->ItemIndex) {
 		case 0: r_renderer = new TRenderBruteBlock; break;
-		case 1: r_renderer = new TRenderSemiBruteBlock; break;
+		case 1: r_renderer = new TRenderSemiBruteBlock(148); break;
 		case 2: r_renderer = new TRenderSimulatedAnnealing; break;
 	}
 	assert(r_renderer != NULL);
@@ -403,15 +410,26 @@ void __fastcall TForm1::ComboBoxPalleteMethodChange(TObject *Sender)
 		delete r_palcalc;
 	r_palcalc = NULL;
 	switch (ComboBoxPalleteMethod->ItemIndex) {
-		case 0: r_palcalc = new TPalStandard; break;
-		case 1: r_palcalc = new TPalAnsiCygwin; break;
-		case 2: r_palcalc = new TPalAnsiPutty; break;
-		case 3: r_palcalc = new TPalMedianCut; break;
-		case 4: r_palcalc = new TPalMedianCutSort(0); break;
-		case 5: r_palcalc = new TPalMedianCutSort(250); break;
-		case 6: r_palcalc = new TPalMedianCutSort(500); break;
-		case 7: r_palcalc = new TPalMedianCutSort(750); break;
-		case 8: r_palcalc = new TPalMedianCutSort(1000); break;
+		case  0: r_palcalc = new TPalStandard; break;
+		case  1: r_palcalc = new TPalGray; break;
+		case  2: r_palcalc = new TPalAnsiCygwin; break;
+		case  3: r_palcalc = new TPalAnsiPutty; break;
+		case  4: r_palcalc = new TPalMedianCut; break;
+		case  5: r_palcalc = new TPalMedianCutSort(0); break;
+		case  6: r_palcalc = new TPalMedianCutSort(250); break;
+		case  7: r_palcalc = new TPalMedianCutSort(500); break;
+		case  8: r_palcalc = new TPalMedianCutSort(750); break;
+		case  9: r_palcalc = new TPalMedianCutSort(1000); break;
+		case 10: r_palcalc = new TPalMedianCutRandomSort(5000); break;
+		case 11: r_palcalc = new TPalMedianCutRandomSort(7500); break;
+		case 12: r_palcalc = new TPalMedianCutRandomSort(10000); break;
+		case 13: r_palcalc = new TPalMedianCutRandomSort(12500); break;
+		case 14: r_palcalc = new TPalMedianCutRandomSort(15000); break;
+		case 15: r_palcalc = new TPalMedianCutSmartSort(0); break;
+		case 16: r_palcalc = new TPalMedianCutSmartSort(64); break;
+		case 17: r_palcalc = new TPalMedianCutSmartSort(128); break;
+		case 18: r_palcalc = new TPalMedianCutSmartSort(192); break;
+		case 19: r_palcalc = new TPalMedianCutSmartSort(256); break;
 	}
 	assert(r_palcalc != NULL);
 }
@@ -626,8 +644,115 @@ void helpchar(uint8 chr, uint x, uint y, TextFont *font , RawRGBImage* img)
 
 vector<int> sortlist;
 
+struct RGBColor32 {
+	union {
+		uint8 a[4];
+		struct { uint8 b,g,r,a; } c;
+		uint32 i;
+	};
+};
+
+//typedef struct RGBColor RGBColor;
+typedef struct RGBColor32 RGBColor32;
+
+//---- start of pallete stuff
+//TODO: move to own header?
+typedef struct Block {
+	int start, end;
+	RGBColor32 max,min;
+	int ldist;
+	int laxis;
+} Block;
+
+RGBColor32* palbuf = NULL; // scratchpad for pal calcs
+int palbufsize = 0;
+
+Block blocks[16];
+int nblocks;
+
+#define swap(a, b) { \
+	int iswap; \
+	iswap = (a); \
+	(a) = (b); \
+	(b) = iswap; \
+	}
+
+
+
+inline void SplitBlock(int blocknum)
+{
+	Block* block = &blocks[blocknum];
+	Block* nblock = &blocks[nblocks++];
+
+
+//	fprintf(stderr, "<splitvalue %i\n", splitvalue);
+	int p = block->start;
+	int r = block->end;
+	int i = (p + r) / 2;
+
+	// target: [p-i) <= [i-r)
+
+	// variant p <= i <= r
+	//         [*-p) <= [r-*)
+	// end at p==r
+	while (p != r)
+	{
+		int split = p + (rand()%(r-p));
+		int splitval = palbuf[split].a[block->laxis];
+
+		int s = p;
+		int t = r;
+
+		--t;
+		swap(palbuf[split].i, palbuf[t].i);
+
+		while (s < t) {
+			swap(palbuf[s].i, palbuf[t-1].i);
+
+			while (s != t && palbuf[s].a[block->laxis] <= splitval)
+				++s;
+			while (s != t && palbuf[t-1].a[block->laxis] >= splitval)
+				--t;
+		};
+
+		swap(palbuf[s].i, palbuf[r-1].i);
+		// [p - s) <= [s) <= [s+1 - r)
+
+		if (i == s || i == s+1 ) {
+			p = r = i;
+		} else if (i < s) {
+			// [p-i) - [i-s) <= [s-r)
+			r = s;
+		} else if (i > s)  {
+			// [p-s) <= [s-i) - [i-r)
+			p = s + 1;
+		};
+	}
+
+	nblock->start = p;
+	nblock->end = block->end;
+	block->end = p;
+
+	//CalcBlock(block);
+	//CalcBlock(nblock);
+}
+
 void __fastcall TForm1::Button1Click(TObject *Sender)
 {
+	palbuf = new RGBColor32[100];
+	nblocks = 1;
+	blocks[0].start = 3;
+	blocks[0].end = 10;
+	blocks[0].laxis = 0;
+	palbuf[ 3].a[0] = rand() & 0xF;
+	palbuf[ 4].a[0] = rand() & 0xF;
+	palbuf[ 5].a[0] = rand() & 0xF;
+	palbuf[ 6].a[0] = rand() & 0xF;
+	palbuf[ 7].a[0] = rand() & 0xF;
+	palbuf[ 8].a[0] = rand() & 0xF;
+	palbuf[ 9].a[0] = rand() & 0xF;
+
+  SplitBlock(0);
 /*	RawRGBImage fimage;
 	fimage.SetSize(8+8+8+1+8+1+8+1, 256 * (8+1) + 1);
 

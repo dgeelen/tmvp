@@ -31,6 +31,26 @@ void TPalStandard::CalcPal(RawRGBImage* src, TextPal* dst)
 	dst->SetColor( 15, 0xFFFFFFul);  // white black
 }
 
+void TPalGray::CalcPal(RawRGBImage* src, TextPal* dst)
+{
+	dst->SetColor(  0, 0x000000ul);  // black
+	dst->SetColor(  1, 0x000000ul);  // dark blue
+	dst->SetColor(  2, 0x000000ul);  // dark green
+	dst->SetColor(  3, 0x000000ul);  // dark cyan
+	dst->SetColor(  4, 0x000000ul);  // dark red
+	dst->SetColor(  5, 0x000000ul);  // dark purple
+	dst->SetColor(  6, 0x000000ul);  // brown
+	dst->SetColor(  7, 0xAAAAAAul);  // light gray
+	dst->SetColor(  8, 0x555555ul);  // dark gray
+	dst->SetColor(  9, 0x000000ul);  // bright blue
+	dst->SetColor( 10, 0x000000ul);  // bright green
+	dst->SetColor( 11, 0x000000ul);  // bright cyan
+	dst->SetColor( 12, 0x000000ul);  // bright red
+	dst->SetColor( 13, 0x000000ul);  // bright purple
+	dst->SetColor( 14, 0x000000ul);  // yellow
+	dst->SetColor( 15, 0xFFFFFFul);  // white black
+}
+
 void TPalAnsiCygwin::CalcPal(RawRGBImage* src, TextPal* dst)
 {
 	dst->SetColor(  0, 0x000000ul);  // black
@@ -134,13 +154,15 @@ void TPalMedianCutSort::CalcPal(RawRGBImage* src, TextPal* dst)
 			best_old=0;
 		old_done[best_old]=true;
 		med_done[best_med]=true;
-		newpal.SetColor(best_old, medpal.GetColor(best_med));
+		if (best_dist > 1024)
+			newpal.SetColor(best_old, medpal.GetColor(best_med));
+		else
+			newpal.SetColor(best_old, dst->GetColor(best_old));
+
 		total_dist += sqrt(best_dist);
 	}
 
-	if (total_dist > threshold)
-		for (uint32 i = 0; i < 16; ++i)
-			dst->SetColor(i, newpal.GetColor(i));
+	(*dst) = newpal;
 }
 
 TPalMedianCutRandomSort::TPalMedianCutRandomSort(uint32 t)
@@ -288,13 +310,13 @@ void TPalMedianCutRandomSort::CalcPal(RawRGBImage* src, TextPal* dst)
       dist += MRGBDistInt(oldpal.GetColor(i), newpal.GetColor(i)) + MRGBDistInt(oldpal.GetColor(j), newpal.GetColor(j));
       if(dist<best_dist) {
         best_dist = dist;
-        }
+      }
       else { //this is not better, let's undo the damage :p
         tmpcolor = newpal.GetColor(i);
         newpal.SetColor(i, newpal.GetColor(j));
         newpal.SetColor(j, tmpcolor);
         dist=olddist;
-        }
+      }
     }
     loopcount--;
   }

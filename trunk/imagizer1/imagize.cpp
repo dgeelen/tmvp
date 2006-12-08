@@ -33,6 +33,7 @@ int main(int argc, char* argv[])
 
 	string ifname = "-";
 	string ofname = "-";
+	string ffname = "-";
 
 	uint palthreshold = 750;// 10000;
   uint charthreshold = 64;
@@ -41,13 +42,19 @@ int main(int argc, char* argv[])
 	if (argc > 2) ofname = argv[2];
 	if (argc > 3) palthreshold = atoi(argv[3]);
   if (argc > 4) charthreshold = atoi(argv[4]);
+  if (argc > 5) ffname = argv[5];
 
 	FILE* ifhandle = (ifname == "-") ? stdin  : fopen(ifname.c_str(), "rb");
 	FILE* ofhandle = (ofname == "-") ? stdout : fopen(ofname.c_str(), "wb");
 
 	RawRGBImage r_sourceimage;
 	TextFont r_font;
-	r_font.DisableMap(); // we dont do fonts (yet, TODO?)
+	if (ffname != "-") {
+		r_font.lorval = 128+32;
+		r_font.hirval = 255;
+		r_font.LoadFromRAWFile(ffname);
+	} else
+		r_font.DisableMap();
 	TextImage r_textimage;
 
 	TCalcPallete *r_palcalc = NULL;
@@ -57,8 +64,8 @@ int main(int argc, char* argv[])
 
 	//r_renderer = new TRenderBruteBlock;
 	r_renderer = new TRenderSemiBruteBlock(charthreshold);
-	//r_palcalc = new TPalMedianCutSort(palthreshold);
-  r_palcalc = new TPalMedianCutSmartSort(palthreshold);
+	r_palcalc = new TPalMedianCutSort(palthreshold);
+  //r_palcalc = new TPalMedianCutSmartSort(palthreshold);
   //r_palcalc = new TPalMedianCutRandomSort(palthreshold);
 
 	r_textimage.font = &r_font;
