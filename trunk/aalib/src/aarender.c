@@ -111,13 +111,15 @@ typedef unsigned char uint8;
 typedef unsigned int uint32;
 typedef unsigned int uint;
 
-struct RGBColor {
-	union {
-		uint8 a[3];
-		struct { uint8 r,g,b; } c;
-	};
-};
+//struct RGBColor {
+//	union {
+//		uint8 a[3];
+//		struct { uint8 r,g,b; } c;
+//	};
+//};
 
+
+// assumes LE
 struct RGBColor32 {
 	union {
 		uint8 a[4];
@@ -126,7 +128,7 @@ struct RGBColor32 {
 	};
 };
 
-typedef struct RGBColor RGBColor;
+//typedef struct RGBColor RGBColor;
 typedef struct RGBColor32 RGBColor32;
 
 //---- start of pallete stuff
@@ -164,43 +166,66 @@ inline void CalcBlock(Block* block)
 	}
 }
 
+#define swap(a, b) { \
+	int iswap; \
+	iswap = (a); \
+	(a) = (b); \
+	(b) = iswap; \
+	}
+
 inline void SplitBlock(int blocknum)
 {
 	Block* block = &blocks[blocknum];
 	Block* nblock = &blocks[nblocks++];
-//	fprintf(stderr, "splitting block %i from %i-%i\n",nblocks, block->start, block->end);
-	// calculate splitvalue...
-	int splitvalue=0;
-	int i,j;
-	for (i = block->start; i < block->end; ++i)
-		splitvalue += palbuf[i].a[block->laxis];
-	if (block->end != block->start)
-		splitvalue /= block->end - block->start;
+
 
 //	fprintf(stderr, "<splitvalue %i\n", splitvalue);
+	int p = block->start;
+	int r = block->end;
+	int i = (p + r) / 2;
 
-	// do split
-	nblock->start = nblock->end = block->end;
-	block->end = block->start;
+	// target: [p-i) <= [i-r)
 
-	while (block->end != nblock->start) {
-//		fprintf(stderr, "splitloop %i-%i\n", block->end , nblock->start);
-		int iswap;
-		iswap = palbuf[block->end].i;
-		palbuf[block->end].i = palbuf[nblock->start-1].i;
-		palbuf[nblock->start-1].i = iswap;
+	// variant p <= i <= r
+	//         [*-p) <= [r-*)
+	// end at p==r
+	while (p != r)
+	{
+		int split = p + (rand()%(r-p));
+		int splitval = palbuf[split].a[block->laxis];
 
-//		fprintf(stderr, "splitval1 %i-%i\n", palbuf[block->end].a[block->laxis] , palbuf[nblock->start-1].a[block->laxis]);
+		int s = p;
+		int t = r;
 
-		while (block->end != nblock->start && palbuf[block->end].a[block->laxis] <= splitvalue)
-			++(block->end);
+		--t;
+		swap(palbuf[split].i, palbuf[t].i);
 
-		while (block->end != nblock->start && palbuf[nblock->start-1].a[block->laxis] >= splitvalue)
-			--(nblock->start);
+		while (s < t) {
+			swap(palbuf[s].i, palbuf[t-1].i);
 
-//		fprintf(stderr, "splitval2 %i-%i\n", palbuf[block->end].a[block->laxis] , palbuf[nblock->start-1].a[block->laxis]);
+			while (s != t && palbuf[s].a[block->laxis] <= splitval)
+				++s;
+			while (s != t && palbuf[t-1].a[block->laxis] >= splitval)
+				--t;
+		};
 
+		swap(palbuf[s].i, palbuf[r-1].i);
+		// [p - s) <= [s - s+1) <= [s+1 - r)
+
+		if (i == s || i == s+1 ) {
+			p = r = i;
+		} else if (i < s) {
+			// [p-i) - [i-s) <= [s-r)
+			r = s;
+		} else if (i > s)  {
+			// [p-s) <= [s-i) - [i-r)
+			p = s + 1;
+		};
 	}
+
+	nblock->start = p;
+	nblock->end = block->end;
+	block->end = p;
 
 	CalcBlock(block);
 	CalcBlock(nblock);
@@ -277,48 +302,48 @@ void aa_renderpalette(aa_context * c, __AA_CONST aa_palette palette, __AA_CONST 
 
 	//int rx = myrand();
 
-	static RGBColor lookup[16][16][4];
-if (--state == 0){
-	state = 64;
+	static RGBColor32 lookup[16][16][4];
+	if (--state == 0){
+		state = 64;
 
-	// do pallette here....
-	if (palbufsize != aa_imgheight(c) * aa_imgwidth(c))
-	{
-		if (palbuf != NULL) free(palbuf);
-		palbuf = malloc(4 * aa_imgheight(c) * aa_imgwidth(c));
-		palbufsize = aa_imgheight(c) * aa_imgwidth(c);
-	}
-
-	for(y = 0 ; y < aa_imgheight(c); ++y) {
-		for(x = 0 ; x < aa_imgwidth(c); ++x) { // for every quad region
-			palbuf[x + y*aa_imgwidth(c)].i = palette[c->imagebuffer[(x  )+(y  )*aa_imgwidth(c)]];
+		// do pallette here....
+		if (palbufsize != aa_imgheight(c) * aa_imgwidth(c))
+		{
+			if (palbuf != NULL) free(palbuf);
+			palbuf = malloc(4 * aa_imgheight(c) * aa_imgwidth(c));
+			palbufsize = aa_imgheight(c) * aa_imgwidth(c);
 		}
-	}
-	CalcPal(r_pal);
 
-	for(bg=0;bg<16;bg++) {
-		RGBColor bgcol;
-		palcol(bgcol, r_pal[bg]);
-		for(fg=0;fg<16;fg++) {
-			RGBColor fgcol;
-			palcol(fgcol, r_pal[fg]);
-			for(quad=0; quad < 4; quad++) {
-				// this is faster, TODO: macro-ize this in a nice way
-				lookup[fg][bg][quad].c.r = (fgcol.c.r*quad*16 + bgcol.c.r*(64-(quad*16))) / 64;
-				lookup[fg][bg][quad].c.g = (fgcol.c.g*quad*16 + bgcol.c.g*(64-(quad*16))) / 64;
-				lookup[fg][bg][quad].c.b = (fgcol.c.b*quad*16 + bgcol.c.b*(64-(quad*16))) / 64;
+		for(y = 0 ; y < aa_imgheight(c); ++y) {
+			for(x = 0 ; x < aa_imgwidth(c); ++x) { // for every quad region
+				palbuf[x + y*aa_imgwidth(c)].i = palette[c->imagebuffer[(x  )+(y  )*aa_imgwidth(c)]];
+			}
+		}
+		CalcPal(r_pal);
+
+		for(bg=0;bg<16;bg++) {
+			RGBColor32 bgcol;
+			bgcol.i = r_pal[bg];
+			for(fg=0;fg<16;fg++) {
+				RGBColor32 fgcol;
+				fgcol.i = r_pal[fg];
+				for(quad=0; quad < 4; quad++) {
+					// this is faster, TODO: macro-ize this in a nice way
+					lookup[fg][bg][quad].c.r = (fgcol.c.r*quad*16 + bgcol.c.r*(64-(quad*16))) / 64;
+					lookup[fg][bg][quad].c.g = (fgcol.c.g*quad*16 + bgcol.c.g*(64-(quad*16))) / 64;
+					lookup[fg][bg][quad].c.b = (fgcol.c.b*quad*16 + bgcol.c.b*(64-(quad*16))) / 64;
+				}
 			}
 		}
 	}
-}
 
 	for(y = 0 ; y < aa_imgheight(c); y+=2) {
 		for(x = 0 ; x < aa_imgwidth(c); x+=2) { // for every quad region
-			RGBColor tcol[4];
-			palcol(tcol[0], palette[c->imagebuffer[(x  )+(y  )*aa_imgwidth(c)]]);
-			palcol(tcol[1], palette[c->imagebuffer[(x+1)+(y  )*aa_imgwidth(c)]]);
-			palcol(tcol[2], palette[c->imagebuffer[(x  )+(y+1)*aa_imgwidth(c)]]);
-			palcol(tcol[3], palette[c->imagebuffer[(x+1)+(y+1)*aa_imgwidth(c)]]);
+			RGBColor32 tcol[4];
+			tcol[0].i = palette[c->imagebuffer[(x  )+(y  )*aa_imgwidth(c)]];
+			tcol[1].i = palette[c->imagebuffer[(x+1)+(y  )*aa_imgwidth(c)]];
+			tcol[2].i = palette[c->imagebuffer[(x  )+(y+1)*aa_imgwidth(c)]];
+			tcol[3].i = palette[c->imagebuffer[(x+1)+(y+1)*aa_imgwidth(c)]];
 
 			uint8 pcol[4];
 
@@ -335,8 +360,8 @@ if (--state == 0){
 				for (j = 0; j < 16; ++j)
 				if (!chosen[j])
 				{
-					RGBColor cmpcol;
-					palcol(cmpcol, r_pal[j]);
+					RGBColor32 cmpcol;
+					cmpcol.i = r_pal[j];
 					uint32 dist = MRGBDistInt(cmpcol, tcol[i]);
 					if (dist < mindist) {
 						mindist = dist;
@@ -367,9 +392,10 @@ if (--state == 0){
 //					RGBColor fgcol = dst->pal->GetColor(pcol[fg]);
 					char_dist = 0;
 //					char_dist = MRGBDistInt(fgcol, bgcol) >> 6;
-					RGBColor* curlookup = &lookup[pcol[fg]][pcol[bg]][0];
+					RGBColor32* curlookup = &lookup[pcol[fg]][pcol[bg]][0];
 					for(region=0; region < 4 ; region ++) { // try all regions
-						RGBColor ttcol = tcol[region];
+						RGBColor32 ttcol;
+						ttcol.i = tcol[region].i;
 						best_quad_dist=0xFFFFFF;
 						for(quad=0; quad < 4; quad++) { // with all 4 quad blocks
 
