@@ -6,7 +6,7 @@
 #include <queue>
 #include <string>
 #include <stdio.h>
-#include "UTypes.h"
+#include "../common/UTypes.h"
 
 /**
  * MyInStream - provides limited random access reading into a file
