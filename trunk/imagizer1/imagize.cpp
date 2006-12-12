@@ -6,12 +6,11 @@
 #include <stdio.h>
 #include <assert.h>
 
-#include "UColor.h"
+#include "..\common\UColor.h"
 #include "URender.h"
 #include "UTypes.h"
 #include "UCmdLineParser.h"
 
-#pragma hdrstop
 //---------------------------------------------------------------------------
 
 using namespace std;
