@@ -2,9 +2,9 @@
 #include <assert.h>
 #include <string>
 #include <list>
-#include "UTypes.h"
-#include "UImage.h"
-#include "UInfinitBuffer.h"
+#include "../common/UTypes.h"
+#include "../common/UImage.h"
+#
 //#include "UCmdLineParser.h"
 using namespace std;
 //---------------------------------------------------------------------------
@@ -160,7 +160,7 @@ struct srtsub getNextSub(FILE* f) {
 
 
 
-uint32 blitSRT(TextImage* ti, list<struct srtsub>::iterator i, alignment *align, uint32 *margins, uint32 ctime, char color) {
+uint32 blitSRT(TextImage* ti, list<srtsub>::iterator i, alignment *align, uint32 *margins, uint32 ctime, char color) {
 //  fprintf(stderr, "  blitSRT: starting blit with srtsub #%u (start=%u, end=%u), ctime=%u\n", i->index, i->start, i->end, ctime);
   //fprintf(stderr, "#lines: %u\n", i->lines.size());
   list<string> blitstr;
@@ -305,7 +305,7 @@ int main(int argc, char *argv[]) {
   FILE* sfhandle = fopen(sfname.c_str(), "r");
 
 //  infbuffer<char> *srtbuf = new infbuffer<char>(sfhandle,1024*64);
-  list<struct srtsub> subs; //1 word in a subtitle is in a list of list of list of string :p
+  list<srtsub> subs; //1 word in a subtitle is in a list of list of list of string :p
   //fprintf(stderr, "Parsing srt file...\n");
   while(!feof(sfhandle)){ //parse entire srt file
 //    fprintf(stderr, "getNextSub\n");
@@ -335,7 +335,7 @@ int main(int argc, char *argv[]) {
   return 0
   */
   uint32 ctime=0;
-  list<struct srtsub>::iterator foss=subs.begin(); //first on screen sub
+  list<srtsub>::iterator foss=subs.begin(); //first on screen sub
 /*  list<struct srtsub>::iterator loss=foss; //last on screen sub
   while((loss != subs.end()) && (loss->end <= ctime)){
     loss++;
