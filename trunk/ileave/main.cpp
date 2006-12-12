@@ -9,7 +9,7 @@
 #include <string>
 #include <stdio.h>
 #include <assert.h>
-#include "UTypes.h"
+#include "../common/UTypes.h"
 
 using namespace std;
 
