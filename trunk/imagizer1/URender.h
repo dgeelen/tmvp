@@ -3,7 +3,7 @@
 #ifndef URenderH
 #define URenderH
 
-#include "UImage.h"
+#include "../common/UImage.h"
 
 class TCalcPallete {
  public:

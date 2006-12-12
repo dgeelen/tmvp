@@ -1,15 +1,15 @@
 //---------------------------------------------------------------------------
 
 
-#include "UImage.h"
 #include <string>
 #include <stdio.h>
 #include <assert.h>
 
-#include "..\common\UColor.h"
+#include "../common/UImage.h"
+#include "../common/UColor.h"
 #include "URender.h"
-#include "UTypes.h"
-#include "UCmdLineParser.h"
+#include "../common/UTypes.h"
+#include "../common/UCmdLineParser.h"
 
 //---------------------------------------------------------------------------
 
