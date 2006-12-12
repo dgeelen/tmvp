@@ -4,9 +4,9 @@
 #pragma hdrstop
 
 #include "main.h"
-#include "UColor.h"
+#include "../common/UColor.h"
 #include "URender.h"
-#include "UImage.h"
+#include "../common/UImage.h"
 #include "ULZ77.h"
 #include "UHuffman.h"
 #include <stdio.h>

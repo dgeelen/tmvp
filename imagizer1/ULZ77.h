@@ -4,7 +4,7 @@
 #define ULZ77H
 
 #include <string>
-#include "UTypes.h"
+#include "../common/UTypes.h"
 
 void LZ77_compress(std::string infile, std::string outfile);
 void LZ77_compress2(std::string infile, std::string outfile);
