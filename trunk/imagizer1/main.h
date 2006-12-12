@@ -8,7 +8,7 @@
 #include <StdCtrls.hpp>
 #include <Forms.hpp>
 #include <ExtCtrls.hpp>
-#include "UImage.h"
+#include "../common/UImage.h"
 //---------------------------------------------------------------------------
 class TForm1 : public TForm
 {

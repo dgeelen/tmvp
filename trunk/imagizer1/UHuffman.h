@@ -3,7 +3,7 @@
 #ifndef UHuffmanH
 #define UHuffmanH
 
-#include "UTypes.h"
+#include "../common/UTypes.h"
 
 struct HuffNode {
 	uint32 weight;
