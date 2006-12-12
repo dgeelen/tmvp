@@ -49,6 +49,7 @@ struct CmdLineOption {
  *  - Single mandatory argument
  *  - Single optional argument
  *  - keywords (-count=4 / -c4 dd of=10) -> du uses the former (`du -h --max-depth=1') while grep uses the latter (`grep -iC5 bla *')
+ *  - Conflicting arguments (svn cleanup --force for example)
  *
  * What we should *not* support:
  *  - zero or more arguments   -> Can be implemented by issuing multiple optional arguments, as such:
