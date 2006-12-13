@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
 	} while (!feof(if1handle) && !feof(if2handle));
 
 	if (if1name != "-") fclose(if1handle);
-	                    fclose(if2handle);
+										  fclose(if2handle);
 	if (ofname  != "-") fclose(ofhandle);
 	return 0;
 }

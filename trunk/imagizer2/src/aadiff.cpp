@@ -25,60 +25,60 @@
 
 void minChange(unsigned  char *a,unsigned  char *b, unsigned char *palette) { // tries to minimize the ammount of change from frame to frame
 
-  }
+	}
 
 /** ---- RLE encoder ---- **/
 
 unsigned int diffcount(unsigned char *a, unsigned char *b, unsigned int s) {
-  unsigned int i = s;
-  while(i<4000 && (a[i<<1]!=b[i<<1] || a[1+(i<<1)]!=b[1+(i<<1)] ) ) { //(short int)(a[i<<1])!=(short int)(b[i<<1])) {
-    i++;
-    }
-  return i-s;
-  }
+	unsigned int i = s;
+	while(i<4000 && (a[i<<1]!=b[i<<1] || a[1+(i<<1)]!=b[1+(i<<1)] ) ) { //(short int)(a[i<<1])!=(short int)(b[i<<1])) {
+		i++;
+		}
+	return i-s;
+	}
 unsigned int simicount(unsigned char *a, unsigned char *b, unsigned int s) {
-  unsigned int i = s;
-  while(i<4000 && a[i<<1]==b[i<<1] && a[1+(i<<1)]==b[1+(i<<1)] ){ //(short int)(a[i<<1])==(short int)(b[i<<1])) {
-    i++;
-    }
-  return i-s;
-  }
+	unsigned int i = s;
+	while(i<4000 && a[i<<1]==b[i<<1] && a[1+(i<<1)]==b[1+(i<<1)] ){ //(short int)(a[i<<1])==(short int)(b[i<<1])) {
+		i++;
+		}
+	return i-s;
+	}
 
 void diff(FILE *f, unsigned char *a, unsigned char *b, unsigned char *output, unsigned long int * outputlen) {
-  unsigned int i = 0,dc=0,sc=0,copystart=0;
-  unsigned int s=0; /* If you're feeling adventures try to optimize s out of the loop */
+	unsigned int i = 0,dc=0,sc=0,copystart=0;
+	unsigned int s=0; /* If you're feeling adventures try to optimize s out of the loop */
 
-  while(i<4000) {
-    copystart=s;
-    dc=diffcount(a,b,s); //copies
-    dc=min(dc,254);
-    s+=dc;
-    sc=simicount(a,b,s); //skips
-    sc=min(sc,254);
+	while(i<4000) {
+		copystart=s;
+		dc=diffcount(a,b,s); //copies
+		dc=min(dc,254);
+		s+=dc;
+		sc=simicount(a,b,s); //skips
+		sc=min(sc,254);
 /*      while(sc==1 && dc+sc<=254) { // god dammit it needs diff search as well
-      s+=sc;
-      dc+=sc;
-      sc=simicount(a,b,s); //skips
-      }//*/
-    while(sc==1 && dc<254) {
-      s+=sc;
-      dc+=sc;
-      sc=diffcount(a,b,s);
-      sc=min(sc,254-dc);
-      s+=sc;
-      dc+=sc;
-      sc=simicount(a,b,s); //skips
-      sc=min(sc,254);
-      } //*/
-    output[(*outputlen)]=dc;(*outputlen)++;
-    output[(*outputlen)]=sc;(*outputlen)++;
-    for(int x=(copystart<<1); x<((copystart+dc)<<1); x++) {
-      int cntr=0;
-      output[(*outputlen)]=a[x];(*outputlen)++;
-      }
-    i+=sc+dc;s=i;
-    }
-  output[(*outputlen)]=0xff;(*outputlen)++;
-  output[(*outputlen)]=0xff;(*outputlen)++;
-  //totals+=(*outputlen);
-  }
+			s+=sc;
+			dc+=sc;
+			sc=simicount(a,b,s); //skips
+			}//*/
+		while(sc==1 && dc<254) {
+			s+=sc;
+			dc+=sc;
+			sc=diffcount(a,b,s);
+			sc=min(sc,254-dc);
+			s+=sc;
+			dc+=sc;
+			sc=simicount(a,b,s); //skips
+			sc=min(sc,254);
+			} //*/
+		output[(*outputlen)]=dc;(*outputlen)++;
+		output[(*outputlen)]=sc;(*outputlen)++;
+		for(int x=(copystart<<1); x<((copystart+dc)<<1); x++) {
+			int cntr=0;
+			output[(*outputlen)]=a[x];(*outputlen)++;
+			}
+		i+=sc+dc;s=i;
+		}
+	output[(*outputlen)]=0xff;(*outputlen)++;
+	output[(*outputlen)]=0xff;(*outputlen)++;
+	//totals+=(*outputlen);
+	}

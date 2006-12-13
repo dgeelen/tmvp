@@ -55,27 +55,27 @@ int main()
 #ifdef KEY_MOUSE
 		if ((ch == KEY_MOUSE) && (getmouse(&e) == OK)) {
 			printw("mouse event at (%i.%i):%i\n",e.x, e.y, e.bstate);
-    			if(e.bstate & BUTTON1_CLICKED)
-	        		printw("Left 1 CLICKED\n");
-    			if(e.bstate & BUTTON1_RELEASED)
-	        		printw("Left 1 Released\n");
-    			if(e.bstate & BUTTON2_CLICKED)
-	        		printw("Left 2 CLICKED\n");
-    			if(e.bstate & BUTTON2_RELEASED)
-	        		printw("Left 2 Released\n");
-    			if(e.bstate & BUTTON3_CLICKED)
-	        		printw("Left 3 CLICKED\n");
-    			if(e.bstate & BUTTON3_RELEASED)
-	        		printw("Left 3 Released\n");
-    			if(e.bstate & BUTTON4_CLICKED)
-	        		printw("Left 4 CLICKED\n");
-    			if(e.bstate & BUTTON4_RELEASED)
-	        		printw("Left 4 Released\n");
+					if(e.bstate & BUTTON1_CLICKED)
+							printw("Left 1 CLICKED\n");
+					if(e.bstate & BUTTON1_RELEASED)
+							printw("Left 1 Released\n");
+					if(e.bstate & BUTTON2_CLICKED)
+							printw("Left 2 CLICKED\n");
+					if(e.bstate & BUTTON2_RELEASED)
+							printw("Left 2 Released\n");
+					if(e.bstate & BUTTON3_CLICKED)
+							printw("Left 3 CLICKED\n");
+					if(e.bstate & BUTTON3_RELEASED)
+							printw("Left 3 Released\n");
+					if(e.bstate & BUTTON4_CLICKED)
+							printw("Left 4 CLICKED\n");
+					if(e.bstate & BUTTON4_RELEASED)
+							printw("Left 4 Released\n");
 #endif
 		}
 	} while (ch != 'x');
 
-	endwin();			/* End curses mode		  */
+	endwin();			/* End curses mode			*/
 
 	return 0;
 }

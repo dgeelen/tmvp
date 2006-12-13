@@ -20,30 +20,30 @@
 
 struct cucul_canvas
 {
-    /* Canvas size */
-    unsigned int width, height;
+		/* Canvas size */
+		unsigned int width, height;
 
-    /* Shortcut to the active frame */
-    uint32_t *chars;
-    uint32_t *attr;
+		/* Shortcut to the active frame */
+		uint32_t *chars;
+		uint32_t *attr;
 
-    /* Frame information */
-    unsigned int frame, framecount;
-    uint32_t **allchars;
-    uint32_t **allattr;
+		/* Frame information */
+		unsigned int frame, framecount;
+		uint32_t **allchars;
+		uint32_t **allattr;
 
-    /* Painting context */
-    uint16_t fgcolor;
-    uint16_t bgcolor;
+		/* Painting context */
+		uint16_t fgcolor;
+		uint16_t bgcolor;
 
-    unsigned int refcount;
+		unsigned int refcount;
 };
 
 struct cucul_buffer
 {
-    unsigned long int size;
-    char *data;
-    int user_data;
+		unsigned long int size;
+		char *data;
+		int user_data;
 };
 
 /* Bitmap functions */

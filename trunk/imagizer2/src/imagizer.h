@@ -26,16 +26,16 @@ void texttopng(unsigned char * textdata, unsigned char * palette);
 void imagize(unsigned char * img, unsigned char * palette, unsigned char *b800h,unsigned char *prevb800h, unsigned long int img_width,unsigned long int img_height, unsigned long int max_char_dist);
 
 class RGBColor {
-  public:
-    RGBColor();
-    ~RGBColor();
-    unsigned long int distance(RGBColor &target);
-    long int r;
-    long int g;
-    long int b;
+	public:
+		RGBColor();
+		~RGBColor();
+		unsigned long int distance(RGBColor &target);
+		long int r;
+		long int g;
+		long int b;
 
-  private:
+	private:
 
-  };
+	};
 
 #endif

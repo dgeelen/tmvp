@@ -34,14 +34,14 @@ struct CmdLineOption {
  * '+'   -- indicates that the option takes one or more arguments;
  */
 /* And what about this:
-  * Prompting the user for missing arguments.
-  * Allowing keywords (-count=4) and/or options (-c4).
-  * Ignoring bad syntax instead of terminating.
-  * Ignoring upper/lower case on the command-line.
-  * Suppressing the printing of syntax error messages.
-  * Controlling the verboseness of usage messages.
-  * Controlling whether or not options may be processed after positional parameters have been seen.
-  */
+	* Prompting the user for missing arguments.
+	* Allowing keywords (-count=4) and/or options (-c4).
+	* Ignoring bad syntax instead of terminating.
+	* Ignoring upper/lower case on the command-line.
+	* Suppressing the printing of syntax error messages.
+	* Controlling the verboseness of usage messages.
+	* Controlling whether or not options may be processed after positional parameters have been seen.
+	*/
 
 /**
  * What I think we *must* support:
@@ -68,29 +68,29 @@ struct CmdLineOption {
 class CmdLineParser {
 public:
 	CmdLineParser();
-  ~CmdLineParser();
+	~CmdLineParser();
 	template <class T> T AddOption(T* ptr, char shortname, std::string longname, int anum, AType atype, T def, std::string desc) { //template must reside in the same file
-    struct CmdLineOption cmdopt;
-    cmdopt.shortname = shortname;
-    cmdopt.longname = longname;
-    cmdopt.args = ptr;
-    cmdopt.numargs = anum;
-    cmdopt.argtype = atype;
-    cmdopt.def = &def;
-    cmdopt.desc = desc;
-    cmdopts["--"+longname] = cmdopt;
-    std::string s = std::string::basic_string();
-    //if(s+shortname==s) { fprintf(stderr,"EMPTY STRING ERROR\n"); }
-    cmdopts[s+shortname] = cmdopt;
-    return def;
-    };
+		struct CmdLineOption cmdopt;
+		cmdopt.shortname = shortname;
+		cmdopt.longname = longname;
+		cmdopt.args = ptr;
+		cmdopt.numargs = anum;
+		cmdopt.argtype = atype;
+		cmdopt.def = &def;
+		cmdopt.desc = desc;
+		cmdopts["--"+longname] = cmdopt;
+		std::string s = std::string::basic_string();
+		//if(s+shortname==s) { fprintf(stderr,"EMPTY STRING ERROR\n"); }
+		cmdopts[s+shortname] = cmdopt;
+		return def;
+		};
 //	int AddOption(int* ptr, char ochr, std::string ostr, int anum, AType atype, int def, std::string desc) { return def; };
 //	std::string AddOption(std::string* ptr, char ochr, std::string ostr, int anum, AType atype, std::string def, std::string desc) { return def; };
-  std::vector<std::string>* parse(int argc, char* argv[]); // returns array of string of unparsed args
+	std::vector<std::string>* parse(int argc, char* argv[]); // returns array of string of unparsed args
 private:
-  std::map<std::string, struct CmdLineOption> cmdopts;
-  uint32 baka;
-  uint32 parsedcount;
+	std::map<std::string, struct CmdLineOption> cmdopts;
+	uint32 baka;
+	uint32 parsedcount;
 };
 
 

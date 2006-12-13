@@ -23,8 +23,8 @@ static struct proc_dir_entry *Our_Proc_File;
  */
 int
 procfile_read(char *buffer,
-	      char **buffer_location,
-	      off_t offset, int buffer_length, int *eof, void *data)
+				char **buffer_location,
+				off_t offset, int buffer_length, int *eof, void *data)
 {
 	if (offset > 0)	// finished read, return 0
 		return 0;
@@ -46,9 +46,9 @@ procfile_read(char *buffer,
 
 	// convert to ascii char
 	b += '0';
-        unsigned char c[2];
-        c[0]=b;
-        c[1]='\n';
+				unsigned char c[2];
+				c[0]=b;
+				c[1]='\n';
  	// fill the buffer, return the buffer size
 	memcpy(buffer, &c, 2);
 	return 2;
@@ -59,7 +59,7 @@ procfile_read(char *buffer,
  *
  */
 int procfile_write(struct file *file, const char *buffer, unsigned long count,
-		   void *data)
+			 void *data)
 {
 	if (count == 0)
 		return 0;
@@ -116,11 +116,11 @@ int init_module()
 
 	Our_Proc_File->read_proc  = procfile_read;
 	Our_Proc_File->write_proc = procfile_write;
-	Our_Proc_File->owner 	    = THIS_MODULE;
-	Our_Proc_File->mode 	    = S_IFREG | S_IRUGO;
-	Our_Proc_File->uid 	      = 0;
-	Our_Proc_File->gid 	      = 0;
-	Our_Proc_File->size    	  = 1;
+	Our_Proc_File->owner 			= THIS_MODULE;
+	Our_Proc_File->mode 			= S_IFREG | S_IRUGO;
+	Our_Proc_File->uid 				= 0;
+	Our_Proc_File->gid 				= 0;
+	Our_Proc_File->size    		= 1;
 
 	printk(KERN_INFO "/proc/%s created\n", PROCFS_NAME);
 	return 0;	/* everything is ok */

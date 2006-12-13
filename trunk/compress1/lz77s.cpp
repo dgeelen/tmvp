@@ -37,23 +37,23 @@ uint32 NextFrame=0;
 uint32 ofpos=0;
 uint32 framesskipped=200;
 struct frameptr {
-  unsigned long int offset;
-  int32 adjust;
-  };
+	unsigned long int offset;
+	int32 adjust;
+	};
 list<frameptr> FrameBoundary;
 struct frameptr lstFrameptr;
 
 void CheckFrameBounds(uint32 ifpos){
-      if( (ifpos >= NextFrame) ) {
-      lstFrameptr.offset = ofpos;
-      lstFrameptr.adjust = ifpos-NextFrame;
-      if((++framesskipped)>200) {                   // we set a seekable position every 10 seconds
-        FrameBoundary.push_front(lstFrameptr);
-        framesskipped=0;
-        }
-      NextFrame+=8000 + 400 + 48 ; //FIXME: FrameSize + AudiodataSize + PaletteSize
-      }
-  }
+			if( (ifpos >= NextFrame) ) {
+			lstFrameptr.offset = ofpos;
+			lstFrameptr.adjust = ifpos-NextFrame;
+			if((++framesskipped)>200) {                   // we set a seekable position every 10 seconds
+				FrameBoundary.push_front(lstFrameptr);
+				framesskipped=0;
+				}
+			NextFrame+=8000 + 400 + 48 ; //FIXME: FrameSize + AudiodataSize + PaletteSize
+			}
+	}
 
 int main(int argc, char* argv[]) {
 	string ifname = "-";
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
 	uint32 nmlen = 0;
 
 	uint32 ifpos = 0;
-  CheckFrameBounds(ifpos);
+	CheckFrameBounds(ifpos);
 	uint32 lookupind = 0;
 
 	nexthash(instr[0]);
@@ -128,10 +128,10 @@ int main(int argc, char* argv[]) {
 			outstr.write(nmlen | (1<<7)); ofpos++;
 			for (uint i = ifpos-nmlen; i < ifpos; ++i) {
 				outstr.write(instr[i]);
-        ofpos++;
-        }
+				ofpos++;
+				}
 			nmlen = 0;
-     CheckFrameBounds(ifpos);
+		 CheckFrameBounds(ifpos);
 		}
 		// if match output codes for copy (and add lookups)
 		if (mlen!=0) {
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
 				--mlen;
 				nexthash(instr[ifpos+3]);
 			}
-     CheckFrameBounds(ifpos);
+		 CheckFrameBounds(ifpos);
 		}
 	}
 
@@ -157,8 +157,8 @@ int main(int argc, char* argv[]) {
 		outstr.write(nmlen | (1<<7)); ofpos++;
 		for (uint i = ifpos-nmlen; i < ifpos; ++i) {
 			outstr.write(instr[i]);
-      ofpos++;
-      }
+			ofpos++;
+			}
 //		nmlen = 0;
 	}
 
@@ -168,26 +168,26 @@ int main(int argc, char* argv[]) {
 
 	if (ifname != "-") fclose(ifhandle);
 	if (ofname != "-") fclose(ofhandle);
-  //fprintf(stderr, "Finally: ifpos=%u, ofpos=%u\n", ifpos, ofpos);
-  unsigned long int cnt=FrameBoundary.size();
-  while(FrameBoundary.size() > 0) {  // yes insane arbitrary architecture desisions rule
-    lstFrameptr= FrameBoundary.front();
-    //fprintf(stderr,"Seeks: %u, %i\n", lstFrameptr.offset, int32(lstFrameptr.adjust));
-    outstr.write((lstFrameptr.offset      )& 0x000000ff);
-    outstr.write((lstFrameptr.offset >> 8 )& 0x000000ff);
-    outstr.write((lstFrameptr.offset >> 16)& 0x000000ff);
-    outstr.write((lstFrameptr.offset >> 24)& 0x000000ff);
-    outstr.write(lstFrameptr.adjust);
-    FrameBoundary.pop_front();
-    fprintf(stderr,"Seeks: %08x, %08x\n", lstFrameptr.offset, int32(lstFrameptr.adjust));
-    }
-  //cnt*=5;
-  outstr.write((cnt      )& 0x000000ff);
-  outstr.write((cnt >>  8)& 0x000000ff);
-  outstr.write((cnt >> 16)& 0x000000ff);
-  outstr.write((cnt >> 24)& 0x000000ff);
-  fprintf(stderr,"Total seeks: %x\n", cnt);
-  outstr.flush();
+	//fprintf(stderr, "Finally: ifpos=%u, ofpos=%u\n", ifpos, ofpos);
+	unsigned long int cnt=FrameBoundary.size();
+	while(FrameBoundary.size() > 0) {  // yes insane arbitrary architecture desisions rule
+		lstFrameptr= FrameBoundary.front();
+		//fprintf(stderr,"Seeks: %u, %i\n", lstFrameptr.offset, int32(lstFrameptr.adjust));
+		outstr.write((lstFrameptr.offset      )& 0x000000ff);
+		outstr.write((lstFrameptr.offset >> 8 )& 0x000000ff);
+		outstr.write((lstFrameptr.offset >> 16)& 0x000000ff);
+		outstr.write((lstFrameptr.offset >> 24)& 0x000000ff);
+		outstr.write(lstFrameptr.adjust);
+		FrameBoundary.pop_front();
+		fprintf(stderr,"Seeks: %08x, %08x\n", lstFrameptr.offset, int32(lstFrameptr.adjust));
+		}
+	//cnt*=5;
+	outstr.write((cnt      )& 0x000000ff);
+	outstr.write((cnt >>  8)& 0x000000ff);
+	outstr.write((cnt >> 16)& 0x000000ff);
+	outstr.write((cnt >> 24)& 0x000000ff);
+	fprintf(stderr,"Total seeks: %x\n", cnt);
+	outstr.flush();
  	return 0;
 }
 

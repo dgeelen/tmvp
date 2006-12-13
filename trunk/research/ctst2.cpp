@@ -88,7 +88,7 @@ int main()
 	refresh();		/* Print it on to the real screen */
 	getch();			/* Wait for user input */
 
-	endwin();			/* End curses mode		  */
+	endwin();			/* End curses mode			*/
 
 	return 0;
 }
