@@ -109,7 +109,7 @@ void DoOutPut(TextImage &textimage, int32 frame)
 
 	if (Form1->CheckBoxSaveScreen->Checked || Form1->CheckBoxSavePng->Checked)
 		textimage.SaveToRawRGBImage(&image);
-         /*
+				 /*
 	image2.SetSize(320,320);
 //	image.SetSize(80*8,50*8);
 	for (int i=0; i < 16; ++i) {
@@ -752,7 +752,7 @@ void __fastcall TForm1::Button1Click(TObject *Sender)
 	palbuf[ 8].a[0] = rand() & 0xF;
 	palbuf[ 9].a[0] = rand() & 0xF;
 
-  SplitBlock(0);
+	SplitBlock(0);
 /*	RawRGBImage fimage;
 	fimage.SetSize(8+8+8+1+8+1+8+1, 256 * (8+1) + 1);
 

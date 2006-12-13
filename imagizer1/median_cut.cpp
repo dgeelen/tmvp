@@ -32,82 +32,82 @@ Retrieved from: http://literateprograms.org/Median_cut_algorithm_(C_Plus_Plus)?o
 
 Block::Block(APoint* APoints, int APointsLength)
 {
-    this->APoints = APoints;
-    this->APointsLength = APointsLength;
-    for(int i=0; i < NUM_DIMENSIONS; i++)
-    {
-        minCorner.x[i] = std::numeric_limits<unsigned char>::min();
-        maxCorner.x[i] = std::numeric_limits<unsigned char>::max();
-    }
+		this->APoints = APoints;
+		this->APointsLength = APointsLength;
+		for(int i=0; i < NUM_DIMENSIONS; i++)
+		{
+				minCorner.x[i] = std::numeric_limits<unsigned char>::min();
+				maxCorner.x[i] = std::numeric_limits<unsigned char>::max();
+		}
 }
 
 APoint * Block::getAPoints()
 {
-    return APoints;
+		return APoints;
 }
 
 int Block::numAPoints() const
 {
-    return APointsLength;
+		return APointsLength;
 }
 
 int Block::longestSideIndex() const
 {
-    int m = maxCorner.x[0] - minCorner.x[0];
-    int maxIndex = 0;
-    for(int i=1; i < NUM_DIMENSIONS; i++)
-    {
-        int diff = maxCorner.x[i] - minCorner.x[i];
-        if (diff > m)
-        {
-            m = diff;
-            maxIndex = i;
-        }
-    }
-    return maxIndex;
+		int m = maxCorner.x[0] - minCorner.x[0];
+		int maxIndex = 0;
+		for(int i=1; i < NUM_DIMENSIONS; i++)
+		{
+				int diff = maxCorner.x[i] - minCorner.x[i];
+				if (diff > m)
+				{
+						m = diff;
+						maxIndex = i;
+				}
+		}
+		return maxIndex;
 }
 
 int Block::longestSideLength() const
 {
-    int i = longestSideIndex();
-    return maxCorner.x[i] - minCorner.x[i];
+		int i = longestSideIndex();
+		return maxCorner.x[i] - minCorner.x[i];
 }
 
 bool Block::operator<(const Block& rhs) const
 {
-    return this->longestSideLength() < rhs.longestSideLength();
+		return this->longestSideLength() < rhs.longestSideLength();
 }
 
 void Block::shrink()
 {
-    int i,j;
-    for(j=0; j<NUM_DIMENSIONS; j++)
-    {
-        minCorner.x[j] = maxCorner.x[j] = APoints[0].x[j];
-    }
-    for(i=1; i < APointsLength; i++)
-    {
-        for(j=0; j<NUM_DIMENSIONS; j++)
-        {
-            minCorner.x[j] = min(minCorner.x[j], APoints[i].x[j]);
-            maxCorner.x[j] = max(maxCorner.x[j], APoints[i].x[j]);
-        }
-    }
+		int i,j;
+		for(j=0; j<NUM_DIMENSIONS; j++)
+		{
+				minCorner.x[j] = maxCorner.x[j] = APoints[0].x[j];
+		}
+		for(i=1; i < APointsLength; i++)
+		{
+				for(j=0; j<NUM_DIMENSIONS; j++)
+				{
+						minCorner.x[j] = min(minCorner.x[j], APoints[i].x[j]);
+						maxCorner.x[j] = max(maxCorner.x[j], APoints[i].x[j]);
+				}
+		}
 }
 
 std::list<APoint> medianCut(APoint* image, int numAPoints, unsigned int desiredSize)
 {
-    std::priority_queue<Block> blockQueue;
+		std::priority_queue<Block> blockQueue;
 
-    Block initialBlock(image, numAPoints);
-    initialBlock.shrink();
+		Block initialBlock(image, numAPoints);
+		initialBlock.shrink();
 
-    blockQueue.push(initialBlock);
-    while (blockQueue.size() < desiredSize)
-    {
-        Block longestBlock = blockQueue.top();
-        blockQueue.pop();
-        APoint * begin  = longestBlock.getAPoints();
+		blockQueue.push(initialBlock);
+		while (blockQueue.size() < desiredSize)
+		{
+				Block longestBlock = blockQueue.top();
+				blockQueue.pop();
+				APoint * begin  = longestBlock.getAPoints();
 				APoint * median = longestBlock.getAPoints() + (longestBlock.numAPoints()+1)/2;
 				APoint * end    = longestBlock.getAPoints() + longestBlock.numAPoints();
 				switch(longestBlock.longestSideIndex())
@@ -147,10 +147,10 @@ std::list<APoint> medianCut(APoint* image, int numAPoints, unsigned int desiredS
 						averageAPoint.x[j] = sum[j] / block.numAPoints();
 				}
 
-        result.push_back(averageAPoint);
-    }
+				result.push_back(averageAPoint);
+		}
 
-    return result;
+		return result;
 }
 
 

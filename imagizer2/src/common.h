@@ -41,31 +41,31 @@ typedef unsigned long int uintptr_t;
 #   endif
 static inline uint16_t hton16(uint16_t x)
 {
-    /* This is compile-time optimised with at least -O1 or -Os */
+		/* This is compile-time optimised with at least -O1 or -Os */
 #if defined(HAVE_ENDIAN_H)
-    if(__BYTE_ORDER == __BIG_ENDIAN)
+		if(__BYTE_ORDER == __BIG_ENDIAN)
 #else
-    uint32_t const dummy = 0x12345678;
-    if(*(uint8_t const *)&dummy == 0x12)
+		uint32_t const dummy = 0x12345678;
+		if(*(uint8_t const *)&dummy == 0x12)
 #endif
-        return x;
-    else
-        return (x >> 8) | (x << 8);
+				return x;
+		else
+				return (x >> 8) | (x << 8);
 }
 
 static inline uint32_t hton32(uint32_t x)
 {
-    /* This is compile-time optimised with at least -O1 or -Os */
+		/* This is compile-time optimised with at least -O1 or -Os */
 #if defined(HAVE_ENDIAN_H)
-    if(__BYTE_ORDER == __BIG_ENDIAN)
+		if(__BYTE_ORDER == __BIG_ENDIAN)
 #else
-    uint32_t const dummy = 0x12345678;
-    if(*(uint8_t const *)&dummy == 0x12)
+		uint32_t const dummy = 0x12345678;
+		if(*(uint8_t const *)&dummy == 0x12)
 #endif
-        return x;
-    else
-        return (x >> 24) | ((x >> 8) & 0x0000ff00)
-                | ((x << 8) & 0x00ff0000) | (x << 24);
+				return x;
+		else
+				return (x >> 24) | ((x >> 8) & 0x0000ff00)
+								| ((x << 8) & 0x00ff0000) | (x << 24);
 }
 #endif
 

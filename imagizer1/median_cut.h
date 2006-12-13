@@ -30,40 +30,40 @@ const int NUM_DIMENSIONS = 3;
 
 struct APoint
 {
-    unsigned char x[NUM_DIMENSIONS];
+		unsigned char x[NUM_DIMENSIONS];
 };
 
 class Block
 {
-    APoint minCorner, maxCorner;
-    APoint* APoints;
-    int APointsLength;
+		APoint minCorner, maxCorner;
+		APoint* APoints;
+		int APointsLength;
 public:
-    Block(APoint* APoints, int APointsLength);
-    APoint * getAPoints();
-    int numAPoints() const;
-    int longestSideIndex() const;
-    int longestSideLength() const;
-    bool operator<(const Block& rhs) const;
-    void shrink();
+		Block(APoint* APoints, int APointsLength);
+		APoint * getAPoints();
+		int numAPoints() const;
+		int longestSideIndex() const;
+		int longestSideLength() const;
+		bool operator<(const Block& rhs) const;
+		void shrink();
 private:
-    template <typename T>
-    static T min(const T a, const T b)
-    {
-        if (a < b)
-            return a;
-        else
-            return b;
-    }
+		template <typename T>
+		static T min(const T a, const T b)
+		{
+				if (a < b)
+						return a;
+				else
+						return b;
+		}
 
-    template <typename T>
-    static T max(const T a, const T b)
-    {
-        if (a > b)
-            return a;
-        else
-            return b;
-    }
+		template <typename T>
+		static T max(const T a, const T b)
+		{
+				if (a > b)
+						return a;
+				else
+						return b;
+		}
 
 };
 
@@ -71,10 +71,10 @@ template <int index>
 class CoordinateAPointComparator
 {
 public:
-    bool operator()(APoint left, APoint right)
-    {
-        return left.x[index] < right.x[index];
-    }
+		bool operator()(APoint left, APoint right)
+		{
+				return left.x[index] < right.x[index];
+		}
 };
 
 std::list<APoint> medianCut(APoint* image, int numAPoints, unsigned int desiredSize);

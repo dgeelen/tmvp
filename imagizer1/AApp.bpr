@@ -40,8 +40,8 @@
     <IDLCFLAGS value="-I&quot;C:\Program Files\Borland\CBuilder6\Projects&quot; -I.. -I$(BCB)\include 
       -I$(BCB)\include\vcl -I$(BCB)\Projects\png -src_suffix cpp -DWITH_PNG 
       -D_DEBUG -boa"/>
-    <CFLAG1 value="-O2 -H=$(BCB)\lib\vcl60.csm -Hc -Vx -Ve -X- -a8 -6 -b- -k -y -v -vi -c -tW 
-      -tWM"/>
+    <CFLAG1 value="-Od -H=$(BCB)\lib\vcl60.csm -Hc -Vx -Ve -X- -r- -a8 -6 -b- -k -y -v -vi- 
+      -c -tW -tWM"/>
     <PFLAGS value="-$Y+ -$W -$R -$O- -$A8 -v -JPHNE -M"/>
     <RFLAGS value=""/>
     <AFLAGS value="/mx /w2 /zi"/>

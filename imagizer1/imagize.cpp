@@ -26,22 +26,22 @@ OPT_END(CmdLnParser);
 
 int main(int argc, char* argv[])
 {
-  CmdLnParser.parse(argc, argv);
-  fprintf(stderr, "ifname: %s\nofname: %s\ngetVersion: %s\npaltheshold=%i\n",ifname.c_str() ,ofname.c_str() ,getVersion?"true":"false",palthreshold);
-  //return 0;
+	CmdLnParser.parse(argc, argv);
+	fprintf(stderr, "ifname: %s\nofname: %s\ngetVersion: %s\npaltheshold=%i\n",ifname.c_str() ,ofname.c_str() ,getVersion?"true":"false",palthreshold);
+	//return 0;
 
 	string ifname = "-";
 	string ofname = "-";
 	string ffname = "-";
 
 	uint palthreshold = 750;// 10000;
-  uint charthreshold = 64;
+	uint charthreshold = 64;
 
 	if (argc > 1) ifname = argv[1];
 	if (argc > 2) ofname = argv[2];
 	if (argc > 3) palthreshold = atoi(argv[3]);
-  if (argc > 4) charthreshold = atoi(argv[4]);
-  if (argc > 5) ffname = argv[5];
+	if (argc > 4) charthreshold = atoi(argv[4]);
+	if (argc > 5) ffname = argv[5];
 
 	FILE* ifhandle = (ifname == "-") ? stdin  : fopen(ifname.c_str(), "rb");
 	FILE* ofhandle = (ofname == "-") ? stdout : fopen(ofname.c_str(), "wb");
@@ -64,8 +64,8 @@ int main(int argc, char* argv[])
 	//r_renderer = new TRenderBruteBlock;
 	r_renderer = new TRenderSemiBruteBlock(charthreshold);
 	r_palcalc = new TPalMedianCutSort(palthreshold);
-  //r_palcalc = new TPalMedianCutSmartSort(palthreshold);
-  //r_palcalc = new TPalMedianCutRandomSort(palthreshold);
+	//r_palcalc = new TPalMedianCutSmartSort(palthreshold);
+	//r_palcalc = new TPalMedianCutRandomSort(palthreshold);
 
 	r_textimage.font = &r_font;
 	r_textimage.pal = &r_pal;
