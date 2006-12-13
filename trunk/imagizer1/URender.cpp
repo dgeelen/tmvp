@@ -4,6 +4,7 @@
 #pragma hdrstop
 
 #include "URender.h"
+#include "stdlib.h"
 #include "math.h"
 #include "median_cut.h"
 #include <vector>

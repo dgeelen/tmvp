@@ -13,6 +13,7 @@ enum AType {
 	AT_STRING,
 	AT_INT,
 	AT_BOOL,
+	AT_STRARR,
 };
 
 struct CmdLineOption {
@@ -20,6 +21,7 @@ struct CmdLineOption {
 	std::string longname;
 	void *args;
 	uint numargs;
+	uint numparsed;
 	AType argtype;
 	void* def;
 	std::string desc;
@@ -69,29 +71,55 @@ class CmdLineParser {
 public:
 	CmdLineParser();
 	~CmdLineParser();
-	template <class T> T AddOption(T* ptr, char shortname, std::string longname, int anum, AType atype, T def, std::string desc) { //template must reside in the same file
-		struct CmdLineOption cmdopt;
-		cmdopt.shortname = shortname;
-		cmdopt.longname = longname;
-		cmdopt.args = ptr;
-		cmdopt.numargs = anum;
-		cmdopt.argtype = atype;
-		cmdopt.def = &def;
-		cmdopt.desc = desc;
-		cmdopts["--"+longname] = cmdopt;
-		std::string s = std::string::basic_string();
-		//if(s+shortname==s) { fprintf(stderr,"EMPTY STRING ERROR\n"); }
-		cmdopts[s+shortname] = cmdopt;
-		return def;
-		};
-//	int AddOption(int* ptr, char ochr, std::string ostr, int anum, AType atype, int def, std::string desc) { return def; };
-//	std::string AddOption(std::string* ptr, char ochr, std::string ostr, int anum, AType atype, std::string def, std::string desc) { return def; };
-	std::vector<std::string>* parse(int argc, char* argv[]); // returns array of string of unparsed args
+	template <typename T>
+	T AddOption(T* ptr, char shortname, std::string longname, int anum, AType atype, T def, std::string desc);
+	template <typename T>
+	std::vector<T> AddArray(std::vector<T>* ptr, char shortname, std::string longname, int anum, AType atype, T def, std::string desc);
+	int AddAlias(std::string from, std::string to);
+
+	bool parse(int argc, char* argv[]); // returns array of string of unparsed args
+	bool parse(std::vector<std::string> vargv); // returns array of string of unparsed args
 private:
 	std::map<std::string, struct CmdLineOption> cmdopts;
 	uint32 baka;
 	uint32 parsedcount;
 };
+
+
+template <typename T>
+T CmdLineParser::AddOption(T* ptr, char shortname, std::string longname, int anum, AType atype, T def, std::string desc) { //template must reside in the same file
+	struct CmdLineOption cmdopt;
+	cmdopt.shortname = shortname;
+	cmdopt.longname = longname;
+	cmdopt.args = ptr;
+	cmdopt.numargs = anum;
+	cmdopt.argtype = atype;
+	cmdopt.def = &def;
+	cmdopt.desc = desc;
+	cmdopts["--"+longname] = cmdopt;
+	//if(s+shortname==s) { fprintf(stderr,"EMPTY STRING ERROR\n"); }
+	cmdopts[std::string::basic_string() + shortname] = cmdopt;
+	return def;
+};
+
+template <typename T>
+std::vector<T> CmdLineParser::AddArray(std::vector<T>* ptr, char shortname, std::string longname, int anum, AType atype, T def, std::string desc)
+{
+	struct CmdLineOption cmdopt;
+	cmdopt.shortname = shortname;
+	cmdopt.longname = longname;
+	cmdopt.args = ptr;
+	cmdopt.numargs = anum;
+	cmdopt.argtype = atype;
+	cmdopt.def = &def;
+	cmdopt.desc = desc;
+	cmdopt.numparsed = 0;
+	cmdopts["--"+longname] = cmdopt;
+	//if(s+shortname==s) { fprintf(stderr,"EMPTY STRING ERROR\n"); }
+	cmdopts[std::string::basic_string() + shortname] = cmdopt;
+	std::vector<T> val(anum, def);
+	return val;
+}
 
 
 // macro magic!
@@ -104,11 +132,18 @@ private:
 		\
 
 #define OPT_END(parsername) \
-		} \
+		}; \
 	}; \
 	\
 	using namespace TN1_ ## parsername::TN2_ ## parsername; \
 	\
+
+#define OPT_ALIAS(from, to)\
+	namespace TN1_GeneralAliasParserNamespace { \
+		namespace { \
+			int dummy = parser.AddAlias(from, to); \
+		}; \
+	}; \
 
 
 #define OPT_GENERAL(atype, vtype, vname, ochr, ostr, anum, def, desc)\
@@ -122,5 +157,12 @@ private:
 
 #define OPT_BOOL(vname, ochr, ostr, anum, def, desc)\
 	OPT_GENERAL(AT_BOOL, bool, vname, ochr, ostr, anum, def, desc)
+
+
+#define OPT_GARR(atype, vtype, vname, ochr, ostr, anum, def, desc)\
+	std::vector< vtype > vname(parser.AddArray(&vname, ochr, ostr, anum, atype, (vtype)def, desc))
+
+#define OPT_STRARR(vname, ochr, ostr, anum, def, desc)\
+	OPT_GARR(AT_STRARR, std::string, vname, ochr, ostr, anum, def, desc)
 
 #endif
