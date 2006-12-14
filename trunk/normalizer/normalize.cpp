@@ -10,7 +10,8 @@
 using namespace std;
 
 #pragma argsused
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[])
+{
 	string ifname = "-";
 	string ofname = "-";
 
@@ -25,13 +26,14 @@ int main(int argc, char* argv[]) {
 	FILE* ofhandle = (ofname == "-") ? stdout : fopen(ofname.c_str(), "wb");
 
 	uint8 buf[32*1024];
-  char *t = new char[256];
-  for(int i = 0 ; i <256 ; i++) {
-    t[i]=(uint8)(float(i)*factor);
-  }
+	uint8 t[256];
+	for (int i = 0 ; i < 256 ; ++i) {
+		t[i] = i * factor / 256;
+	}
 
 	uint32 read;
-	while (!feof(ifhandle)) {
+	while (!feof(ifhandle))
+	{
 		read = fread(buf, 1, 32*1024, ifhandle);
 		for (uint i = 0; i < read; ++i)
 			buf[i] = t[buf[i]];
