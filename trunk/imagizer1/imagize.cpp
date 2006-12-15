@@ -29,7 +29,7 @@ OPT_END(CmdLnParser);
 
 int main(int argc, char* argv[])
 {
-	CmdLnParser.parse(--argc, ++argv);
+	CmdLnParser.parse(argc - 1, argv + 1);
 //	fprintf(stderr, "ifname: %s\nofname: %s\ngetVersion: %s\npaltheshold=%i\n",ifname.c_str() ,ofname.c_str() ,getVersion?"true":"false",palthreshold);
 	//return 0;
 
