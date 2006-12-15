@@ -179,14 +179,14 @@ int main(int argc, char* argv[]) {
 		outstr.write((lstFrameptr.offset >> 24)& 0x000000ff);
 		outstr.write(lstFrameptr.adjust);
 		FrameBoundary.pop_front();
-		fprintf(stderr,"Seeks: %08x, %08x\n", lstFrameptr.offset, int32(lstFrameptr.adjust));
+//		fprintf(stderr,"Seeks: %08x, %08x\n", lstFrameptr.offset, int32(lstFrameptr.adjust));
 		}
 	//cnt*=5;
 	outstr.write((cnt      )& 0x000000ff);
 	outstr.write((cnt >>  8)& 0x000000ff);
 	outstr.write((cnt >> 16)& 0x000000ff);
 	outstr.write((cnt >> 24)& 0x000000ff);
-	fprintf(stderr,"Total seeks: %x\n", cnt);
+//	fprintf(stderr,"Total seeks: %x\n", cnt);
 	outstr.flush();
  	return 0;
 }
