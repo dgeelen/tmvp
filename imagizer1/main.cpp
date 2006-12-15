@@ -787,7 +787,7 @@ void __fastcall TForm1::Button1Click(TObject *Sender)
 
 class MyComp {
 public:
-	bool operator() (int &l, int &r){
+	bool operator() (const int &l, const int &r){
 		int ql[4];
 		int qr[4];
 		int nl, nr;
