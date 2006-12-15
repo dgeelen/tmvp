@@ -16,5 +16,9 @@ cd normalizer
 make $*
 cd ..
 
+cd pbcat
+make $*
+cd ..
+
 cd scripts
 
