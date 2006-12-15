@@ -9,7 +9,7 @@ NORMALIZER=../normalize
 FMAGIC="fmagic.txt"
 FONT="asc_ord_hi.fon"
 VIDFILTERS="filmdint,scale=160:100,format=rgb24"
-SUBTITLER="cat"
+SUBTITLER="`which cat`"
 
 if [ "${2}" == "dafox" ] ; then
   MPLAYER="`which mplayer`"
@@ -67,10 +67,20 @@ fi
 
 if [ ! -f "${FMAGIC}" ] ; then
   echo "Error: Cannot find \`${FMAGIC}'! (Required for FileMagic)"
-  exit #GOTO EXIT :p
+  exit
 fi
 
 if [ ! -f "${FONT}" ] ; then
+  echo "Error: Cannot find \`${FONT}'! (Required for FontData)"
+  exit
+fi
+
+if [ ! -f "${PBCAT}" ] ; then
+  echo "Error: Cannot find \`${FONT}'! (Required for FontData)"
+  exit
+fi
+
+if [ ! -f "${SUBTITLER}" ] ; then
   echo "Error: Cannot find \`${FONT}'! (Required for FontData)"
   exit
 fi
@@ -140,11 +150,11 @@ cat ${FONT} >> "$OUTFILE"
 #SUBTITLER="cat"
 #echo "SUBTITLER=${SUBTITLER}"
 #echo ">Starting imagizer + subtitler + interleaver + compressor"
-  "$IMAGIZER" /tmp/vidfifo - 750 148 ${FONT} \
+  "${IMAGIZER}" /tmp/vidfifo - 750 148 ${FONT} \
 | "${SUBTITLER}" \
-| "$ILEAVE" - /tmp/audfifo2 - 	\
-| "$COMPRESS" 			\
->> "$OUTFILE"
+| "${ILEAVE}" - /tmp/audfifo2 - \
+| "${COMPRESS}" 			\
+>> "${OUTFILE}"
 # "$PROGRESSBAR" size
 #echo ">DONE"
 
