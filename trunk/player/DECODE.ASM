@@ -396,6 +396,7 @@ proc decoder
   add  eax, offset DecodeBuffer
   mov  [dword ptr L7SDecodeBufTail], eax
   mov  [dword ptr L7SDecodeBufHead], eax
+  mov  eax, offset DecodeBuffer
   mov  [dword ptr DecodeBufTail], eax
   mov  [dword ptr DecodeBufHead], eax
   add  eax, DECBUF_SIZE
