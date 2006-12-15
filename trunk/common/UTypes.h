@@ -13,5 +13,8 @@ typedef unsigned long int uint32;
 typedef signed long int int32;
 
 typedef unsigned int uint;
+
+typedef unsigned long long int uint64;
+typedef long long int int64;
 //---------------------------------------------------------------------------
 #endif
