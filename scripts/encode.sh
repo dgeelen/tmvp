@@ -32,7 +32,7 @@ elif [ "${2}" == "simon" ] ; then
   IMAGIZER="../imagizer1/imagize.exe"
   COMPRESS="../compress1/lz77s.exe"
   NORMALIZER="../normalizer/normalize.exe"
-  VIDFILTERS="hqdn3d,scale=160:100,hqdn3d,dsize=160:100,scale=-1:-2,format=rgb24"
+  VIDFILTERS="filmdint,hqdn3d,scale=160:100,hqdn3d,dsize=160:100,scale=-1:-2,format=rgb24"
 fi
 
 if [ ! -f "${MPLAYER}" ] ; then
