@@ -91,8 +91,8 @@ proc install_audio_interrupt
 
   xor  eax, eax
   mov  [dword ptr ChainTimer], (119318000/((((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) * 182) + 5)/10
-  mov  [dword ptr DecodeBufHead], eax
-  mov  [dword ptr DecodeBufTail], eax
+  mov  [dword ptr DecodeBufHead], offset DecodeBuffer
+  mov  [dword ptr DecodeBufTail], offset DecodeBuffer
   mov  [dword ptr AudioDataPtr], offset DecodeBuffer + DECBUF_SIZE
   mov  [dword ptr FrameCounter], eax
   inc  eax
@@ -132,13 +132,14 @@ endif
   jc   @@pError
 ;  jmp  short @@exit            ; debug
 @@ProgramTimers:
+  if PC_SPEAKER eq True
   ; first timer 2
   mov al, 10010000B            ; 090h == Timer 2, 1 byte values, generate 1 pulse
   out 043h, al
   in  al, 061h                 ; 061h ==speakerport,
   or  al, 003h                 ; connect to speaker
   out 061h, al
-
+  endif
   ; then timer 0
   mov al, 00110110B            ; == 036h
   out 043h, al

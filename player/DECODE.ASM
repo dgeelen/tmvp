@@ -22,8 +22,8 @@ proc decoder
   mov  ebx, [dword ptr Filehandle] ; Set filehandle
   lea  edx, [DecodeBuffer]
   cli                          ; Prevent FLIP from occurring to early
-  mov  [dword ptr DecodeBufHead], edx
-  mov  [dword ptr DecodeBufTail], edx ; head == tail ==> Buffer Empty, head == tail - 1 ==> Buffer Full
+;  mov  [dword ptr DecodeBufHead], edx
+;  mov  [dword ptr DecodeBufTail], edx ; head == tail ==> Buffer Empty, head == tail - 1 ==> Buffer Full
   mov  [dword ptr L7SDecodeBufHead], edx
   mov  [dword ptr L7SDecodeBufTail], edx
   sti
@@ -279,6 +279,8 @@ proc decoder
   pop  eax                     ; discard return address
   jmp  @@exit
 @@dontexit:
+  cmp  al, 'q'                 ; quit
+  je   @@KeyhandlerExit
   cmp  al, 32                  ; Space
   je   @@pauseplayer
   cmp  al, 'r'                 ; RestartMovie
@@ -344,10 +346,10 @@ proc decoder
   je   @@ffbwd
   retn
 @@ffbwd:
-  sub  eax, 54
+  sub  eax, 54                 ; skip 60 * 10 sec
   jmp  short @@fbwd
 @@fffwd:
-  add  eax, 54
+  add  eax, 54                 ; skip -60 * 10 sec
   jmp  short @@ffwd
 @@fbwd:
   sub  eax, 5                  ; skip -6 * 10 sec
@@ -387,9 +389,6 @@ proc decoder
   cli                          ; disable interrupts to prevent interference from audio interrupts
   mov  eax, [dword ptr SeekPtr];
   mov  [dword ptr DecodedBytes], eax
-  mov  eax, (offset DecodeBuffer) + PALETTE_SIZE + FRAME_SIZE
-  mov  [dword ptr AudioDataPtr ], eax
-  mov  [dword ptr SampleTimer]  , AUDSAMP_SIZE  ; reset currently playing audio block
   mov  eax, offset InputBuffer
   mov  [dword ptr InputBufHead ], eax
   mov  [dword ptr InputBufTail ], eax
@@ -397,8 +396,11 @@ proc decoder
   add  eax, offset DecodeBuffer
   mov  [dword ptr L7SDecodeBufTail], eax
   mov  [dword ptr L7SDecodeBufHead], eax
-  mov  [dword ptr DecodeBufTail], offset DecodeBuffer
-  mov  [dword ptr DecodeBufHead], offset DecodeBuffer
+  mov  [dword ptr DecodeBufTail], eax
+  mov  [dword ptr DecodeBufHead], eax
+  add  eax, DECBUF_SIZE
+  mov  [dword ptr AudioDataPtr ], eax
+  mov  [dword ptr SampleTimer]  , 1  ; reset currently playing audio block
   pop  edx                     ; index we saved earlier
   FASTIMUL eax, edx, 200       ; dest, src, mulconst : make TASM do shifts/mul
   mov  [dword ptr framecounter], eax
@@ -418,9 +420,9 @@ proc decoder
   mov  [dword ptr DecodeBufTail], eax
   mov  [dword ptr L7SDecodeBufHead], eax
   mov  [dword ptr L7SDecodeBufTail], eax
-  add  eax, FRAME_SIZE + PALETTE_SIZE
+  add  eax, DECBUF_SIZE
   mov  [dword ptr AudioDataPtr ], eax
-  mov  [dword ptr SampleTimer]  , AUDSAMP_SIZE
+  mov  [dword ptr SampleTimer]  , 1
   mov  eax, offset InputBuffer
   mov  [dword ptr InputBufHead ], eax
   mov  [dword ptr InputBufTail ], eax
