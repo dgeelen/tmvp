@@ -28,7 +28,7 @@ bool CmdLineParser::parse(const vector<string> vargv){ // returns array of strin
 			CmdLineOption* curopt = &cmdopts[vargv[i]];
 
 			if (i + curopt->numargs >= vargv.size()) {
-				fprintf(stderr, "Fatal error: no argument found for option %s", vargv[i]);
+				fprintf(stderr, "Fatal error: no argument found for option %s", vargv[i].c_str());
 				return false;
 			}
 
@@ -45,7 +45,7 @@ bool CmdLineParser::parse(const vector<string> vargv){ // returns array of strin
 
 			if (curopt->numargs == 0) {
 				if (curopt->argtype == AT_BOOL) {
-					*((bool*)(curopt->args)) = !*((bool*)(curopt->args)); 
+					*((bool*)(curopt->args)) = !*((bool*)(curopt->args));
 				}
 			}
 
@@ -68,7 +68,8 @@ bool CmdLineParser::parse(const vector<string> vargv){ // returns array of strin
 				fprintf(stderr, "  Found non option: `%s'\n", vargv[i].c_str());
 				if (cmdopts.count("--") > 0) {
 					CmdLineOption* curopt = &cmdopts["--"];
-					(*((vector<string>*)(curopt->args)))[curopt->numparsed++] = vargv[i];
+					if (curopt->numparsed < curopt->numargs)
+						(*((vector<string>*)(curopt->args)))[curopt->numparsed++] = vargv[i];
 				}
 			}
 		}
