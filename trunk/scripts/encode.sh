@@ -17,6 +17,7 @@ if [ "${2}" == "dafox" ] ; then
 #  IMAGIZER=~/Projects/tmvp/imagizer1/imagize
   IMAGIZER=~/Projects/tmvp/imagizer1/kdev/imagize/optimized/src/imagize
   COMPRESS=~/Projects/tmvp/compress1/lz77s
+  PBCAT=~/Projects/tmvp/pbcat/pbcat
   NORMALIZER=~/Projects/tmvp/normalizer/normalize
   FMAGIC="fmagic.txt"
 #  FONT="blocks.fon"
@@ -25,6 +26,7 @@ elif [ "${2}" == "simon" ] ; then
   MPLAYER="/cygdrive/c/stuff/mplayer/mplayer/mplayer.exe"
   MENCODER="/cygdrive/c/stuff/mplayer/mplayer/mencoder.exe"
   ILEAVE="../ileave/ileave.exe"
+  PBCAT="../pbcat/pbcat.exe"
   IMAGIZER="../imagizer1/imagize.exe"
   COMPRESS="../compress1/lz77s.exe"
   NORMALIZER="../normalizer/normalize.exe"
@@ -95,11 +97,13 @@ if [ ! -f "${INFILE}" ] ; then
 fi
 
 # just to be sure?...
+rm /tmp/catfifo  &> /dev/null
 rm /tmp/vidfifo  &> /dev/null
 rm /tmp/audfifo1 &> /dev/null
 rm /tmp/audfifo2 &> /dev/null
 
 # create our fifo pipes
+mkfifo /tmp/catfifo
 mkfifo /tmp/vidfifo
 mkfifo /tmp/audfifo1
 mkfifo /tmp/audfifo2
@@ -109,9 +113,12 @@ FPS="`${MPLAYER} \"${INFILE}\" -frames 0 2>&1 | grep -o '[^0-9][0-9\.]* fps' | s
 VIDFILTERS="filmdint=io=${FPS}:20000,${VIDFILTERS}"
 echo "detected as \`${FPS}' fps"
 
+echo ">Starting progress bar"
+"${PBCAT}" "${INFILE}" /tmp/catfifo &
+
 echo ">Starting audio decoder (mplayer)"
 #Volnorm=2:1 => uses several samples for better accuracy. However results in ~1s of soft sound at the start of the file
-"$MPLAYER" "$INFILE" -vc null -vo null -ao pcm:fast:file=/tmp/audfifo1:nowaveheader	\
+"$MPLAYER" /tmp/catfifo -vc null -vo null -ao pcm:fast:file=/tmp/audfifo1:nowaveheader	\
   -af volnorm=2:1,resample=8000,channels=1:2:0:0:1:0,format=u8			\
   ${3} \
   -quiet &> aud.log &
@@ -141,6 +148,7 @@ echo ">Starting imagizer + interleaver + compressor"
 echo ">DONE"
 
 # delete our fifo pipes
+rm /tmp/catfifo
 rm /tmp/vidfifo
 rm /tmp/audfifo1
 rm /tmp/audfifo2
