@@ -1,6 +1,5 @@
 //---------------------------------------------------------------------------
 
-
 #include <string>
 #include <stdio.h>
 #include <assert.h>
@@ -18,11 +17,12 @@ using namespace std;
 #pragma argsused
 
 OPT_START(CmdLnParser);
-//OPT_STRING(ofname      , 'o',       "output", 1,   "-", "Write to file"                   );
-OPT_INT   (palthreshold, 'p', "palthreshold", 1,    64, "Set the pallete change threshold");
-OPT_BOOL  (getVersion  , 'v',      "version", 0, false, "Display version info"            );
-OPT_STRARR(files       , 'f',             "", 3,   "-",  "input, output files"            );
-//OPT_STRING(ifname      , 'i',        "input", 1,   "-", "Read from file"                  );
+OPT_STRING(ifname       , 'i',           "--0", 1,   "-", "Read from file"                  );
+OPT_STRING(ofname       , 'o',           "--1", 1,   "-", "Write to file"                   );
+OPT_STRING(ffname       , 'f',           "--2", 1,   "-", "Font file"                       );
+OPT_INT   (palthreshold , 'p',  "palthreshold", 1,   750, "Set the pallete change threshold");
+OPT_INT   (charthreshold, 'c', "charthreshold", 1,    64, "Set the pallete change threshold");
+OPT_BOOL  (getVersion   , 'v',       "version", 0, false, "Display version info"            );
 //vector<string> files(0);
 
 OPT_END(CmdLnParser);
@@ -30,24 +30,12 @@ OPT_END(CmdLnParser);
 int main(int argc, char* argv[])
 {
 	CmdLnParser.parse(argc - 1, argv + 1);
-//	fprintf(stderr, "ifname: %s\nofname: %s\ngetVersion: %s\npaltheshold=%i\n",ifname.c_str() ,ofname.c_str() ,getVersion?"true":"false",palthreshold);
-	//return 0;
 
 	if (getVersion) {
-		fprintf(stderr, "version: imagizer a.b.c");
-
+		fprintf(stderr, "version: imagizer a.b\n");
 	}
 
-	string ifname = files[0];
-	string ofname = files[1];
-	string ffname = files[2];
-
-	uint palthreshold = 750;// 10000;
-	uint charthreshold = 64;
-
-	if (argc > 3) palthreshold = atoi(argv[3]);
-	if (argc > 4) charthreshold = atoi(argv[4]);
-	if (argc > 5) ffname = argv[5];
+//	fprintf(stderr, "ifname: %s\nofname: %s\nffname: %s\ngetVersion: %s\npalthreshold=%i\ncharthreshold=%i\n",ifname.c_str() ,ofname.c_str(), ffname.c_str(), getVersion?"true":"false",palthreshold,charthreshold);
 
 	FILE* ifhandle = (ifname == "-") ? stdin  : fopen(ifname.c_str(), "rb");
 	FILE* ofhandle = (ofname == "-") ? stdout : fopen(ofname.c_str(), "wb");

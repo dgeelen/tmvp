@@ -81,8 +81,9 @@ public:
 	bool parse(std::vector<std::string> vargv); // returns array of string of unparsed args
 private:
 	std::map<std::string, struct CmdLineOption> cmdopts;
-	uint32 baka;
-	uint32 parsedcount;
+	uint32 posargcount;
+//	uint32 baka;
+//	uint32 parsedcount;
 };
 
 

@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
 	uint8 buf[BUFSIZE];
 
 	string out;
-	fprintf(stderr, "\n");
+	//fprintf(stderr, "\n");
 
 	do {
 		read = fread (buf, 1, BUFSIZE,  ifhandle);
