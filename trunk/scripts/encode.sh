@@ -108,40 +108,36 @@ if [ ! -f "${INFILE}" ] ; then
   exit
 fi
 
-# just to be sure?...
-rm -rf /tmp/vidfifo  &> /dev/null
-rm -rf /tmp/audfifo1 &> /dev/null
-rm -rf /tmp/audfifo2 &> /dev/null
-rm -rf /tmp/catfifo  &> /dev/null
+TMPDIR=`mktemp -td tmvenc-XXXXXX`
 
 # create our fifo pipes
-mkfifo /tmp/catfifo
-mkfifo /tmp/vidfifo
-mkfifo /tmp/audfifo1
-mkfifo /tmp/audfifo2
+mkfifo ${TMPDIR}/catfifo
+mkfifo ${TMPDIR}/vidfifo
+mkfifo ${TMPDIR}/audfifo1
+mkfifo ${TMPDIR}/audfifo2
 
 #echo ">Starting progress bar"
-"${PBCAT}" "${INFILE}" /tmp/catfifo &
+"${PBCAT}" "${INFILE}" "${TMPDIR}"/catfifo &
 
 #echo ">Starting audio decoder (mplayer)"
 #Volnorm=2:1 => uses several samples for better accuracy. However results in ~1s of soft sound at the start of the file
-"$MPLAYER" /tmp/catfifo -vc null -vo null -ao pcm:fast:file=/tmp/audfifo1:nowaveheader	\
+"$MPLAYER" "${TMPDIR}"/catfifo -vc null -vo null -ao pcm:fast:file="${TMPDIR}"/audfifo1:nowaveheader	\
   -af volnorm=2:1,resample=8000,channels=1:2:0:0:1:0,format=u8			\
   ${3} \
   -quiet &> aud.log &
 
 #echo ">Starting video decoder (mencoder)"
-#"$MENCODER" "$INFILE" -o /tmp/vidfifo -of rawvideo -ovc raw -oac copy 		\
+#"$MENCODER" "$INFILE" -o "${TMPDIR}"/vidfifo -of rawvideo -ovc raw -oac copy 		\
 #  -vf filmdint=io=23976:20000,hqdn3d,scale=160:100,hqdn3d,scale,format=rgb24	\
 #  -quiet &> vid.log &
-"$MENCODER" "$INFILE" -o /tmp/vidfifo -of rawvideo -ovc raw -oac copy     \
+"$MENCODER" "$INFILE" -o "${TMPDIR}"/vidfifo -of rawvideo -ovc raw -oac copy     \
   -ofps 20.0 \
   -vf-add $VIDFILTERS \
   ${3} \
   -quiet &> vid.log &
 
 #echo ">Starting audio normalizer"
-"$NORMALIZER" /tmp/audfifo1 /tmp/audfifo2 &
+"$NORMALIZER" "${TMPDIR}"/audfifo1 "${TMPDIR}"/audfifo2 &
 
 #echo ">Making file header"
 cat ${FMAGIC} > "$OUTFILE"
@@ -150,16 +146,18 @@ cat ${FONT} >> "$OUTFILE"
 #SUBTITLER="cat"
 #echo "SUBTITLER=${SUBTITLER}"
 #echo ">Starting imagizer + subtitler + interleaver + compressor"
-  "${IMAGIZER}" /tmp/vidfifo - 750 148 ${FONT} \
+  "${IMAGIZER}" "${TMPDIR}"/vidfifo - 750 148 ${FONT} \
 | "${SUBTITLER}" \
-| "${ILEAVE}" - /tmp/audfifo2 - \
+| "${ILEAVE}" - "${TMPDIR}"/audfifo2 - \
 | "${COMPRESS}" 			\
 >> "${OUTFILE}"
 # "$PROGRESSBAR" size
 #echo ">DONE"
 
 # delete our fifo pipes
-rm /tmp/catfifo
-rm /tmp/vidfifo
-rm /tmp/audfifo1
-rm /tmp/audfifo2
+rm "${TMPDIR}"/catfifo
+rm "${TMPDIR}"/vidfifo
+rm "${TMPDIR}"/audfifo1
+rm "${TMPDIR}"/audfifo2
+
+rmdir "${TMPDIR}"
