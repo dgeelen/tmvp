@@ -82,8 +82,6 @@ int main(int argc, char* argv[])
 		fwrite(buf,  1, read, ofhandle);
 		done += read;
 
-		fprintf(stderr, "\r");
-
 		out.clear();
 
 		out.push_back('[');
@@ -117,6 +115,8 @@ int main(int argc, char* argv[])
 		nsize = out.size();
 		while (out.size() < lsize)
 			out.push_back(' ');
+
+		fprintf(stderr, "\r");
 
 		lsize = nsize;
 
