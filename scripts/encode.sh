@@ -76,12 +76,12 @@ if [ ! -f "${FONT}" ] ; then
 fi
 
 if [ ! -f "${PBCAT}" ] ; then
-  echo "Error: Cannot find \`${FONT}'! (Required for FontData)"
+  echo "Error: pbcat not found!"
   exit
 fi
 
 if [ ! -f "${SUBTITLER}" ] ; then
-  echo "Error: Cannot find \`${FONT}'! (Required for FontData)"
+  echo "Error: Subtitler not found!"
   exit
 fi
 
@@ -95,7 +95,7 @@ if [ "${1}" != "" ] ; then
     if ! echo "${OUTFILE}" | grep tmv > /dev/null ; then
       OUTFILE="${OUTFILE}.tmv"
     fi
-#    echo Transcoding \`${1}\' to \`${OUTFILE}\'
+    echo Transcoding \`${1}\' to \`${OUTFILE}\'
   fi
 else
   echo Warning: No input filename given, defaulting to \`/dev/stdin\'
@@ -123,7 +123,7 @@ mkfifo ${TMPDIR}/audfifo2
 #Volnorm=2:1 => uses several samples for better accuracy. However results in ~1s of soft sound at the start of the file
 "$MPLAYER" "${TMPDIR}"/catfifo -vc null -vo null -ao pcm:fast:file="${TMPDIR}"/audfifo1:nowaveheader	\
   -af volnorm=2:1,resample=8000,channels=1:2:0:0:1:0,format=u8			\
-  ${3} \
+  ${3} ${5}\
   -quiet &> aud.log &
 
 #echo ">Starting video decoder (mencoder)"
@@ -133,7 +133,7 @@ mkfifo ${TMPDIR}/audfifo2
 "$MENCODER" "$INFILE" -o "${TMPDIR}"/vidfifo -of rawvideo -ovc raw -oac copy     \
   -ofps 20.0 \
   -vf-add $VIDFILTERS \
-  ${3} \
+  ${3} ${4}\
   -quiet &> vid.log &
 
 #echo ">Starting audio normalizer"
@@ -146,7 +146,7 @@ cat ${FONT} >> "$OUTFILE"
 #SUBTITLER="cat"
 #echo "SUBTITLER=${SUBTITLER}"
 #echo ">Starting imagizer + subtitler + interleaver + compressor"
-  "${IMAGIZER}" "${TMPDIR}"/vidfifo - 750 148 ${FONT} \
+  "${IMAGIZER}" "${TMPDIR}"/vidfifo -p 750 -c 148 -f ${FONT} \
 | "${SUBTITLER}" \
 | "${ILEAVE}" - "${TMPDIR}"/audfifo2 - \
 | "${COMPRESS}" 			\
