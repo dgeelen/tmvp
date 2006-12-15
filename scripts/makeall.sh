@@ -20,5 +20,9 @@ cd pbcat
 make $*
 cd ..
 
+cd subtitler
+make $*
+cd ..
+
 cd scripts
 
