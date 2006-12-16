@@ -32,7 +32,7 @@ elif [ "${2}" == "simon" ] ; then
   IMAGIZER="../imagizer1/imagize.exe"
   COMPRESS="../compress1/lz77s.exe"
   NORMALIZER="../normalizer/normalize.exe"
-  VIDFILTERS="filmdint,harddup,hqdn3d,scale=160:100,hqdn3d,dsize=160:100,scale=-1:-2,format=rgb24"
+  VIDFILTERS="filmdint,hqdn3d,scale=160:100,hqdn3d,dsize=160:100,scale=-1:-2,format=rgb24,harddup"
 fi
 
 if [ ! -f "${MPLAYER}" ] ; then
@@ -121,19 +121,16 @@ mkfifo ${TMPDIR}/audfifo2
 
 #echo ">Starting audio decoder (mplayer)"
 #Volnorm=2:1 => uses several samples for better accuracy. However results in ~1s of soft sound at the start of the file
-"$MPLAYER" "${TMPDIR}"/catfifo -vc null -vo null -ao pcm:fast:file="${TMPDIR}"/audfifo1:nowaveheader	\
-  -af volnorm=2:1,resample=8000,channels=1:2:0:0:1:0,format=u8			\
-  ${3} ${5}\
+"$MPLAYER" "${TMPDIR}"/catfifo -vc null -vo null -ao pcm:fast:file="${TMPDIR}"/audfifo1:nowaveheader \
+  -af volnorm=2:1,resample=8000,channels=1:2:0:0:1:0,format=u8 \
+  ${3} ${5} \
   -quiet &> aud.log &
 
 #echo ">Starting video decoder (mencoder)"
-#"$MENCODER" "$INFILE" -o "${TMPDIR}"/vidfifo -of rawvideo -ovc raw -oac copy 		\
-#  -vf filmdint=io=23976:20000,hqdn3d,scale=160:100,hqdn3d,scale,format=rgb24	\
-#  -quiet &> vid.log &
-"$MENCODER" "$INFILE" -o "${TMPDIR}"/vidfifo -of rawvideo -ovc raw -oac copy     \
-  -ofps 20.0 \
+"$MENCODER" "$INFILE" -o "${TMPDIR}"/vidfifo -of rawvideo -ovc raw -oac pcm -channels 1 -srate 4000 \
+  -ofps 20.0 -noautoexpand \
   -vf-add $VIDFILTERS \
-  ${3} ${4}\
+  ${3} ${4} \
   -quiet &> vid.log &
 
 #echo ">Starting audio normalizer"
@@ -149,7 +146,7 @@ cat ${FONT} >> "$OUTFILE"
   "${IMAGIZER}" "${TMPDIR}"/vidfifo -p 750 -c 148 -f ${FONT} \
 | "${SUBTITLER}" \
 | "${ILEAVE}" - "${TMPDIR}"/audfifo2 - \
-| "${COMPRESS}" 			\
+| "${COMPRESS}" \
 >> "${OUTFILE}"
 # "$PROGRESSBAR" size
 #echo ">DONE"
