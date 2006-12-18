@@ -206,7 +206,7 @@ if PC_SPEAKER eq True
 endif
 if LPT_DAC eq True
   push dx
-  mov  dx, LPT_BASE_PORT
+  mov  dx, [word ptr LPTPortAddress] ;LPT_BASE_PORT
   out  dx, al
   if DISNEY_SOUND_SOURCE eq True ; This is Disney Sound Source Voodoo
     add  dx, 2                 ; select control regists
@@ -318,6 +318,9 @@ if BEEP_ON_FREAD eq True
 endif
 if AUDDBL_SAMPLE eq True
   DoubleSample dd ?
+endif
+if LPT_DAC eq True
+  LPTPortAddress dd ?
 endif
 end
 
