@@ -166,8 +166,10 @@ proc SetFont
   xor  edx, edx
 
 ; we dont call _fread here cause that uses ds, which has just been altered
-; so we do the read directly (TODO?: make another macro for this? or give _fread parameter for this?
+; so we do the read directly (perhaps make another macro for this? or give _fread parameter for this?)
 ;  _fread                       ; ebx == filehandle, ecx == nr bytes to read, ds:edx == ptr to buffer
+; TODO:  When we have tested the usefullness of using samples in BEEP_ON_READ remove/keep this
+;
   xor  eax, eax                ; clear eax in order to accurately show the
   mov  ah, 03Fh                ; number of bytes read
   int  021h                    ; do it
@@ -236,22 +238,6 @@ proc RestoreOldVideoMode
 ;  xor  bx, bx                  ; block 0?
 ;  int  010h
   ret
-endp
-
-proc ClearScreen
-  ; Pre: The screen is all messy and sticky and needs to be cleansed of filth
-  ; Post: The screen has been wiped clean
-  ; *TODO* : Do this with a call to ClearVidBuffer and Flip
-  ;          because now it does not actually clear the screen and should
-  ;          be called 'SeekLastScreenLine'
-  uses eax, ebx                ; ebx destroyed by _printf
-  lea  eax, [strCLS]
-  push eax
-  call _printf
-  add  esp, 4
-  ret
-  strCLS db 50 dup (newline)
-         db 36,10
 endp
 
 proc Set80x50 ; Destroys none

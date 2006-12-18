@@ -13,7 +13,7 @@ proc Initialise
   ; Pre : -
   ; Post: eax == 0 on succes, eax > 0 indicates error code
   ;                           eax == -2 : Failed to open input
-  ; Initialise all sub parts (de-lzw/l77, vidbuf, sndPlay, palette etc): *TODO*
+  ; Initialise all sub parts
   mov [dword ptr FileHandle], 0; make sure there is no ghostly file handle
   call ParseCmdLineArgs
   mov  eax, [dword ptr FileHandle]
@@ -50,7 +50,6 @@ proc Initialise
 ;  mov  eax, -2
 ;  jmp  short @@exit_fail
 
-  call InitVidBuf              ; Fill the videobuffer with '0' (or a test pat.) FIXME: WE CAN SKIP THIS *DEPRECATED*
   call Set80x50
   call SetFont
 ;;;;

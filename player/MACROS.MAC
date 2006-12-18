@@ -28,9 +28,9 @@ PRIVMODE        EQU True ; False
 DEBUG EQU False
 
 ;Some defines for the Audio output
-;  Q: Should we make these selectable at run time?
-;  A: *TODO*:
-LPT_BASE_PORT EQU 0378h        ; 0378h == lpt1, 0278h == lpt2. *TODO* : These values are for generic PC's
+;  TODO: Make lpt port selectable at run time
+;  TODO: Read lpt address from the BIOS data area
+LPT_BASE_PORT EQU 0378h        ; 0378h == lpt1, 0278h == lpt2. These values are for generic PC's
                                ; we *should* read them from the BIOS data area (0040:0008, 0040:000A, 40:0C and 40:0E for lpt1, lpt2, etc
 BEEP_ON_FREAD EQU False ;True         ; Reprogram timer to generate a tone on _fread, *should* reduce the popping sound
 ;PC_SPEAKER EQU False
@@ -57,7 +57,7 @@ macro setpalette
   local l1, l2, exit
   ; uses al, cl, dx
   ; updates esi
-  ; May be very slow due to accessing ports. *TODO* : VERIFY THIS
+  ; Is very slow due to accessing ports.
   ;
   ; Note on the palette structure:
   ; indexes 0-6 are colors 0 - 5 and 7
@@ -212,36 +212,31 @@ macro _fread
   strfread db '_fread(): reading from filehandle %i',newline,36,0
   strSkip:
   endif                        ; delete above lines to disable dbg
-
-  ; --- THIS APPLIES (in theory) ONLY TO THE PC SPEAKER OUTPUT ---
-  ; Finally we need to do a little check to see if we want to read from disk
-  ; Because when we do that, int 21h disables interrupts for a short while
-  ; which will result in a 'pop'. To counter act this we need to reprogram the
-  ; timer to output a tone during this time.
-  ;
-  ;   Q. Is the interrupt really the best place to do this?
-  ;   A. *TODO*
-  ;
+if PC_SPEAKER eq True
 if BEEP_ON_FREAD eq True
+  ; We do a little trick when we want to read from disk:
+  ; Int 21h disables interrupts for a short while which will result in a 'pop' in sound playback (in case of PCSPEAKER)
+  ; To counteract this we need to reprogram the timer to output a tone during this time.
   ; No CLI needed here since setting timer2 to rate generation should be enough
   mov  al, 10010110b           ; PIT: PC Speaker; Sq. wave rate generator, load LSB
   out  43h,al                  ; Set PIT mode, waiting for value...
   mov  eax, [dword ptr WaveSample] ; Current note being played will be maintained
   out  42h,al                  ; OK, start rate generation
+endif
 endif ; --- END PC SPEAKER SPECIFIC SECTION ---
 
   xor  eax, eax                ; clear eax in order to accurately show the
   mov  ah, 03Fh                ; number of bytes read
   int  021h                    ; do it
-
+if PC_SPEAKER eq True
 if BEEP_ON_FREAD eq True
-  ; these 4 intstructions shouldn't affect any flags
+  ; these 4 intstructions don't affect any flags
   push ax                      ; value important for nr of bytes read
   mov  al, 10010000B           ; 090h == Timer 2, 1 byte values, generate 1 pulse
   out  043h, al                ; restore audio interrupt functionality
   pop  ax                      ; restore nr of bytes read
 endif
-
+endif ; --- END PC SPEAKER SPECIFIC SECTION ---
 exit:
 endm
 
