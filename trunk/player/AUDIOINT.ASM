@@ -89,18 +89,16 @@ proc install_audio_interrupt
   int 31h			; out: ax = new selector, CF = error
   jc  @@pError
   mov es, ax
-
-  xor  eax, eax
   mov  [dword ptr ChainTimer], (119318000/((((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) * 182) + 5)/10
   mov  [dword ptr DecodeBufHead], offset DecodeBuffer
   mov  [dword ptr DecodeBufTail], offset DecodeBuffer
   mov  [dword ptr AudioDataPtr], offset DecodeBuffer + DECBUF_SIZE
+  xor  eax, eax
   mov  [dword ptr FrameCounter], eax
   inc  eax
 if AUDDBL_SAMPLE eq True
   mov  [dword ptr DoubleSample], eax
 endif
-  ;inc  eax
   mov  [dword ptr SampleTimer], eax
   dec  eax
   mov  ebx, large 0b800h       ; SEG(video_ram)
@@ -208,7 +206,7 @@ if LPT_DAC eq True
   push dx
   mov  dx, [word ptr LPTPortAddress] ;LPT_BASE_PORT
   out  dx, al
-  if DISNEY_SOUND_SOURCE eq True ; This is Disney Sound Source Voodoo
+  if DISNEY_SOUND_SOURCE eq True ; This is Disney Sound Source Voodoo (required in DOSBox)
     add  dx, 2                 ; select control regists
     mov  al, 00ch              ; device off
     out  dx, al
@@ -218,14 +216,18 @@ if LPT_DAC eq True
   pop  dx
 endif
 if AUDDBL_SAMPLE eq True
+  ; TODO: This sounds like it might need some work in DOSBox, but it needs to be tested on
+  ;       actual hardware to be sure. (Conclusion based on 'It Verks for PC_SPEAKER')
   xor  [dword ptr DoubleSample], large 00000001h
-  jz   @@AUDDBL_SAMPLE_NextSample
-  dec  esi
-@@AUDDBL_SAMPLE_NextSample:
-endif
-
+  jnz  @@RepeatSample
   mov  [dword ptr AudioDataPtr], esi
   dec  [dword ptr SampleTimer]
+@@RepeatSample:
+endif
+if AUDDBL_SAMPLE eq False
+  mov  [dword ptr AudioDataPtr], esi
+  dec  [dword ptr SampleTimer]
+endif
   jnz  short @@NoFlip          ; We're still in the current datablock, thus certainly in the buffer
   add  esi, PALETTE_SIZE + FRAME_SIZE ;Select next audiodata block
   cmp  esi, (offset DecodeBuffer) + DECBUF_SIZE
