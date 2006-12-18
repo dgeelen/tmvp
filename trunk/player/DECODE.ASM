@@ -56,7 +56,7 @@ proc decoder
   IF PRIVMODE eq True
     hlt
   ENDIF  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
-  call keypressed              ; TODO: LESS CHECKING ?
+  call keypressed
   jnz  @@TestRawBufferEmpty
   call near @@ProcessKeypress
 @@TestRawBufferEmpty:
@@ -99,7 +99,7 @@ proc decoder
   IF PRIVMODE eq True
     hlt
   ENDIF  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
-  call keypressed              ; TODO: LESS CHECKING ?
+  call keypressed
   jnz  @@TestLZ77sBufferEmpty
   call near @@ProcessKeypress
 

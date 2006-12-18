@@ -78,7 +78,8 @@ proc install_audio_interrupt
   ; Q&A: Q. Does WDosX automagically restore interrupts after the program terminates
   ;         and/or do I neeed to restore Protected Mode interrupts, since when the
   ;         program ends the Protected Mode environment will discarded anyway ?
-  ;      A. *TODO*
+  ;      A. I'm guessing that it's okay not to cleanup, but let's do it anyway.
+  ;
   uses eax, ebx, ecx, edx, edi, es
 
   ; load es with alias to cs, so we can write into our code
@@ -191,7 +192,7 @@ proc audio_int nolanguage ; this is an interrupt, let's do our own push-ups!
   mov  esi, [dword ptr DecodeBufHead]
   cmp  [dword ptr DecodeBufTail], esi ; CMP MEM, REG is 1 clock faster than CMP REG,MEM?!
   je   short @@NoFlip          ; if empty do nothing
-  ; Play a sample of audio     ; ** TODO: Figure out if A/V Sync is neccesary and how to implement it **
+  ; Play a sample of audio     ; note: A/V Sync is maintained because every frame has 1/20s of audio, which is played completely before proceding with display ing the next frame.
   mov  esi, [dword ptr AudioDataPtr] ; load pointer
   lodsb                        ; get data byte
 if BEEP_ON_FREAD eq True
@@ -203,7 +204,7 @@ endif
 if PC_SPEAKER eq True
   out  042h, al                ; 042h = timer 2 counter
 endif
-if LPT_DAC eq True             ; TODO: OPTIMILISATIONIZE THIS DX CRAP
+if LPT_DAC eq True
   push dx
   mov  dx, LPT_BASE_PORT
   out  dx, al
@@ -236,7 +237,7 @@ endif
   jmp  short @@Flipper
 
 @@NoFlip:
-  dec  [dword ptr ChainTimer]  ; *FIXME* : Inc pre or post check?
+  dec  [dword ptr ChainTimer]  ;
   jnz  short @@exit            ; time to call the original handler (update system clock etc)
   mov  [dword ptr ChainTimer], ((QUARTZ_TICKS*100)/((((QUARTZ_TICKS*10)/AUDIO_INT_FREQ+5)/10) * 182) + 5)/10; reset ChainTimer
   pop  esi                     ; clear the stack
