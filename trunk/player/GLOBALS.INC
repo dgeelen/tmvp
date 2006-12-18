@@ -37,3 +37,6 @@ global FrameCounter:dword
 if BEEP_ON_FREAD eq True
   global WaveSample:dword
 endif
+if LPT_DAC eq True
+  global LPTPortAddress:dword
+endif

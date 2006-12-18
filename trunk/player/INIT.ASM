@@ -20,6 +20,22 @@ proc Initialise
   test eax, eax
   mov  eax, -2                 ; Failed to open input
   jz   @@exit_fail
+if LPT_DAC eq True
+  ; since commandline parsing succeeded, LPTPortAddress contains the port# we want
+  ; to use and we can look up the correct address for the lpt-port from the BDA
+  mov  eax, [dword ptr LPTPortAddress]
+  push eax                     ; for use in status message later on
+  dec  eax                     ; we count lpt from 1, bios from 0
+  shl  eax, 1                  ; port address are 2 bytes
+  add  eax, 400h + 08h         ; BDA (BIOS data area) : 400h + offset for lpt
+  mov  ax, [word ptr eax]
+  mov  [dword ptr LPTPortAddress], eax
+  push eax                     ; address of lpt port
+  push offset strUsingLPTportAddress
+  call _printf
+  add  esp, 3*4
+endif
+
   call filemagic               ; test if this is a real TMVP file and what decoder to use
   test eax, eax
   jnz  @@exit_fail             ; nonzero indicates error code
@@ -121,4 +137,5 @@ endp UnInitialise
 dataseg
 strFileCloseError db 'Error while closing videofile! (error #%i)',newline,36,0
 strFontLoadFail db 'Error while loading font! (error #%i)', newline, 'press any key to quit.',newline, 36, 0
+strUsingLPTportAddress db 'Read address 0x%08x for lpt%i',newline, 36, 0
 end
