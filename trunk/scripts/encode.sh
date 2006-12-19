@@ -111,17 +111,16 @@ fi
 TMPDIR=`mktemp -td tmvenc-XXXXXX`
 
 # create our fifo pipes
-mkfifo ${TMPDIR}/catfifo
-mkfifo ${TMPDIR}/vidfifo
-mkfifo ${TMPDIR}/audfifo1
-mkfifo ${TMPDIR}/audfifo2
+mkfifo "${TMPDIR}"/vidfifo
+mkfifo "${TMPDIR}"/audfifo1
+mkfifo "${TMPDIR}"/audfifo2
 
 #echo ">Starting progress bar"
-"${PBCAT}" "${INFILE}" "${TMPDIR}"/catfifo &
+#"${PBCAT}" "${INFILE}" "${TMPDIR}"/catfifo &
 
 #echo ">Starting audio decoder (mplayer)"
 #Volnorm=2:1 => uses several samples for better accuracy. However results in ~1s of soft sound at the start of the file
-"$MPLAYER" "${TMPDIR}"/catfifo -vc null -vo null -ao pcm:fast:file="${TMPDIR}"/audfifo1:nowaveheader \
+"$MPLAYER" "${INFILE}" -vc null -vo null -ao pcm:fast:file="${TMPDIR}"/audfifo1:nowaveheader \
   -af volnorm=2:1,resample=8000,channels=1:2:0:0:1:0,format=u8 \
   ${3} ${5} \
   -quiet &> aud.log &
@@ -131,7 +130,15 @@ mkfifo ${TMPDIR}/audfifo2
   -ofps 20.0 -noautoexpand \
   -vf-add $VIDFILTERS \
   ${3} ${4} \
-  -quiet &> vid.log &
+  2>&1 \
+  | "${PBCAT}" \
+  > vid.log &
+
+
+
+  
+#cat ${TMPDIR}/catfifo &
+	
 
 #echo ">Starting audio normalizer"
 "$NORMALIZER" "${TMPDIR}"/audfifo1 "${TMPDIR}"/audfifo2 &
@@ -152,7 +159,6 @@ cat ${FONT} >> "$OUTFILE"
 #echo ">DONE"
 
 # delete our fifo pipes
-rm "${TMPDIR}"/catfifo
 rm "${TMPDIR}"/vidfifo
 rm "${TMPDIR}"/audfifo1
 rm "${TMPDIR}"/audfifo2
