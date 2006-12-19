@@ -8,7 +8,7 @@ COMPRESS=../lz77s
 NORMALIZER=../normalize
 FMAGIC="fmagic.txt"
 FONT="asc_ord_hi.fon"
-VIDFILTERS="filmdint,harddup,expand=:::::4/3,scale=160:100,format=rgb24"
+VIDFILTERS="harddup,expand=:::::4/3,scale=160:100,format=rgb24"
 SUBTITLER="`which cat`"
 
 if [ "${2}" == "dafox" ] ; then
@@ -23,7 +23,7 @@ if [ "${2}" == "dafox" ] ; then
   SUBTITLER="/home/dafox/Projects/tmvp/subtitler/kdev/subtitler/optimized/src/subtitler"
   FMAGIC="fmagic.txt"
 #  FONT="blocks.fon"
-  VIDFILTERS="filmdint,harddup,expand=:::::4/3,scale=320:-2,pp7=0:1,unsharp,2xsai,scale=-1:-2,hqdn3d,dsize=160:100,scale=160:-2,format=rgb24"
+  VIDFILTERS="harddup,expand=:::::4/3,scale=320:-2,pp7=0:1,unsharp,2xsai,scale=-1:-2,hqdn3d,dsize=160:100,scale=160:-2,format=rgb24"
 elif [ "${2}" == "simon" ] ; then
   MPLAYER="/cygdrive/c/stuff/mplayer/mplayer/mplayer.exe"
   MENCODER="/cygdrive/c/stuff/mplayer/mplayer/mencoder.exe"
@@ -32,7 +32,7 @@ elif [ "${2}" == "simon" ] ; then
   IMAGIZER="../imagizer1/imagize.exe"
   COMPRESS="../compress1/lz77s.exe"
   NORMALIZER="../normalizer/normalize.exe"
-  VIDFILTERS="filmdint,hqdn3d,expand=:::::4/3,scale=160:100,hqdn3d,dsize=160:100,scale=-1:-2,format=rgb24,harddup"
+  VIDFILTERS="hqdn3d,expand=:::::4/3,scale=160:100,hqdn3d,dsize=160:100,scale=-1:-2,format=rgb24,harddup"
 fi
 
 if [ ! -f "${MPLAYER}" ] ; then
@@ -139,6 +139,12 @@ mkfifo "${TMPDIR}"/audfifo2
 
 #cat ${TMPDIR}/catfifo &
 
+
+#---|BEGIN filmdint FIX|---
+# This is a work-around for the FilmDint color crappyness bug
+VID_HEIGHT=`mplayer "${INFILE}" -frames 0 | grep VIDEO | sed -e "s:\(.*\)\( [0-9][0-9]*x[0-9][0-9]* \)\(.*\):\2:" -e "s:.*x\| ::g"`
+VIDFILTERS="expand=:-256,filmdint,crop=${VID_HEIGHT},${VIDFILTERS}"
+#---|END filmdint FIX|---
 
 #echo ">Starting audio normalizer"
 "$NORMALIZER" "${TMPDIR}"/audfifo1 "${TMPDIR}"/audfifo2 &
