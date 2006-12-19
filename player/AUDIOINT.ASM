@@ -55,7 +55,8 @@ proc uninstall_audio_interrupt
 
 if LPT_DAC eq True
   if DISNEY_SOUND_SOURCE eq True
-    mov  dx, LPT_BASE_PORT + 2
+    ;mov  dx, LPT_BASE_PORT + 2
+    mov  dx, [word ptr LPTPortAddress + 2]
     mov  al, 04h                 ; turn it off
     out  dx, al
   endif
@@ -155,7 +156,8 @@ endif
 
 if LPT_DAC eq True
   if DISNEY_SOUND_SOURCE eq True
-    mov  dx, LPT_BASE_PORT + 2
+    ;mov  dx, LPT_BASE_PORT + 2
+    mov  dx, [word ptr LPTPortAddress +2]
     mov  al, 04h                 ; turn it on
     out  dx, al
   endif
@@ -204,7 +206,7 @@ if PC_SPEAKER eq True
 endif
 if LPT_DAC eq True
   push dx
-  mov  dx, [word ptr LPTPortAddress] ;LPT_BASE_PORT
+  mov  dx, [word ptr LPTPortAddress]
   out  dx, al
   if DISNEY_SOUND_SOURCE eq True ; This is Disney Sound Source Voodoo (required in DOSBox)
     add  dx, 2                 ; select control regists

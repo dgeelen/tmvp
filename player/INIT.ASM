@@ -14,8 +14,7 @@ proc Initialise
   ; Post: eax == 0 on succes, eax > 0 indicates error code
   ;                           eax == -2 : Failed to open input
   ; Initialise all sub parts
-  mov [dword ptr FileHandle], 0; make sure there is no ghostly file handle
-  call ParseCmdLineArgs
+  call ParseCmdLineArgs        ; FileHandle != NULL on succes
   mov  eax, [dword ptr FileHandle]
   test eax, eax
   mov  eax, -2                 ; Failed to open input
@@ -29,6 +28,12 @@ if LPT_DAC eq True
   shl  eax, 1                  ; port address are 2 bytes
   add  eax, 400h + 08h         ; BDA (BIOS data area) : 400h + offset for lpt
   mov  ax, [word ptr eax]
+if DISNEY_SOUND_SOURCE eq True
+  mov  bx, ax
+  shl  eax, 16
+  mov  ax, bx
+  add  eax, 00020000h
+endif
   mov  [dword ptr LPTPortAddress], eax
   push eax                     ; address of lpt port
   push offset strUsingLPTportAddress
@@ -66,18 +71,21 @@ endif
 ;  mov  eax, -2
 ;  jmp  short @@exit_fail
 
+if DEBUG eq False ; True
+  push offset strModeSwitchImminent
+  call _printf
+  add  esp, 4
+@@l2:
+  IF PRIVMODE eq True
+    hlt
+  ENDIF  ; disabled as it is a privileged instruction in pm, and gives us a #GP(0)
+  call keypressed
+  jnz  @@l2
+  call getkey
+endif
+
   call Set80x50
   call SetFont
-;;;;
-;if not SetFont then still seek + 2048
-;  mov  ebx, [dword ptr FileHandle]
-;  xor  cx, cx
-;  mov  dx, 2048
-;  mov  al, CURRENT_FILE_POS
-;  _fseek                       ;ebx=filehandle, cx:dx=new file pos, eax(al)=origin of move, returns dx:ax=new pos
-;  xor  eax,eax
-;;;;
-
   test eax, eax
   jz   @@FontSetOK
   push eax
@@ -138,4 +146,5 @@ dataseg
 strFileCloseError db 'Error while closing videofile! (error #%i)',newline,36,0
 strFontLoadFail db 'Error while loading font! (error #%i)', newline, 'press any key to quit.',newline, 36, 0
 strUsingLPTportAddress db 'Read address 0x%08x for lpt%i',newline, 36, 0
+strModeSwitchImminent db '(DEBUG): About to switch videomode, press any key when ready',newline, 36, 0
 end
