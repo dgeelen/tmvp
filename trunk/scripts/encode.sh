@@ -142,7 +142,7 @@ mkfifo "${TMPDIR}"/audfifo2
 
 #---|BEGIN filmdint FIX|---
 # This is a work-around for the FilmDint color crappyness bug
-VID_HEIGHT=`mplayer "${INFILE}" -frames 0 | grep VIDEO | sed -e "s:\(.*\)\( [0-9][0-9]*x[0-9][0-9]* \)\(.*\):\2:" -e "s:.*x\| ::g"`
+VID_HEIGHT=`${MPLAYER} "${INFILE}" -frames 0 | grep VIDEO | sed -e "s:\(.*\)\( [0-9][0-9]*x[0-9][0-9]* \)\(.*\):\2:" -e "s:.*x\| ::g"`
 VIDFILTERS="expand=:-256,filmdint,crop=${VID_HEIGHT},${VIDFILTERS}"
 #---|END filmdint FIX|---
 
