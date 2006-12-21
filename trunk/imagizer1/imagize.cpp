@@ -57,13 +57,19 @@ int main(int argc, char* argv[])
 
 	//r_renderer = new TRenderBruteBlock;
 	r_renderer = new TRenderSemiBruteBlock(charthreshold);
-	r_palcalc = new TPalMedianCutSort(palthreshold);
-	//r_palcalc = new TPalMedianCutSmartSort(palthreshold);
+  //r_palcalc = new TPalMedianCut();
+	//r_palcalc = new TPalMedianCutSort(palthreshold);
+	r_palcalc = new TPalMedianCutSmartSort(palthreshold);
 	//r_palcalc = new TPalMedianCutRandomSort(palthreshold);
 
 	r_textimage.font = &r_font;
 	r_textimage.pal = &r_pal;
 
+  /*3-frame-avg-render:
+   * First output a black frame (as 'previous frame')
+   *
+   *
+   */
 	while (!feof(ifhandle))
 	{
 		r_sourceimage.LoadFromRAW(ifhandle, 160, 100);
@@ -71,6 +77,10 @@ int main(int argc, char* argv[])
 		r_palcalc->CalcPal(&r_sourceimage, &r_pal);
 
 		r_renderer->DoRender(&r_sourceimage, &r_textimage);
+
+    for(uint32 i=0; i<16; i++) {
+      r_textimage.data[i] = i<<12;
+    }
 
 		fwrite(r_textimage.data, 1, 8000, ofhandle);
 		uint8 oval;
@@ -89,6 +99,8 @@ int main(int argc, char* argv[])
 
 	if (ifname != "-") fclose(ifhandle);
 	if (ofname != "-") fclose(ofhandle);
+
+  fprintf(stderr,"IMAGIZER DONE\n");
 	return 0;
 }
 //---------------------------------------------------------------------------

@@ -3,14 +3,15 @@
 
 #pragma hdrstop
 
+#include "yacqa.h"
 #include "URender.h"
 #include "stdlib.h"
 #include "math.h"
 #include "median_cut.h"
+#include "mediancut.h"
 #include <vector>
 
 //---------------------------------------------------------------------------
-
 
 void TPalStandard::CalcPal(RawRGBImage* src, TextPal* dst)
 {
@@ -94,6 +95,7 @@ void TPalAnsiPutty::CalcPal(RawRGBImage* src, TextPal* dst)
 
 void TPalMedianCut::CalcPal(RawRGBImage* src, TextPal* dst)
 {
+/*
 	APoint* points = new APoint[src->GetHeight() * src->GetWidth()];
 	memcpy(points, src->data, src->GetHeight() * src->GetWidth() * 3);
 	std::list<APoint> tpal = medianCut(points, src->GetHeight() * src->GetWidth(), 16);
@@ -103,8 +105,10 @@ void TPalMedianCut::CalcPal(RawRGBImage* src, TextPal* dst)
 		dst->SetColor(ti,(*iter).x);
 		++ti;
 	}
-
 	delete[] points;
+/* /
+  MedianCut(src, dst); //*/
+  yacqa(src, dst);
 }
 
 
@@ -177,110 +181,46 @@ TPalMedianCutSmartSort::TPalMedianCutSmartSort(uint32 t)
 }
 
 void TPalMedianCutSmartSort::CalcPal(RawRGBImage* src, TextPal* dst) {
-	/*TODO: Pair matching important for best pair or just for best match per index in new palette ?
-	 *
-	 * /
+	/* New plan:
+   *  Always return an updated palette (thus minimizing choppy fades etc),
+   *  but keep it `sorted' such that each color is in a closely matching
+   *  position w/r to the color previously occupying that slot
+	 */
 
-	TextPal newpal = (*dst);
-	TextPal oldpal = (*dst);
-	TPalMedianCut::CalcPal(src, &newpal);
+  TextPal newpal;
+  TextPal medpal;
+  TPalMedianCut::CalcPal(src, &medpal);
+  bool *used_old = new bool[16];
+  bool *used_new = new bool[16];
+  for(int i=0; i < 16; i++) {
+    used_old[i]=false;
+    used_new[i]=false;
+  }
 
-	uint32 best_dist=ULONG_MAX;
-	uint32 dist=0;
-	uint32 index=0;
-	uint32 match=0;
-	bool avail[16];
-	for(uint32 i=0; i < 16; i++) {
-		avail[i]=true;
-	}
-	for (uint32 i = 0; i < 16; ++i) { // for every color in the new palette
-		dist=0;
-		best_dist=ULONG_MAX;
-		for (uint32 i = 0; j < 16; ++j) { // calculate 'best' match with a color from the old palette
-			if(avail[i]){
-				dist=MRGBDistInt(newpal.GetColor(i), oldpal.GetColor(j));
-				if(dist<best_dist){
-					dist=best_dist;
-					match=j;
-				}
-			}
-		}
-		//match is the best color match from oldpal[] for newpal[i], and best_dist the distance of the match
-		if(best_dist<threshold) {
-			(*dst).SetColor(i,oldpal.GetColor(match));
-		}
-		else {
-			(*dst).SetColor(i,newpal.GetColor(match));
-		}
-		avail[match]=false;
-	}
-
-	/**/
-	TextPal newpal = (*dst);
-	TextPal oldpal = (*dst);
-	TPalMedianCut::CalcPal(src, &newpal);
-	struct match {
-		uint32 index;
-		uint32 dist;
-		};
-	struct match m[16];
-	struct match r[16];
-	bool avail_new[16];
-	bool avail_old[16];
-	for(uint32 i=0; i < 16; i++) {
-		avail_new[i]=true;
-		avail_old[i]=true;
-	}
-	uint32 best_dist=ULONG_MAX;
-	uint32 dist=0;
-	uint32 index=0;
-	for (uint32 l = 0; l < 16; ++l) { // for every color
-		for (uint32 i = 0; i < 16; ++i) { // calculate 'best' match
-			if(avail_new[i]) {
-				best_dist=ULONG_MAX;
-				dist=0;
-				for (uint32 j = 0; j < 16; ++j) { // amidst remaining colors
-					if(avail_old[j]) {
-						dist=MRGBDistInt(newpal.GetColor(i), oldpal.GetColor(j));
-						if(dist<best_dist) {
-							dist=best_dist;
-							m[i].dist = best_dist;
-							m[i].index = j;
-						}
-					}
-				}
-			}
-		}
-		//m is array with for every color in NewPal the index for the best matching color in Oldpal
-		dist=0;
-		best_dist=ULONG_MAX;
-		index=0;
-		for(uint32 i = 0; i < 16; i++) {
-			if(avail_new[i]){
-				if(m[i].dist < best_dist) {
-					best_dist=m[i].dist;
-					index=i;
-				}
-			}
-			m[i].dist=ULONG_MAX;
-		}
-		//index is the best match for color [index] in newpal with oldpal m[index].index
-		avail_new[index]=false;
-		avail_old[index]=false;
-		r[index].dist=m[index].dist;
-		r[index].index=m[index].index;
-	}
-	TextPal result;
-	for(uint32 i=0; i<16; i++) {
-		if(r[i].dist < threshold) {
-			result.SetColor(i, oldpal.GetColor(r[i].index));
-		}
-		else {
-			result.SetColor(i, newpal.GetColor(r[i].index));
-		}
-	}
-	(*dst)=result;
-	/**/
+  for(int u = 0 ; u < 16 ; u++) {  // for every entry in the palette
+    uint32 best_dist = ULONG_MAX;
+    long int best_old = -1;
+    long int best_new = -1;
+    for(int i = 0 ; i < 16 ; i++)  // for every entry in the palette not assigned yet
+    if(!used_old[i]) {
+      for(int j = 0 ; j < 16 ; j++) // try all (remaining) entries to find the lowest diff
+      if(!used_new[j]) {
+        uint32 dist = MRGBDistInt(dst->GetColor(i), medpal.GetColor(j));
+        if(dist < best_dist) {
+          best_dist = dist;
+          best_old = i;
+          best_new = j;
+        }
+      }
+    }
+    if (best_old == -1 || best_new== -1) {
+      fprintf(stderr, "TPalMedianCutSmartSort::CalcPal(): Cannot find matching color entry!\n");
+      }
+    used_old[best_old]=true;
+    used_new[best_new]=true;
+    newpal.SetColor(best_old, medpal.GetColor(best_new));
+  }
+  (*dst) = newpal;
 }
 
 void TPalMedianCutRandomSort::CalcPal(RawRGBImage* src, TextPal* dst)
