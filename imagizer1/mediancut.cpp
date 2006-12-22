@@ -88,6 +88,7 @@ box box::split() {
     vector<RGBColor>::iterator q=end;
     --q;
     AvgRGBColor tcol(((*start)+(*q)));
+    //fprintf(stderr,"avg((%i, %i, %i), (%i, %i, %i))=(%i, %i, %i)\n", start->a[0], start->a[1], start->a[2], q->a[0], q->a[1], q->a[2], tcol.avg().a[0], tcol.avg().a[1], tcol.avg().a[2]);
     uint32 best_dist=ULONG_MAX;
     for(vector<RGBColor>::iterator i=start; i!=end; ++i) {
       uint32 dist=MRGBDistInt((*i), tcol.avg());
@@ -96,28 +97,36 @@ box box::split() {
         median=i;
       }
     }
+    //fprintf(stderr,"median-start=%u, end-median=%u\n", median-start, end-median);
   }
   else {
     fprintf(stderr,"box::split(): Unknow split method!\n");
   }
+  if(median==start){
+  ++median;
+  }
+  else if(median==end){
+  --median;
+  }
+  //fprintf(stderr,"assigning median-start=%u, end-median=%u, end-start=%u\n", median-start, end-median, end-start);
   newbox.start=start;
-  newbox.end=median++;
+  newbox.end=median;
   start=median;
   return newbox;
 }
 
 void box::shrink(){
-//  fprintf(stderr, "SHRINK()\n");
+  //fprintf(stderr, "SHRINK()\n");
   minp = *start;
   maxp = *start;
-//  fprintf(stderr, "calculating new boundingbox\n");
+  //fprintf(stderr, "calculating new boundingbox end-start=%u\n",end-start);
   for(vector<RGBColor>::iterator i=start+1; i!=end; ++i) {
     for (int j = 0; j < 3; ++j) {
       if (i->a[j] > maxp.a[j]) maxp.a[j] = i->a[j];
       if (i->a[j] < minp.a[j]) minp.a[j] = i->a[j];
     }
   }
-//  fprintf(stderr, "new boundingbox done\n");
+  //fprintf(stderr, "new boundingbox done\n");
   longest_axis_size = 0;
   for(uint32 i=0; i<3; i++) {
     if(maxp.a[i]-minp.a[i] >= longest_axis_size) {
@@ -125,78 +134,50 @@ void box::shrink(){
       longest_axis = i;
     }
   }
-//  fprintf(stderr, "Longest axis=%i, size=%u\n",longest_axis, longest_axis_size);
+  //fprintf(stderr, "Longest axis=%i, size=%u\n",longest_axis, longest_axis_size);
 }
 
 void MedianCut(RawRGBImage* img,  TextPal* pal, cutmethod CutMethod) {
-static int debug=0;
-  //fprintf(stderr, "Starting MedianCut\n");
+  int BlackishPixelCount=0;
   vector<RGBColor> colorspace;
-  //fprintf(stderr, "Starting reserving space\n");
   colorspace.reserve(img->GetWidth() * img->GetHeight());
-  //fprintf(stderr, "filling colorspace\n");
   for(uint32 i=0; i < img->GetWidth() * img->GetHeight() ; ++i) {
+    if(MRGBDistInt(img->data[i], RGBColor(0ul)) < 256) {
+      ++BlackishPixelCount;
+    }
     colorspace.push_back(img->data[i]);
   }
-  //fprintf(stderr, "Filled colorspace\n");
   priority_queue<box> boxes;
   box boundingbox;
   boundingbox.setcutmethod( CutMethod );
   boundingbox.start=colorspace.begin();
   boundingbox.end=colorspace.end();
-  //fprintf(stderr, "shrink\n");
   boundingbox.shrink();
-  //fprintf(stderr, "done\n");
   boxes.push(boundingbox);
   RawRGBImage mypng;
-  mypng.SetSize(50, 4*16);
-  int py = 0;
-
-    #define tehline(boxy) \
+  #define tehline(boxy) \
     for (int i = 0; i < 50; ++i) \
-      mypng.SetPixel(i,py, RGBAvg2(boxy.minp, boxy.maxp, i, 50)); \
+    mypng.SetPixel(i,py, RGBAvg2(boxy.minp, boxy.maxp, i, 50)); \
     py++;
 
   while(boxes.size()<16){
-    for (int i = 0; i < 50; ++i) \
-      mypng.SetPixel(i,py, RGBColor(255,0,255)); \
-    py++;
-    //fprintf(stderr, "loop\n");
     box largestbox = boxes.top();
     boxes.pop();
-    if(debug==0)fprintf(stderr, "extracted box with minRGB(%03u, %03u,%03u), maxRGB(%03u, %03u,%03u) nelements=%03u\n", largestbox.minp.a[0], largestbox.minp.a[1], largestbox.minp.a[2], largestbox.maxp.a[0], largestbox.maxp.a[1], largestbox.maxp.a[2], largestbox.end - largestbox.start);
-    tehline(largestbox);
-    //fprintf(stderr, "splitting BOX WITH SIZE=%08u\n", largestbox.longest_axis_size);
     box newbox = largestbox.split();
-    //fprintf(stderr, "shirnk a\n");
     largestbox.shrink();
-    //fprintf(stderr, "shirnk b\n");
     newbox.shrink();
-    //fprintf(stderr, "push_back new\n");
-    if(debug==0)fprintf(stderr, "  inserts box with minRGB(%03u, %03u,%03u), maxRGB(%03u, %03u,%03u) nelements=%03u\n", newbox.minp.a[0], newbox.minp.a[1], newbox.minp.a[2], newbox.maxp.a[0], newbox.maxp.a[1], newbox.maxp.a[2],newbox.end - newbox.start);
     boxes.push(newbox);
-    tehline(newbox);
-    //fprintf(stderr, "push_back new\n");
-    if(debug==0)fprintf(stderr, "  inserts box with minRGB(%03u, %03u,%03u), maxRGB(%03u, %03u,%03u) nelements=%03u\n", largestbox.minp.a[0], largestbox.minp.a[1], largestbox.minp.a[2], largestbox.maxp.a[0], largestbox.maxp.a[1], largestbox.maxp.a[2], largestbox.end - largestbox.start);
     boxes.push(largestbox);
-    tehline(largestbox);
-    //fprintf(stderr, "backtotop\n");
   }
 
-  mypng.SaveToPNG("/tmp/debug.png");
-  //fprintf(stderr, "calculating colors\n");
   uint32 x=0;
   while(!boxes.empty()){
-    //fprintf(stderr, "gettop\n");
     box b = boxes.top();
-    //fprintf(stderr, "getpop\n");
     boxes.pop();
-    //fprintf(stderr, "avg %i\n",x);
     uint32 cr=0;
     uint32 cg=0;
     uint32 cb=0;
     for(vector<RGBColor>::iterator i=b.start; i!=b.end; ++i) {
-      ////fprintf(stderr,"iterating\n");
       cr+=(i->a[0]);
       cg+=(i->a[1]);
       cb+=(i->a[2]);
@@ -204,9 +185,19 @@ static int debug=0;
     cr/=(b.end-b.start);
     cg/=(b.end-b.start);
     cb/=(b.end-b.start);
-    //fprintf(stderr, "setpal\n");
     pal->SetColor(x++, RGBColor(cr,cg,cb));
   }
-  fprintf(stderr, "==============================================done cutting\n");
- // debug=1;
+  if((100*BlackishPixelCount)/(img->GetWidth()*img->GetHeight()) >= 5) {
+    RGBColor Black(0ul);
+    uint32 best_dist=ULONG_MAX;
+    uint32 index=0;
+    for(uint32 i=0; i<16; ++i) {
+      uint32 dist=MRGBDistInt( Black, pal->GetColor( i));
+      if(dist<best_dist) {
+        best_dist=dist;
+        index=i;
+      }
+    }
+    pal->SetColor( index, Black);
+  }
 }

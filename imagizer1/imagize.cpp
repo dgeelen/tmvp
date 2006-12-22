@@ -58,8 +58,8 @@ int main(int argc, char* argv[])
 	//r_renderer = new TRenderBruteBlock;
 	r_renderer = new TRenderSemiBruteBlock(charthreshold);
   //r_palcalc = new TPalMedianCut();
-	//r_palcalc = new TPalMedianCutSort(palthreshold);
-	r_palcalc = new TPalMedianCutSmartSort(palthreshold);
+	r_palcalc = new TPalMedianCutSort(palthreshold);
+	//r_palcalc = new TPalMedianCutSmartSort(palthreshold);
 	//r_palcalc = new TPalMedianCutRandomSort(palthreshold);
 
 	r_textimage.font = &r_font;
