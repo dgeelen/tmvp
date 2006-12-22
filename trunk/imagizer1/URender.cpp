@@ -5,7 +5,6 @@
 
 #include "yacqa.h"
 #include "URender.h"
-#include "stdlib.h"
 #include "math.h"
 #include "median_cut.h"
 #include "mediancut.h"
@@ -106,9 +105,9 @@ void TPalMedianCut::CalcPal(RawRGBImage* src, TextPal* dst)
 		++ti;
 	}
 	delete[] points;
-/* /
-  MedianCut(src, dst); //*/
-  yacqa(src, dst);
+/*/
+  MedianCut(src, dst, CENTER_CUT); //*/
+  //yacqa(src, dst);
 }
 
 

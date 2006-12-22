@@ -74,11 +74,15 @@ void reduce(vector<cinfo> &v) { //finds 2 most matching colors and merges them
  v.erase(mi);
 }
 
+void seed(RawRGBImage* img){
+}
+
 void yacqa(RawRGBImage* img,  TextPal* pal) {
   #define precolors 4096
   //16*16*16 /*4096*/
   vector<cinfo> colorspace;
   colorspace.reserve(precolors);
+//  seed(colorspace, img);
   uint32 numpixels = img->GetHeight() * img->GetWidth();
   uint32 i=0;
   vector<cinfo>::iterator p=colorspace.begin();

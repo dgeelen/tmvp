@@ -8,8 +8,16 @@
 #include <vector>
 using namespace std;
 
+enum cutmethod {
+  MEDIAN_CUT,
+  AVERAGE_CUT,
+  SMALLESTBOX_CUT,
+  CENTER_CUT
+};
+
 class box {
   private:
+    cutmethod CutMethod;
   public:
     box();
     ~box();
@@ -21,7 +29,8 @@ class box {
     void shrink();
     int size();
     box split();
+    void setcutmethod(cutmethod method);
 };
 
-void MedianCut(RawRGBImage* img,  TextPal* pal);
+void MedianCut(RawRGBImage* img,  TextPal* pal, cutmethod CutMethod);
 #endif
