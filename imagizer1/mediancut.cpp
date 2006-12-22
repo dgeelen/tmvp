@@ -29,69 +29,80 @@ box::box() {
 box::~box() {
 }
 
+void box::setcutmethod(cutmethod method) {
+  CutMethod = method;
+}
+
 box box::split() {
-  fprintf(stderr, "Splitting along axis %i\n",longest_axis);
   box newbox;
+  newbox.setcutmethod( CutMethod ); //FIXME: Make CutMethod a property of Class MedianCut instead of Class Box
   vector<RGBColor>::iterator median=start + (end-start)/2;
   ccmp comp(longest_axis);
-  //fprintf(stderr, "median-start=%08u / end-median=%08u / end-start=%08u\n", median - start, end-median,end-start);
-  //nth_element(start, median, end, comp);
-  //fprintf(stderr, "median-start=%08u / end-median=%08u / end-start=%08u\n", median - start, end-median,end-start);
-
-  /*/instead of nth element look for the 2 elements wich lie furthest apart (along AXIS)
-  sort(start, end, comp);
-  uint32 furthest=0;
-//  fprintf(stderr, "setting iterators\n");
-  vector<RGBColor>::iterator m1=end;
-  vector<RGBColor>::iterator m2=(--m1)--;
-//  fprintf(stderr, "looking for furthest\n");
-  uint32 x=end-start;
-  uint32 split=0;
-  uint32 dist=0;
-  while(m1!=start) {
-    dist=MRGBDistInt((*m1), (*m2));//((m2->a[longest_axis]) - (m1->a[longest_axis])) ;
-    //fprintf(stderr, "dist: %08u\n", dist);
-    if( dist >= furthest) {
-      median = m1;
-      furthest = dist;
-      split=x;
+  if(CutMethod==MEDIAN_CUT) {
+    nth_element(start, median, end, comp);
+  }
+  else if(CutMethod==SMALLESTBOX_CUT) { //instead of nth element look for the 2 elements wich lie furthest apart (along AXIS)
+    sort(start, end, comp);
+    uint32 furthest=0;
+    vector<RGBColor>::iterator m1=end;
+    vector<RGBColor>::iterator m2=(--m1)--;
+    uint32 x=end-start;
+    uint32 split=0;
+    uint32 dist=0;
+    while(m1!=start) {
+      dist=MRGBDistInt((*m1), (*m2));
+      if( dist >= furthest) {
+        median = m1;
+        furthest = dist;
+        split=x;
+      }
+      m2=m1--;
+      --x;
     }
-    m2=m1--;
-    --x;
   }
-
-  //median=start + (end-start)/2;
-  fprintf(stderr, "furthest=%03u, splitting at element %08u\n", furthest,split); //*/
-
-//Bweh let's try average cut next :p
-  uint32 cr=0;
-  uint32 cg=0;
-  uint32 cb=0;
-  for(vector<RGBColor>::iterator i=start; i!=end; ++i) {
-    cr+=i->a[0];
-    cg+=i->a[1];
-    cb+=i->a[2];
-  }
-  RGBColor avg(cr/(end-start), cg/(end-start), cb/(end-start));
-  uint32 best_dist=ULONG_MAX;
-  uint32 split=0;
-  sort(start, end, comp);
-  for(vector<RGBColor>::iterator i=start; i!=end; ++i) {
-    uint32 dist=MRGBDistInt((*i), avg);
-    if(dist < best_dist) {
-      median = i;
-      best_dist=dist;
+  else if(CutMethod==AVERAGE_CUT) {
+    sort(start, end, comp);
+    uint32 cr=0;
+    uint32 cg=0;
+    uint32 cb=0;
+    for(vector<RGBColor>::iterator i=start; i!=end; ++i) {
+      cr+=i->a[0];
+      cg+=i->a[1];
+      cb+=i->a[2];
     }
-    ++split;
+    RGBColor avg(cr/(end-start), cg/(end-start), cb/(end-start));
+    uint32 best_dist=ULONG_MAX;
+    uint32 split=0;
+    sort(start, end, comp);
+    for(vector<RGBColor>::iterator i=start; i!=end; ++i) {
+      uint32 dist=MRGBDistInt((*i), avg);
+      if(dist < best_dist) {
+        median = i;
+        best_dist=dist;
+      }
+      ++split;
+    }
   }
-  fprintf(stderr, "splitting at element %08u\n", split); //*/
-
+  else if(CutMethod==CENTER_CUT) { //center cut (center of box)
+    sort(start, end, comp);
+    vector<RGBColor>::iterator q=end;
+    --q;
+    AvgRGBColor tcol(((*start)+(*q)));
+    uint32 best_dist=ULONG_MAX;
+    for(vector<RGBColor>::iterator i=start; i!=end; ++i) {
+      uint32 dist=MRGBDistInt((*i), tcol.avg());
+      if(dist < best_dist) {
+        best_dist=dist;
+        median=i;
+      }
+    }
+  }
+  else {
+    fprintf(stderr,"box::split(): Unknow split method!\n");
+  }
   newbox.start=start;
-//  fprintf(stderr, "set new.start\n");
   newbox.end=median++;
-//  fprintf(stderr, "set new.end\n");
   start=median;
-//  fprintf(stderr, "set old.start\n");
   return newbox;
 }
 
@@ -117,7 +128,7 @@ void box::shrink(){
 //  fprintf(stderr, "Longest axis=%i, size=%u\n",longest_axis, longest_axis_size);
 }
 
-void MedianCut(RawRGBImage* img,  TextPal* pal) {
+void MedianCut(RawRGBImage* img,  TextPal* pal, cutmethod CutMethod) {
 static int debug=0;
   //fprintf(stderr, "Starting MedianCut\n");
   vector<RGBColor> colorspace;
@@ -130,6 +141,7 @@ static int debug=0;
   //fprintf(stderr, "Filled colorspace\n");
   priority_queue<box> boxes;
   box boundingbox;
+  boundingbox.setcutmethod( CutMethod );
   boundingbox.start=colorspace.begin();
   boundingbox.end=colorspace.end();
   //fprintf(stderr, "shrink\n");
