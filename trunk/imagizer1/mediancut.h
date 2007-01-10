@@ -1,10 +1,10 @@
 #ifndef MEDIANCUT_H
 #define MEDIANCUT_H
 
-#include "UTypes.h"
-#include "UColor.h"
-#include "UColor.h"
-#include "UImage.h"
+#include "../common/UTypes.h"
+#include "../common/UColor.h"
+#include "../common/UColor.h"
+#include "../common/UImage.h"
 #include <vector>
 using namespace std;
 

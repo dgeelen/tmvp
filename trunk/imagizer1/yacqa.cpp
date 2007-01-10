@@ -1,8 +1,5 @@
 
 #include "yacqa.h"
-#include "UTypes.h"
-#include "UColor.h"
-#include "UImage.h"
 #include <vector>
 using namespace std;
 

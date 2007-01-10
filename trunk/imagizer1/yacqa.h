@@ -1,9 +1,9 @@
 /****************************************************************************/
 #ifndef YACQA_H
 #define YACQA_H
-#include "UTypes.h"
-#include "UColor.h"
-#include "UImage.h"
+#include "../common/UTypes.h"
+#include "../common/UColor.h"
+#include "../common/UImage.h"
 
 struct cinfo {
   uint32 n;
