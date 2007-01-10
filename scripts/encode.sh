@@ -2,18 +2,17 @@
 
 MPLAYER="`which mplayer 2> /dev/null`"
 MENCODER="`which mencoder 2> /dev/null`"
-ILEAVE=../ileave
-IMAGIZER=../imagize
-COMPRESS=../lz77s
-NORMALIZER=../normalize
+ILEAVE="../ileave/ileave"
+PBCAT="../pbcat/pbcat"
+IMAGIZER="../imagizer1/imagize"
+COMPRESS="../compress1/lz77s"
+NORMALIZER="../normalizer/normalize"
 FMAGIC="fmagic.txt"
 FONT="asc_ord_hi.fon"
 VIDFILTERS="harddup,expand=:::::4/3,scale=160:100,format=rgb24"
 SUBTITLER="`which cat`"
 
 if [ "${2}" == "dafox" ] ; then
-  MPLAYER="`which mplayer`"
-  MENCODER="`which mencoder`"
   ILEAVE="/home/dafox/Projects/tmvp/ileave/ileave"
 #  IMAGIZER=/home/dafox/Projects/tmvp/imagizer1/imagize
   #IMAGIZER="/home/dafox/Projects/tmvp/imagizer1/kdev/imagize/optimized/src/imagize"
@@ -27,14 +26,7 @@ if [ "${2}" == "dafox" ] ; then
   #VIDFILTERS="harddup,expand=:::::4/3,scale=320:-2,pp7=0:1,unsharp,2xsai,scale=-1:-2,hqdn3d,dsize=160:100,scale=160:-2,format=rgb24"
   VIDFILTERS="harddup,pp7=0:1,expand=:::::4/3,dsize=160:100,scale=160:-2,format=rgb24"
 elif [ "${2}" == "simon" ] ; then
-  MPLAYER="/cygdrive/c/stuff/mplayer/mplayer/mplayer.exe"
-  MENCODER="/cygdrive/c/stuff/mplayer/mplayer/mencoder.exe"
-  ILEAVE="../ileave/ileave.exe"
-  PBCAT="../pbcat/pbcat.exe"
-  IMAGIZER="../imagizer1/imagize.exe"
-  COMPRESS="../compress1/lz77s.exe"
-  NORMALIZER="../normalizer/normalize.exe"
-  VIDFILTERS="hqdn3d,expand=:::::4/3,scale=160:100,hqdn3d,dsize=160:100,scale=-1:-2,format=rgb24,harddup"
+  VIDFILTERS="expand=:::::4/3,hqdn3d,scale=160:100,hqdn3d,dsize=160:100,scale=-1:-2,format=rgb24,harddup"
 fi
 
 if [ ! -f "${MPLAYER}" ] ; then
@@ -120,12 +112,17 @@ mkfifo "${TMPDIR}"/audfifo2
 #echo ">Starting progress bar"
 #"${PBCAT}" "${INFILE}" "${TMPDIR}"/catfifo &
 
+echo -n Starting
+echo -n .
+
 #echo ">Starting audio decoder (mplayer)"
 #Volnorm=2:1 => uses several samples for better accuracy. However results in ~1s of soft sound at the start of the file
 "$MPLAYER" "${INFILE}" -vc null -vo null -ao pcm:fast:file="${TMPDIR}"/audfifo1:nowaveheader \
   -af volnorm=2:1,resample=8000,channels=1:2:0:0:1:0,format=u8 \
   ${3} ${5} \
   -quiet &> aud.log &
+
+echo -n .
 
 #echo ">Starting video decoder (mencoder)"
 "$MENCODER" "$INFILE" -o "${TMPDIR}"/vidfifo -of rawvideo -ovc raw -oac pcm -channels 1 -srate 4000 \
@@ -136,6 +133,7 @@ mkfifo "${TMPDIR}"/audfifo2
   | "${PBCAT}" \
   > vid.log &
 
+echo -n .
 
 
 
@@ -147,6 +145,8 @@ mkfifo "${TMPDIR}"/audfifo2
 #echo ">Making file header"
 cat ${FMAGIC} > "$OUTFILE"
 cat ${FONT} >> "$OUTFILE"
+
+echo -n .
 
 #SUBTITLER="cat"
 #echo "SUBTITLER=${SUBTITLER}"
