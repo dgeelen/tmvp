@@ -1,7 +1,4 @@
 #include "mediancut.h"
-#include "UColor.h"
-#include "UImage.h"
-#include "UTypes.h"
 #include <vector>
 #include <queue>
 #include <algorithm>
