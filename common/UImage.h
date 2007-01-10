@@ -4,7 +4,7 @@
 #define UImageH
 
 #ifdef WITH_PNG
-#include <vcl.h>	// this is needed for BCB here.... TODO: find correct define 
+//#include <vcl.h>	// this is needed for BCB here.... TODO: find correct define
 #endif
 #include <string>
 #include <stdio.h>
@@ -53,7 +53,7 @@ class TextFont {
 
 	void SaveToRAWFile(std::string filename);
 
-	void DisableMap(); 
+	void DisableMap();
 
 	uint8 GetRatio(uint8 chr, uint8 quad);
 };
@@ -63,6 +63,7 @@ class TextPal {
  public:
 	void SetColor(uint8 ind, RGBColor col);
 	RGBColor GetColor(uint8 ind) { return data[ind]; };
+  uint32 FindColorIndex(RGBColor color);
 };
 
 class TextImage {

@@ -4,7 +4,83 @@
 #pragma hdrstop
 
 #include "UColor.h"
+#include <stdio.h>
+#include "stdlib.h"
 #include <math.h>
+
+RGBColor AvgRGBColor::avg() {
+  if(avrg.count != count) { //speedup
+    avrg.color = RGBColor(a[0]/count, a[1]/count, a[2]/count);
+    avrg.count = count;
+    }
+  return avrg.color;
+}
+
+AvgRGBColor AvgRGBColor::operator-=(RGBColor& color) {
+  if(count>0) {
+    for(uint32 i=0; i<3; ++i) {
+      a[i]-=color.a[i];
+    }
+    --count;
+  }
+  return *this;
+}
+
+AvgRGBColor AvgRGBColor::operator+=(RGBColor& color) {
+  for(uint32 i=0; i<3; ++i) {
+    a[i]+=color.a[i];
+  }
+  ++count;
+  return *this;
+}
+
+AvgRGBColor AvgRGBColor::operator+=(AvgRGBColor& color) {
+  for(uint32 i=0; i<3; ++i) {
+    a[i]+=color.avg().a[i];
+  }
+  count+=color.size();
+  return *this;
+}
+
+uint32 AvgRGBColor::size() {
+  return count;
+}
+
+AvgRGBColor AvgRGBColor::operator-(RGBColor& color) {
+  AvgRGBColor q=*this;
+  if(q.count>0){
+    q-=color;
+    --q.count;
+  }
+  return q;
+}
+
+AvgRGBColor AvgRGBColor::operator+(AvgRGBColor& color) {
+  AvgRGBColor q=*this;
+  q+=color;
+  return q;
+}
+
+AvgRGBColor AvgRGBColor::operator+(RGBColor& color) {
+  AvgRGBColor q=*this;
+  q+=color;
+  return q;
+}
+
+AvgRGBColor::AvgRGBColor(RGBColor color) {
+  for(uint32 i=0; i<3; ++i) {
+    a[i]=color.a[i];
+  }
+  count=1;
+  avrg.count=0;
+}
+
+RGBColor RGBColor::operator+(RGBColor& color) {
+//  fprintf(stderr, "RGBColor::operator+(): this={%i, %i, %i} color={%i, %i, %i}\n", this->a[0],this->a[1],this->a[2], color.a[0], color.a[1], color.a[2]);
+  AvgRGBColor q(color);
+  q+=(*this);
+  return q.avg();
+}
 
 RGBColor::RGBColor()
 {

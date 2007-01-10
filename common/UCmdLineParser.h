@@ -131,7 +131,8 @@ T CmdLineParser::AddOption(T* ptr, char shortname, std::string longname, int anu
 	cmdopt.def = &def;
 	cmdopt.desc = desc;
 	cmdopts["--"+longname] = cmdopt;
-	//if(s+shortname==s) { fprintf(stderr,"EMPTY STRING ERROR\n"); }
+	//if(s+shortname==s) { fprintf(stderr,"EMPTY STRING ERROR\n"); } // yes I knew it was a always false condition, but Just In Case TM
+  fprintf(stderr,"AddOption(): Adding string `%s' / '%c'\n", longname.c_str(), shortname);
 	cmdopts[std::string::basic_string() + shortname] = cmdopt;
 	return def;
 };
@@ -150,6 +151,7 @@ std::vector<T> CmdLineParser::AddArray(std::vector<T>* ptr, char shortname, std:
 	cmdopt.numparsed = 0;
 	cmdopts["--"+longname] = cmdopt;
 	//if(s+shortname==s) { fprintf(stderr,"EMPTY STRING ERROR\n"); }
+  fprintf(stderr,"AddArray(): Adding string `%s' / '%c'\n", longname.c_str(), shortname);
 	cmdopts[std::string::basic_string() + shortname] = cmdopt;
 	std::vector<T> val(anum, def);
 	return val;
