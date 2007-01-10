@@ -6,6 +6,7 @@
 #include "UTypes.h"
 
 struct RGBAColor;
+class AvgRGBColor;
 
 struct RGBColor {
 	union {
@@ -19,12 +20,38 @@ struct RGBColor {
 	uint32 get_bgr() { return (c.b << 16) | (c.g << 8) | (c.r << 0); };
 
 	RGBColor();
+  RGBColor operator+(RGBColor& color);
 	RGBColor(uint8 rval, uint8 gval, uint8 bval);
 	RGBColor(uint8 aval[3]);
 	// cast from RGBAColor
 	RGBColor(RGBAColor col);
 	// cast from int (uses set_i)
 	RGBColor(uint32 val);
+};
+
+class AvgRGBColor {
+  private:
+  union {
+    uint32 a[3];
+    struct { uint32 r,g,b; } c;
+  };
+  uint32 count;
+  struct avrg {
+    RGBColor color;
+    uint32 count;
+  } avrg;
+  public:
+  AvgRGBColor(RGBColor color);
+  uint32 size();
+  RGBColor avg();
+  AvgRGBColor operator+(RGBColor& color);
+  AvgRGBColor operator+(AvgRGBColor& color);
+  AvgRGBColor operator+=(RGBColor& color);
+  AvgRGBColor operator+=(AvgRGBColor& color);
+  AvgRGBColor operator-(RGBColor& color);
+  AvgRGBColor operator-(AvgRGBColor& color);
+  AvgRGBColor operator-=(RGBColor& color);
+  AvgRGBColor operator-=(AvgRGBColor& color);
 };
 
 struct RGBAColor {

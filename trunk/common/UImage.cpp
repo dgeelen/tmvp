@@ -1,5 +1,5 @@
 //---------------------------------------------------------------------------
-							 
+
 
 #pragma hdrstop
 
@@ -215,6 +215,19 @@ void RawRGBImage::LoadFromRAW(FILE* filehandle, uint32 awidth, uint32 aheight)
 void TextPal::SetColor(uint8 ind, RGBColor col)
 {
 	data[ind] = col;
+}
+
+uint32 TextPal::FindColorIndex(RGBColor color) {
+  uint32 best_dist=ULONG_MAX;
+  uint32 index=0;
+  for(uint32 i=0; i<16; ++i) {
+    uint32 dist=MRGBDistInt( color, data[i]);
+    if(dist<best_dist) {
+      best_dist=dist;
+      ++index;
+    }
+  }
+  return index;
 }
 
 //RGBColor TextPal::GetColor(uint8 ind)
