@@ -16,14 +16,16 @@ if [ "${2}" == "dafox" ] ; then
   MENCODER="`which mencoder`"
   ILEAVE="/home/dafox/Projects/tmvp/ileave/ileave"
 #  IMAGIZER=/home/dafox/Projects/tmvp/imagizer1/imagize
-  IMAGIZER="/home/dafox/Projects/tmvp/imagizer1/kdev/imagize/optimized/src/imagize"
+  #IMAGIZER="/home/dafox/Projects/tmvp/imagizer1/kdev/imagize/optimized/src/imagize"
+  IMAGIZER="/home/dafox/Projects/tmvp/imagizer1/kdev/imagize/debug/src/imagize"
   COMPRESS="/home/dafox/Projects/tmvp/compress1/lz77s"
   PBCAT=~/Projects/tmvp/pbcat/pbcat
   NORMALIZER="/home/dafox/Projects/tmvp/normalizer/normalize"
   SUBTITLER="/home/dafox/Projects/tmvp/subtitler/kdev/subtitler/optimized/src/subtitler"
   FMAGIC="fmagic.txt"
 #  FONT="blocks.fon"
-  VIDFILTERS="harddup,expand=:::::4/3,scale=320:-2,pp7=0:1,unsharp,2xsai,scale=-1:-2,hqdn3d,dsize=160:100,scale=160:-2,format=rgb24"
+  #VIDFILTERS="harddup,expand=:::::4/3,scale=320:-2,pp7=0:1,unsharp,2xsai,scale=-1:-2,hqdn3d,dsize=160:100,scale=160:-2,format=rgb24"
+  VIDFILTERS="harddup,pp7=0:1,expand=:::::4/3,dsize=160:100,scale=160:-2,format=rgb24"
 elif [ "${2}" == "simon" ] ; then
   MPLAYER="/cygdrive/c/stuff/mplayer/mplayer/mplayer.exe"
   MENCODER="/cygdrive/c/stuff/mplayer/mplayer/mencoder.exe"
@@ -139,13 +141,6 @@ mkfifo "${TMPDIR}"/audfifo2
 
 #cat ${TMPDIR}/catfifo &
 
-
-#---|BEGIN filmdint FIX|---
-# This is a work-around for the FilmDint color crappyness bug
-VID_HEIGHT=`${MPLAYER} "${INFILE}" -frames 0 | grep VIDEO | sed -e "s:\(.*\)\( [0-9][0-9]*x[0-9][0-9]* \)\(.*\):\2:" -e "s:.*x\| ::g"`
-VIDFILTERS="expand=:-256,filmdint,crop=${VID_HEIGHT},${VIDFILTERS}"
-#---|END filmdint FIX|---
-
 #echo ">Starting audio normalizer"
 "$NORMALIZER" "${TMPDIR}"/audfifo1 "${TMPDIR}"/audfifo2 &
 
@@ -156,7 +151,7 @@ cat ${FONT} >> "$OUTFILE"
 #SUBTITLER="cat"
 #echo "SUBTITLER=${SUBTITLER}"
 #echo ">Starting imagizer + subtitler + interleaver + compressor"
-  "${IMAGIZER}" "${TMPDIR}"/vidfifo -p 750 -c 148 -f ${FONT} \
+  "${IMAGIZER}" "${TMPDIR}"/vidfifo -p 1024 -c 148 -f ${FONT} \
 | "${SUBTITLER}" \
 | "${ILEAVE}" - "${TMPDIR}"/audfifo2 - \
 | "${COMPRESS}" \
