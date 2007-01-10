@@ -2,6 +2,8 @@
 #include <assert.h>
 #include <string>
 #include <list>
+#include <algorithm>
+#include <vector>
 #include "../common/UTypes.h"
 #include "../common/UImage.h"
 #
@@ -160,7 +162,7 @@ struct srtsub getNextSub(FILE* f) {
 
 
 
-uint32 blitSRT(TextImage* ti, list<srtsub>::iterator i, alignment *align, uint32 *margins, uint32 ctime, char color) {
+uint32 blitSRT(TextImage* ti, vector<srtsub>::iterator i, alignment *align, uint32 *margins, uint32 ctime, char color) {
 //  fprintf(stderr, "  blitSRT: starting blit with srtsub #%u (start=%u, end=%u), ctime=%u\n", i->index, i->start, i->end, ctime);
 	//fprintf(stderr, "#lines: %u\n", i->lines.size());
 	list<string> blitstr;
@@ -277,6 +279,13 @@ char bestcontrast(TextPal *p) {
 	return (bg<<4)|fg;
 }
 
+  class SubSortFunc {
+    public:
+      bool operator()(const srtsub &a,const srtsub &b) {
+        return a.start < b.start;
+      }
+  };
+
 int main(int argc, char *argv[]) {
 	//alignment align[2]={align_left  , align_bottom};
 	//alignment align[2]={align_left  , align_centre};
@@ -305,7 +314,7 @@ int main(int argc, char *argv[]) {
 	FILE* sfhandle = fopen(sfname.c_str(), "r");
 
 //  infbuffer<char> *srtbuf = new infbuffer<char>(sfhandle,1024*64);
-	list<srtsub> subs; //1 word in a subtitle is in a list of list of list of string :p
+	vector<srtsub> subs; //1 word in a subtitle is in a list of list of list of string :p
 	//fprintf(stderr, "Parsing srt file...\n");
 	while(!feof(sfhandle)){ //parse entire srt file
 //    fprintf(stderr, "getNextSub\n");
@@ -313,7 +322,11 @@ int main(int argc, char *argv[]) {
 	}
 	subs.pop_back(); //TODO: Improve end-of-srt-file detection
 	//fprintf(stderr, "Completed parsing srt file\n");
-	fprintf(stderr, "subtitler: SRT file has %u entries\n",subs.size());
+	//fprintf(stderr, "subtitler: SRT file has %u entries\n",subs.size());
+  fclose(sfhandle);
+  SubSortFunc ssf;
+  sort(subs.begin(), subs.end(), ssf);
+
 //  fprintf(stderr, "done\n");
 
 /*  fprintf(stderr,"Collected subs:\n");
@@ -335,7 +348,7 @@ int main(int argc, char *argv[]) {
 	return 0
 	*/
 	uint32 ctime=0;
-	list<srtsub>::iterator foss=subs.begin(); //first on screen sub
+	vector<srtsub>::iterator foss=subs.begin(); //first on screen sub
 /*  list<struct srtsub>::iterator loss=foss; //last on screen sub
 	while((loss != subs.end()) && (loss->end <= ctime)){
 		loss++;
