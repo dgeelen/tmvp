@@ -128,7 +128,7 @@ proc decoder
 ;<--------- seek fixing-----------------
 
   BufferSpaceLeft L7SDecodeBufHead, L7SDecodeBufTail, DECBUF_SIZE ; eax == empty bytes left in buffer
-  ; do crappy refill for now....
+  ; do crappy refill for now.... //FIXME: When doing a 'proper' refill let the buffer empty far enough first so we can do one large read instead of many small
   cmp eax, FRAME_SIZE + AUDSAMP_SIZE + PALETTE_SIZE ;//decwinsize????
   jbe @@lz77sDecoder
   BufferSpaceLeft InputBufHead, InputBufTail, INPBUF_SIZE;
@@ -327,7 +327,7 @@ proc decoder
   retn
 @@Seek:                        ; Seek to next/previous 'keyframe'
   mov  eax, [dword ptr FrameCounter]
-  mov  ecx, SEEKINTERVAL       ; 200 frames
+  mov  ecx, [dword ptr SeekDist] ;SEEKINTERVAL       ; 200 frames
   xor  edx, edx                ; used in div
   div  ecx                     ; eax is index ptr div 5
   ;Decide where we are seeking to (bl indicates fwd, bwd, ffwd, fbwd)
@@ -372,7 +372,7 @@ proc decoder
   push eax                     ; later we use this to set the #decframes
   shl  eax, 2                  ;  eax*4
   add  eax, edx                ; (eax*4)+eax = (eax*5)
-  add  eax, 4+5                ; back away from the end of file
+  add  eax, 4+5+4              ; back away from the end of file // #seeks + sizeof(1 seek) + seeksize
   neg  eax                     ; eax = - offset
   add  eax,[dword ptr FileSize]; eax = seek to index
   mov  ecx, eax                ; fseek(): ecx == offset
@@ -403,7 +403,8 @@ proc decoder
   mov  [dword ptr AudioDataPtr ], eax
   mov  [dword ptr SampleTimer]  , 1  ; reset currently playing audio block
   pop  edx                     ; index we saved earlier
-  FASTIMUL eax, edx, 200       ; dest, src, mulconst : make TASM do shifts/mul
+  mov  eax, [dword ptr SeekDist]
+  imul edx                     ; multiply SRC by eax, store in edx:eax
   mov  [dword ptr framecounter], eax
   cld
   sti
@@ -472,7 +473,8 @@ AudioDataPtr dd ?              ; AudioDataPtr points to the next-to-be-played sa
 DecoderMode dd ?               ; This is set by the filemagic routine and determines the decoder needed to decode this file
 DecodeableBytes dd ?           ; number of bytes we can safely decode
 DecodedBytes dd ?              ; number of bytes we have decoded so far. DecodeableBytes==DecodedBytes => EOF=True
-SeekOffsetCount dd ?           ; Number of seekable frames
+SeekDist dd ?                  ; How far apart seekpoints are (in #frames)
+SeekOffsetCount dd ?           ; Number of seekable frames                        NOTE: SeekOffsetCount and SeekDist MUST be on consecutive declaration lines (hack in INIT.ASM)
 SeekPtr dd ?                   ; Where to seek to  *ONE 'VARIABLE'!*
 SeekFixup db ?                 ; fixup offset      ^^^^^^^^^^^^^^^^^
 end

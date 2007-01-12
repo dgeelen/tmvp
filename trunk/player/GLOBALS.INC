@@ -32,6 +32,7 @@ global Filehandle:dword
 global DecoderMode:dword
 global FileSize:dword
 global DecodeableBytes:dword
+global SeekDist:dword
 global SeekOffsetCount:dword
 global FrameCounter:dword
 if BEEP_ON_FREAD eq True
