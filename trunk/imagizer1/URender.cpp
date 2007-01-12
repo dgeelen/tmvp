@@ -106,7 +106,9 @@ void TPalMedianCut::CalcPal(RawRGBImage* src, TextPal* dst)
 	}
 	delete[] points;
 /*/
+  //fprintf(stderr,"Cutting...\n\n");
   MedianCut(src, dst, CENTER_CUT); //*
+  //fprintf(stderr,"Ok...\n\n");
   //yacqa(src, dst);
 }
 

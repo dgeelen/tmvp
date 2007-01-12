@@ -13,10 +13,14 @@ class ccmp {
     }
 };
 
-bool operator<(const box &a, const box &b) {
+bool box::operator<(const box &b) const {
   //fprintf(stderr, "Comparing axis %08u, %08u\n",a.longest_axis_size , b.longest_axis_size);
-  return a.longest_axis_size < b.longest_axis_size;
+  return (longest_axis_size<b.longest_axis_size)||((longest_axis_size == b.longest_axis_size)&&(size()<b.size()));
 };
+
+uint32 box::size() const{
+  return end-start;
+}
 
 box::box() {
   longest_axis_size=0;
@@ -85,7 +89,7 @@ box box::split() {
     vector<RGBColor>::iterator q=end;
     --q;
     AvgRGBColor tcol(((*start)+(*q)));
-    //fprintf(stderr,"avg((%i, %i, %i), (%i, %i, %i))=(%i, %i, %i)\n", start->a[0], start->a[1], start->a[2], q->a[0], q->a[1], q->a[2], tcol.avg().a[0], tcol.avg().a[1], tcol.avg().a[2]);
+    //fprintf(stderr,"  avg((%i, %i, %i), (%i, %i, %i))=(%i, %i, %i)\n", start->a[0], start->a[1], start->a[2], q->a[0], q->a[1], q->a[2], tcol.avg().a[0], tcol.avg().a[1], tcol.avg().a[2]);
     uint32 best_dist=ULONG_MAX;
     for(vector<RGBColor>::iterator i=start; i!=end; ++i) {
       uint32 dist=MRGBDistInt((*i), tcol.avg());
@@ -94,10 +98,10 @@ box box::split() {
         median=i;
       }
     }
-    //fprintf(stderr,"median-start=%u, end-median=%u\n", median-start, end-median);
+    //fprintf(stderr,"  median-start=%u, end-median=%u\n", median-start, end-median);
   }
   else {
-    fprintf(stderr,"box::split(): Unknow split method!\n");
+    //fprintf(stderr,"box::split(): Unknow split method!\n");
   }
   if(median==start){
   ++median;
@@ -105,7 +109,7 @@ box box::split() {
   else if(median==end){
   --median;
   }
-  //fprintf(stderr,"assigning median-start=%u, end-median=%u, end-start=%u\n", median-start, end-median, end-start);
+  //fprintf(stderr,"  assigning median-start=%u, end-median=%u, end-start=%u\n", median-start, end-median, end-start);
   newbox.start=start;
   newbox.end=median;
   start=median;
@@ -116,14 +120,14 @@ void box::shrink(){
   //fprintf(stderr, "SHRINK()\n");
   minp = *start;
   maxp = *start;
-  //fprintf(stderr, "calculating new boundingbox end-start=%u\n",end-start);
-  for(vector<RGBColor>::iterator i=start+1; i!=end; ++i) {
+  //fprintf(stderr, "  calculating new boundingbox end-start=%u\n",end-start);
+  for(vector<RGBColor>::iterator i=start; i!=end; ++i) {
     for (int j = 0; j < 3; ++j) {
       if (i->a[j] > maxp.a[j]) maxp.a[j] = i->a[j];
       if (i->a[j] < minp.a[j]) minp.a[j] = i->a[j];
     }
   }
-  //fprintf(stderr, "new boundingbox done\n");
+  //fprintf(stderr, "  new boundingbox done\n");
   longest_axis_size = 0;
   for(uint32 i=0; i<3; i++) {
     if(maxp.a[i]-minp.a[i] >= longest_axis_size) {
@@ -131,7 +135,7 @@ void box::shrink(){
       longest_axis = i;
     }
   }
-  //fprintf(stderr, "Longest axis=%i, size=%u\n",longest_axis, longest_axis_size);
+  //fprintf(stderr, "  Longest axis=%i, size=%u\n",longest_axis, longest_axis_size);
 }
 
 void MedianCut(RawRGBImage* img,  TextPal* pal, cutmethod CutMethod) {
@@ -159,14 +163,19 @@ void MedianCut(RawRGBImage* img,  TextPal* pal, cutmethod CutMethod) {
 
   while(boxes.size()<16){
     box largestbox = boxes.top();
+    //fprintf(stderr, "boxes.pop();                     <----------------------\n");
     boxes.pop();
+    //fprintf(stderr, "box newbox = largestbox.split();\n");
     box newbox = largestbox.split();
+    //fprintf(stderr, "largestbox.shrink();\n");
     largestbox.shrink();
+    //fprintf(stderr, "newbox.shrink();\n");
     newbox.shrink();
+    //fprintf(stderr, "boxes.push(newbox);\n");
     boxes.push(newbox);
     boxes.push(largestbox);
   }
-
+  //fprintf(stderr, "left with 16 colors\n");
   uint32 x=0;
   while(!boxes.empty()){
     box b = boxes.top();
