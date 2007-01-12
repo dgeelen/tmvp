@@ -27,9 +27,10 @@ class box {
     uint32 longest_axis_size;
     uint32 longest_axis;
     void shrink();
-    int size();
+    uint32 size() const;
     box split();
     void setcutmethod(cutmethod method);
+    bool operator<(const box &b) const;
 };
 
 void MedianCut(RawRGBImage* img,  TextPal* pal, cutmethod CutMethod);

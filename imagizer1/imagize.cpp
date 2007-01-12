@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
 
   /*3-frame-avg-render:
    * First output a black frame (as 'previous frame')
-   *
+   * TODO
    *
    */
 	while (!feof(ifhandle))
@@ -100,7 +100,7 @@ int main(int argc, char* argv[])
 	if (ifname != "-") fclose(ifhandle);
 	if (ofname != "-") fclose(ofhandle);
 
-  fprintf(stderr,"IMAGIZER DONE\n");
+  //fprintf(stderr,"\n\n***************************************\nIMAGIZER DID NOT CRASH\n**********************************************\n\n");
 	return 0;
 }
 //---------------------------------------------------------------------------
