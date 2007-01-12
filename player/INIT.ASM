@@ -50,28 +50,34 @@ endif
   mov  al, 02h                 ; seek from end-of-file
   xor  ecx, ecx
   _fseek                       ; returns eax = new file position from start of file
-  mov  [dword ptr FileSize    ], eax
+  mov  [dword ptr FileSize], eax
   mov  ecx, eax
-  sub  ecx, 4                  ; seek 4 bytes from EOF, so we can read #frames-skips
+  sub  ecx, 4+4                ; seek 4+4 bytes from EOF, so we can read #frames-skips and SeekDist
   mov  al, 00h                 ; seek from start-of-file
   _fseek                       ; returns eax = new file position from start of file
-  mov  ecx, 4
-  lea  edx, [SeekOffsetCount]  ; each 5 bytes
+  mov  ecx, 8
+  lea  edx, [SeekDist]         ; seekdist=4 bytes, SeekOffsetCount=4 bytes
   _fread                       ; ebx == filehandle, ecx == nr bytes to read, ds:edx == ptr to buffer
-  mov  eax, [dword ptr SeekOffsetCount] ; a*5
+  mov  eax, [dword ptr SeekOffsetCount] ; a*5          each SeekOffset is 5 bytes
   shl  eax, 2                           ; = (a*4)
   add  eax, [dword ptr SeekOffsetCount] ;         + a
   mov  edx, [dword ptr FileSize]
-  sub  edx, 2048 + 16 + 4      ; cut header and last 4 bytes
+  sub  edx, 2048 + 16 + 4 + 4  ; cut header and last 8 bytes (SeekDist && SeekOffsetCount)
   sub  edx, eax                ; cut frame offsets
-  mov  [dword ptr DecodeableBytes], edx ; God I hope this is correct ...
+  mov  [dword ptr DecodeableBytes], edx ; 'it verks' ?
   mov  ecx, 16                 ; set ecx to just beyond fileheader or somewhere there about..
   mov  al, 0                   ;
   _fseek
 ;  mov  eax, -2
 ;  jmp  short @@exit_fail
 
-if DEBUG eq False ; True
+  push [dword ptr SeekOffsetCount]
+  push [dword ptr SeekDist]
+  push offset strDebug
+  call _printf
+  add  esp, 4*3
+
+if DEBUG eq True
   push offset strModeSwitchImminent
   call _printf
   add  esp, 4
@@ -147,4 +153,5 @@ strFileCloseError db 'Error while closing videofile! (error #%i)',newline,36,0
 strFontLoadFail db 'Error while loading font! (error #%i)', newline, 'press any key to quit.',newline, 36, 0
 strUsingLPTportAddress db 'Read address 0x%08x for lpt%i',newline, 36, 0
 strModeSwitchImminent db '(DEBUG): About to switch videomode, press any key when ready',newline, 36, 0
+strDebug db 'seekdist=%lu/%x, seekcount=%lu/%x',newline, 36, 0
 end

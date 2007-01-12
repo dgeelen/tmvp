@@ -59,7 +59,7 @@ if DEBUG eq False ; True
   add  esp, 4*2
   pop  ebx eax
 endif
-  cmp  eax, ecx                ; TODO: Read #ports from BDA
+  cmp  eax, ecx                ; TODO: Read #ports from BDA //NOTE Is this not exactly what we're doing here? { movzx ecx, [..], some lines above}
   ja   @@InvalidLPT
   mov  [dword ptr LPTPortAddress], eax
   push eax
