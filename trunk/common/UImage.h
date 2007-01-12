@@ -51,6 +51,7 @@ class TextFont {
 	void LoadFromRGBImage(RawRGBImage* img);
 	void LoadFromRAWFile(std::string filename);
 
+  void SaveToRGBImage(RawRGBImage* img);
 	void SaveToRAWFile(std::string filename);
 
 	void DisableMap();
