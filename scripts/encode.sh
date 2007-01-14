@@ -7,25 +7,27 @@ PBCAT="../pbcat/pbcat"
 IMAGIZER="../imagizer1/imagize"
 COMPRESS="../compress1/lz77s"
 NORMALIZER="../normalizer/normalize"
-FMAGIC="fmagic.txt"
+FMAGIC="fmagic.dat"
 FONT="asc_ord_hi.fon"
 VIDFILTERS="harddup,expand=:::::4/3,scale=160:100,format=rgb24"
 SUBTITLER="`which cat`"
+COMPRESS_HAX="333 1" # set a seekpoint every 333 frames (~15sec), and use 'keyframes'
 
-if [ "${2}" == "dafox" ] ; then
-  ILEAVE="/home/dafox/Projects/tmvp/ileave/ileave"
-#  IMAGIZER=/home/dafox/Projects/tmvp/imagizer1/imagize
-  #IMAGIZER="/home/dafox/Projects/tmvp/imagizer1/kdev/imagize/optimized/src/imagize"
-  IMAGIZER="/home/dafox/Projects/tmvp/imagizer1/kdev/imagize/debug/src/imagize"
-  COMPRESS="/home/dafox/Projects/tmvp/compress1/lz77s"
-  PBCAT=~/Projects/tmvp/pbcat/pbcat
-  NORMALIZER="/home/dafox/Projects/tmvp/normalizer/normalize"
+if [ "${2}" != "" ] ; then # FIXME: This (Actually: all arguments) need to be handled properly
+  if [ "${2}" == "dafox" ] || [ "${2}" == "simon" ] ; then
+    UNAME="${2}"
+  else
+    COMPRESS_HAX="${2}"
+  fi
+fi
+
+if [ "${3}" == "dafox" ] || [ "${UNAME}" == "dafox" ] ; then
+  IMAGIZER="/home/dafox/Projects/tmvp/imagizer1/kdev/imagize/optimized/src/imagize"
   SUBTITLER="/home/dafox/Projects/tmvp/subtitler/kdev/subtitler/optimized/src/subtitler"
-  FMAGIC="fmagic.txt"
-#  FONT="blocks.fon"
+  FONT="nes_chars.fnt"
   #VIDFILTERS="harddup,expand=:::::4/3,scale=320:-2,pp7=0:1,unsharp,2xsai,scale=-1:-2,hqdn3d,dsize=160:100,scale=160:-2,format=rgb24"
   VIDFILTERS="harddup,pp7=0:1,expand=:::::4/3,dsize=160:100,scale=160:-2,format=rgb24"
-elif [ "${2}" == "simon" ] ; then
+elif [ "${2}" == "simon" ] || [ "${UNAME}" == "simon" ] ; then
   VIDFILTERS="expand=:::::4/3,hqdn3d,scale=160:100,hqdn3d,dsize=160:100,scale=-1:-2,format=rgb24,harddup"
 fi
 
@@ -140,13 +142,13 @@ echo -n .
 #cat ${TMPDIR}/catfifo &
 
 #echo ">Starting audio normalizer"
-"$NORMALIZER" "${TMPDIR}"/audfifo1 "${TMPDIR}"/audfifo2 &
+"$NORMALIZER" "${TMPDIR}"/audfifo1 "${TMPDIR}"/audfifo2&
 
 #echo ">Making file header"
 cat ${FMAGIC} > "$OUTFILE"
 cat ${FONT} >> "$OUTFILE"
 
-echo -n .
+echo .
 
 #SUBTITLER="cat"
 #echo "SUBTITLER=${SUBTITLER}"
@@ -154,7 +156,7 @@ echo -n .
   "${IMAGIZER}" "${TMPDIR}"/vidfifo -p 1024 -c 148 -f ${FONT} \
 | "${SUBTITLER}" \
 | "${ILEAVE}" - "${TMPDIR}"/audfifo2 - \
-| "${COMPRESS}" \
+| "${COMPRESS}" ${COMPRESS_HAX} \
 >> "${OUTFILE}"
 # "$PROGRESSBAR" size
 #echo ">DONE"
