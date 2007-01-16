@@ -3,7 +3,7 @@
 ; 'below' and 'above' are for UNSIGNED ints
 
                    ;  MAYOR         MEDIUM       MINOR      TINY
-TMVP_VERSION    EQU (00 shl 24) + (00 shl 16) + (00 shl 8) + 01
+TMVP_VERSION    EQU (00 shl 24) + (00 shl 16) + (01 shl 8) + 00
 CrLf            EQU 0ah, 0dh
 newline         EQU CrLf
 True            EQU 1
@@ -22,6 +22,7 @@ DECWIN_SIZE     EQU 32 * 1024
 FONT_SIZE       EQU 2048
 FILEHEADER_SIZE EQU 16
 PRIVMODE        EQU True ; False
+SINGLESTEP_SUPPORT EQU True ; False ; Wether or not the single step button will have any effect (as it slows down rendering)
 
 ;DEBUG EQU True
 DEBUG EQU False

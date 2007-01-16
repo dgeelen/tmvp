@@ -195,6 +195,12 @@ proc audio_int nolanguage ; this is an interrupt, let's do our own push-ups!
   ; Play a sample of audio     ; note: A/V Sync is maintained because every frame has 1/20s of audio, which is played completely before proceding with display ing the next frame.
   mov  esi, [dword ptr AudioDataPtr] ; load pointer
   lodsb                        ; get data byte
+if SINGLESTEP_SUPPORT eq True
+  test [byte ptr SingleStep], 0ffh
+  sete ah
+  neg  ah
+  and  al, ah
+endif
 if BEEP_ON_FREAD eq True
   ; TODO: When running this on _ACTUAL HARDWARE_ test if it is really usefull to use the actual value
   ;       or if just suspending the speaker (mov  al, 0.5*MAX_AMPLITUDE) is enough. In the latter case
@@ -261,6 +267,15 @@ endif
   mov  al, 020h                ;
   out  020h, al                ; signal End of Interrupt
   sti                          ; renable interrupts   DANGEROUS: RENTRY?
+if SINGLESTEP_SUPPORT eq True
+  cmp  [byte ptr SingleStep], 1
+  setg al                      ; if we can render a frame
+  setl ah                      ; if not in single step mode
+  sub  [byte ptr SingleStep], al; subtract 1 from counter
+  or   al, ah                  ; (SingleStep < 1 \/ SingleStep > 1 ) => Flip
+  jz   @@ExitFlip
+endif
+
   inc  [dword ptr FrameCounter]
   mov  esi, [dword ptr DecodeBufHead]
 

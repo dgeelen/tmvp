@@ -343,7 +343,7 @@ int_print_warn db 'Warning: Someone is using `int_print()''!', 0ah, 0dh,'$', 0
 endp int_print
 dataseg
 strFileMagicIsNotTMVP db           'Sorry, this does not appear to be a valid TMVP file!',newline,36,0
-strFileMagicNeedNewerTMVP db       'Sorry, this file requires a newer version of TMVP:',newline,'Player version: %i.%i.%i-r%i, required: %i.%i.%i-r%i',newline,36,0
+strFileMagicNeedNewerTMVP db       'Sorry, this file requires a newer version of TMVP:',newline,'Player version: %x.%x.%x-r%i, required: %x.%x.%x-r%i',newline,36,0
 strFileMagicReservedBitsNotZero db 'Error: Reserved bits not zero!', newline, 36, 0
 udataseg
 OldVideoMode db ?
