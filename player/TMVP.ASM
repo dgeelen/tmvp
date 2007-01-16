@@ -85,7 +85,8 @@ dataseg
   strExitMsg db 'This is a WIP-build, use at your own risk!',newline,36,0
   strInitOk db 'Initialisation complete, press any key to begin playback.',newline,'$',0
   strPressKey db 'Press any key to continue.',newline,36,0
-  strFailedToOpenInput db 'Sorry, unable to open any input file.',newline,'Try something like `tmvp sample.aa''',newline,'$',0
+  ;strFailedToOpenInput db 'Sorry, unable to open any input file.',newline,'Try something like `tmvp sample.aa''',newline,'$',0
+  strFailedToOpenInput db 'No files were opened!',newline,'$',0
   strUnknownError db 'Sorry, some error we did not anticipate occured.',newline,'$',0
 
   strDebugMsg1 db 'Paused player, press any key', newline, 36,0

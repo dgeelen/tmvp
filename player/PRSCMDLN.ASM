@@ -20,6 +20,10 @@ proc ParseCmdLineArgs
   ;       parameters
   ;       If a filename was given and it was possible to open that file
   ;       a filehandle has been placed in [FileHandle]
+  ;
+  ; TODO: Make this handle only *arguments*, splitting out filename handling.
+  ;       This way it becomes easier to handle multiple filnames.
+  ;
   uses eax, ebx, ecx, edx
   mov  ecx, esi                ; ecx = #arguments
   add  edi, 4                  ; ++argv[]
@@ -28,7 +32,7 @@ if LPT_DAC eq True
   mov  [dword ptr LPTPortAddress], 1; default to using lpt1
 endif
 @@next_arg:
-  mov  edx, [dword ptr edi]    ; ebx = ptr to argument
+  mov  edx, [dword ptr edi]    ; edx = ptr to argument
   test edx, edx                ; if NULL
   jz   @@done                  ; Then we're done
 if DEBUG eq False ; True
@@ -66,14 +70,39 @@ endif
   push offset strUsingLPTx
   call _printf
   add  esp, 2*4
-  jmp  short @@ToNextArg
+  jmp  @@ToNextArg
 @@InvalidLPT:
   push eax
   push offset strInvalidLPT
   call _printf
   add  esp, 2*4
+  jmp  @@ToNextArg
 @@notSetLPT:
-  jmp  short @@ToNextArg
+  ; test if request for version
+  mov  eax, [dword ptr edx]
+  and  eax, 0000ffffh
+  cmp  eax, 'v-'
+  jne  @@NotGetVersion
+  mov  eax, TMVP_VERSION
+  movzx ebx, al
+  push ebx
+  shr  eax, 8
+  movzx ebx, al
+  push ebx
+  shr  eax, 8
+  movzx ebx, al
+  push ebx
+  shr  eax, 8
+  movzx ebx, al
+  push ebx
+  shr  eax, 8
+  push large offset strPlayerVersion
+  call _printf
+  add  esp, 4*5
+  mov  [dword ptr FileHandle], 0
+  jmp  @@exit
+@@NotGetVersion:
+  jmp  @@ToNextArg
 endif
 
 @@IsFileName:
@@ -130,6 +159,7 @@ endif
   strUsingLPTx db 'Using lpt%i',newline,'$',0
   strInvalidLPT db 'Error: LPT%i is not a valid LPT port, using LPT1',newline,'$',0
   strLPTCount db 'BIOS reports %i parallel ports',newline,'$',0
+  strPlayerVersion db 'Player version: %x.%x.%x-r%i', newline, 36, 0
 end
 
 ;leave this here incase we ever again decide to use Tasm's bit manipulations
