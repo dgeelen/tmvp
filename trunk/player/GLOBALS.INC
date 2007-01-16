@@ -41,3 +41,6 @@ endif
 if LPT_DAC eq True
   global LPTPortAddress:dword
 endif
+if SINGLESTEP_SUPPORT eq True
+  global SingleStep:byte
+endif

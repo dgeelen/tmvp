@@ -27,6 +27,9 @@ proc decoder
   mov  [dword ptr L7SDecodeBufHead], edx
   mov  [dword ptr L7SDecodeBufTail], edx
   sti
+if SINGLESTEP_SUPPORT eq True
+  mov  [byte ptr SingleStep], 0 ; Start in NON single step mode
+endif
 
   ; Set up LZ77s decompressor
   mov  ax, ds
@@ -271,14 +274,22 @@ proc decoder
 
                                ;-----------------------------------------------------------------------------------------------KEY HANDLER---
 @@ProcessKeypress:             ; *NOTICE* THIS HANDLES KEYPRESSES FOR *ALL* DECODERS
-                               ; HENCE THEY _MUST_ _ALL_ OBEY THE INVARIANTS ASSUMED HERE!!!
-  call getkey                  ; there was a key press let's find out which key it was (But we don't tell you what those are ;)
+                               ; HENCE THEY _MUST_ _ALL_ OBEY THE INVARIANTS ASSUMED HERE!!! (Note: atm this isn't true, as there are only 2 decoders and the
+                               ;                                                              RAW decoder is probably b0rken)
+  call getkey                  ; there was a key press let's find out which key it was
   cmp  al, 27                  ; ESC
   jne  @@dontexit              ; exit immidiately, without showing frames remaining in buffer
 @@KeyhandlerExit:              ; THIS DOES NOT EXIT THE KEY HANDLER
   pop  eax                     ; discard return address
   jmp  @@exit
 @@dontexit:
+if SINGLESTEP_SUPPORT eq True
+  cmp  al, '.'                 ; Single Step
+  sete bl                      ;
+  add  [byte ptr SingleStep], bl
+  neg  bl
+  and  [byte ptr SingleStep], bl
+endif
   cmp  al, 'q'                 ; quit
   je   @@KeyhandlerExit
   cmp  al, 32                  ; Space
@@ -477,4 +488,7 @@ SeekDist dd ?                  ; How far apart seekpoints are (in #frames)
 SeekOffsetCount dd ?           ; Number of seekable frames                        NOTE: SeekOffsetCount and SeekDist MUST be on consecutive declaration lines (hack in INIT.ASM)
 SeekPtr dd ?                   ; Where to seek to  *ONE 'VARIABLE'!*
 SeekFixup db ?                 ; fixup offset      ^^^^^^^^^^^^^^^^^
+if SINGLESTEP_SUPPORT eq True
+  SingleStep db ?              ; bit 1: SingeStepping in effect, bit 2: Waiting for next keypress
+endif
 end
