@@ -31,7 +31,7 @@ DEBUG EQU False
 BEEP_ON_FREAD EQU False ; True ; Reprogram timer to generate a tone on _fread, *should* reduce the popping sound
 PC_SPEAKER EQU False
 LPT_DAC EQU True               ; Don't forget to set DISNEY_SOUND_SOURCE when running in DOSBox
-DISNEY_SOUND_SOURCE EQU True   ; ONLY IN DOSBOX!
+DISNEY_SOUND_SOURCE EQU False   ; ONLY IN DOSBOX!
 ;PC_SPEAKER EQU True
 ;LPT_DAC EQU False
 
