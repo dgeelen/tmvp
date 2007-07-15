@@ -101,7 +101,7 @@ box box::split() {
     //fprintf(stderr,"  median-start=%u, end-median=%u\n", median-start, end-median);
   }
   else {
-    //fprintf(stderr,"box::split(): Unknow split method!\n");
+    fprintf(stderr,"box::split(): Unknow split method!\n");
   }
   if(median==start){
   ++median;

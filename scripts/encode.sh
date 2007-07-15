@@ -1,4 +1,4 @@
-#!/bin/sh
+pl#!/bin/sh
 
 MPLAYER="`which mplayer 2> /dev/null`"
 MENCODER="`which mencoder 2> /dev/null`"
@@ -21,13 +21,25 @@ if [ "${2}" != "" ] ; then # FIXME: This (Actually: all arguments) need to be ha
   fi
 fi
 
-if [ "${3}" == "dafox" ] || [ "${UNAME}" == "dafox" ] ; then
+if [ "${UNAME}" == "" ] ; then
+  UNAME="${3}"
+fi
+
+if [ "${UNAME}" == "dafox" ] ; then
   IMAGIZER="/home/dafox/Projects/tmvp/imagizer1/kdev/imagize/optimized/src/imagize"
-  SUBTITLER="/home/dafox/Projects/tmvp/subtitler/kdev/subtitler/optimized/src/subtitler"
+  SUBTITLER="`which cat`" #"/home/dafox/Projects/tmvp/subtitler/kdev/subtitler/optimized/src/subtitler"
   FONT="nes_chars.fnt"
-  #VIDFILTERS="harddup,expand=:::::4/3,scale=320:-2,pp7=0:1,unsharp,2xsai,scale=-1:-2,hqdn3d,dsize=160:100,scale=160:-2,format=rgb24"
-  VIDFILTERS="harddup,pp7=0:1,expand=:::::4/3,dsize=160:100,scale=160:-2,format=rgb24"
-elif [ "${2}" == "simon" ] || [ "${UNAME}" == "simon" ] ; then
+  VIDFILTERS="harddup,expand=:::::4/3,scale=320:-2,pp7=0:1,unsharp,2xsai,scale=-1:-2,hqdn3d,dsize=160:100,scale=160:-2,format=rgb24"
+  #VIDFILTERS="harddup,pp7=0:1,expand=:::::4/3,dsize=160:100,scale=160:100,format=rgb24"
+  #VIDFILTERS="-sws 7 -vf-add spp=6,scale=320:-2,2xsai,scale=320:-2,spp=6,scale=320:-2,2xsai,scale=320:-2,spp=6,scale=320:-2,2xsai,scale=320:-2,spp=6,dsize=160:100,scale=160:-2,format=rgb24"
+  #VIDFILTERS="-sws 7 -vf-add spp=6,scale=320:-2,2xsai,scale=320:-2,spp=6,scale=320:-2,2xsai,scale=320:-2,spp=6,scale=320:-2,2xsai,scale=320:-2,spp=6,expand=:::::4/3,dsize=160:100,scale=160:-2,format=rgb24"
+
+  #Nextline is for the old 386 inverted Black and White
+  #VIDFILTERS="harddup,expand=:::::4/3,eq2=1:-1:0:0,scale=320:-2,pp7=0:1,unsharp,2xsai,scale=-1:-2,hqdn3d,dsize=160:100,scale=160:-2,format=rgb24"
+  
+  NORMALIZER_OPTS="255"
+  COMPRESS_HAX="333 0"
+elif [ "${UNAME}" == "simon" ] ; then
   VIDFILTERS="expand=:::::4/3,hqdn3d,scale=160:100,hqdn3d,dsize=160:100,scale=-1:-2,format=rgb24,harddup"
 fi
 
@@ -124,6 +136,8 @@ echo -n .
   ${3} ${5} \
   -quiet &> aud.log &
 
+MPLAYER_PID="`echo $!`"
+
 echo -n .
 
 #echo ">Starting video decoder (mencoder)"
@@ -135,6 +149,8 @@ echo -n .
   | "${PBCAT}" \
   > vid.log &
 
+MENCODER_PID="`echo $!`"
+
 echo -n .
 
 
@@ -142,7 +158,9 @@ echo -n .
 #cat ${TMPDIR}/catfifo &
 
 #echo ">Starting audio normalizer"
-"$NORMALIZER" "${TMPDIR}"/audfifo1 "${TMPDIR}"/audfifo2&
+"$NORMALIZER" "${TMPDIR}"/audfifo1 "${TMPDIR}"/audfifo2 ${NORMALIZER_OPTS}&
+
+NORMALIZER_PID="`echo $!`"
 
 #echo ">Making file header"
 cat ${FMAGIC} > "$OUTFILE"
@@ -153,7 +171,9 @@ echo .
 #SUBTITLER="cat"
 #echo "SUBTITLER=${SUBTITLER}"
 #echo ">Starting imagizer + subtitler + interleaver + compressor"
-  "${IMAGIZER}" "${TMPDIR}"/vidfifo -p 1024 -c 148 -f ${FONT} \
+if [ "$3" == "" ] ; then p="1024" ; else p="$3" ; fi #Set the pallete change threshold
+if [ "$4" == "" ] ; then c="148" ; else c="$4" ; fi #Set the character change threshold
+  "${IMAGIZER}" "${TMPDIR}"/vidfifo -p "$p" -c "$c" -f ${FONT} \
 | "${SUBTITLER}" \
 | "${ILEAVE}" - "${TMPDIR}"/audfifo2 - \
 | "${COMPRESS}" ${COMPRESS_HAX} \
@@ -167,3 +187,4 @@ rm "${TMPDIR}"/audfifo1
 rm "${TMPDIR}"/audfifo2
 
 rmdir "${TMPDIR}"
+echo "${MPLAYER_PID}" "${MENCODER_PID}" "${NORMALIZER_PID}"

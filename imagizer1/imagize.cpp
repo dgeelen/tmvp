@@ -21,7 +21,7 @@ OPT_STRING(ifname       , 'i',           "--0", 1,   "-", "Read from file"      
 OPT_STRING(ofname       , 'o',           "--1", 1,   "-", "Write to file"                   );
 OPT_STRING(ffname       , 'f',           "--2", 1,   "-", "Font file"                       );
 OPT_INT   (palthreshold , 'p',  "palthreshold", 1,   750, "Set the pallete change threshold");
-OPT_INT   (charthreshold, 'c', "charthreshold", 1,    64, "Set the pallete change threshold");
+OPT_INT   (charthreshold, 'c', "charthreshold", 1,    64, "Set the character change threshold");
 OPT_BOOL  (getVersion   , 'v',       "version", 0, false, "Display version info"            );
 //vector<string> files(0);
 
@@ -78,9 +78,10 @@ int main(int argc, char* argv[])
 
 		r_renderer->DoRender(&r_sourceimage, &r_textimage);
 
+		/* Output the pallette colors to the upperleft color for debugging * /
     for(uint32 i=0; i<16; i++) {
-      r_textimage.data[i] = i<<12;
-    }
+      r_textimage.data[(i%4)+(80*(i/4))] = i<<12;
+    } /**/
 
 		fwrite(r_textimage.data, 1, 8000, ofhandle);
 		uint8 oval;
