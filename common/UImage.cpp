@@ -2,28 +2,35 @@
 
 
 #pragma hdrstop
-#include "stdafx.h"
-#include "UImage.h"
 
-RawRGBAImage::RawRGBAImage()
+#include <assert.h>
+#include "UImage.h"
+#include "stdio.h"
+#ifdef WITH_PNG
+# include <png.h>
+#endif
+
+using namespace std;
+
+RawRGBImage::RawRGBImage()
 {
 	width = 0;
 	height = 0;
 	data = NULL;
 }
 
-RawRGBAImage::RawRGBAImage(uint32 awidth, uint32 aheight)
+RawRGBImage::RawRGBImage(uint32 awidth, uint32 aheight)
 {
-	RawRGBAImage();
+	RawRGBImage();
 	SetSize(awidth, aheight);
 }
 
-RawRGBAImage::~RawRGBAImage()
+RawRGBImage::~RawRGBImage()
 {
 	delete[] data;
 }
 
-void RawRGBAImage::SetSize(uint32 awidth, uint32 aheight)
+void RawRGBImage::SetSize(uint32 awidth, uint32 aheight)
 {
 	if (width != awidth || height != aheight)
 	{
@@ -34,31 +41,32 @@ void RawRGBAImage::SetSize(uint32 awidth, uint32 aheight)
 	}
 }
 
-RGBColor RawRGBAImage::GetPixel(uint32 x, uint32 y)
+RGBColor RawRGBImage::GetPixel(uint32 x, uint32 y)
 {
 	return data[x + y*width];
 }
 
-void RawRGBAImage::SetPixel(uint32 x, uint32 y, RGBColor val)
+void RawRGBImage::SetPixel(uint32 x, uint32 y, RGBColor val)
 {
 	data[x + y*width] = val;
 }
 
-uint32 RawRGBAImage::GetWidth()
+uint32 RawRGBImage::GetWidth()
 {
 	return width;
 }
 
-uint32 RawRGBAImage::GetHeight()
+uint32 RawRGBImage::GetHeight()
 {
 	return height;
 }
 
-void RawRGBAImage::LoadFromFile(string filename)
+void RawRGBImage::LoadFromFile(string filename)
 {
 }
 
-void RawRGBAImage::LoadFromPNG(string filename, uint32 awidth, uint32 aheight)
+#ifdef WITH_PNG
+void RawRGBImage::LoadFromPNG(string filename, uint32 awidth, uint32 aheight)
 {
 	FILE *fp = fopen(filename.c_str(), "rb");
 	if (!fp) {
@@ -118,8 +126,10 @@ void RawRGBAImage::LoadFromPNG(string filename, uint32 awidth, uint32 aheight)
 
 	fclose(fp);
 }
+#endif
 
-void RawRGBAImage::SaveToPNG(std::string filename)
+#ifdef WITH_PNG
+void RawRGBImage::SaveToPNG(std::string filename)
 {
 	FILE *fp = fopen(filename.c_str(), "wb");
 	if (!fp) {
@@ -167,13 +177,14 @@ void RawRGBAImage::SaveToPNG(std::string filename)
 
 	fclose(fp);
 }
+#endif
 
-void RawRGBAImage::LoadFromBMP(string filename)
+void RawRGBImage::LoadFromBMP(string filename)
 {
 //  TBitmap bitmap;
 }
 
-void RawRGBAImage::LoadFromRAW(std::string filename, uint32 awidth, uint32 aheight, uint32 framenr)
+void RawRGBImage::LoadFromRAW(std::string filename, uint32 awidth, uint32 aheight, uint32 framenr)
 {
 	FILE *fp = fopen(filename.c_str(), "rb");
 	if (!fp) {
@@ -188,7 +199,7 @@ void RawRGBAImage::LoadFromRAW(std::string filename, uint32 awidth, uint32 aheig
 	fclose(fp);
 }
 
-void RawRGBAImage::LoadFromRAW(FILE* filehandle, uint32 awidth, uint32 aheight)
+void RawRGBImage::LoadFromRAW(FILE* filehandle, uint32 awidth, uint32 aheight)
 {
 	if (!filehandle) {
 		return ;
@@ -302,7 +313,7 @@ void TextFont::DisableMap()
 	}
 };
 
-void TextFont::LoadFromRGBImage(RawRGBAImage* img)
+void TextFont::LoadFromRGBImage(RawRGBImage* img)
 {
 	assert(img->GetWidth() >= 128);
 	assert(img->GetHeight() >= 128);
@@ -398,7 +409,7 @@ void TextImage::SetChar(uint16 x, uint16 y, uint8 chr, uint8 fg, uint8 bg)
 //	data[x + y*80] = chr | (fg << 8) | (bg << 12);
 }
 
-void TextImage::SaveToRawRGBAImage(RawRGBAImage* img)
+void TextImage::SaveToRawRGBImage(RawRGBImage* img)
 {
 	img->SetSize(80*8, 50*8);
 	for (int x = 0; x < 80; ++x) {
