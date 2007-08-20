@@ -1,4 +1,4 @@
-pl#!/bin/sh
+#!/bin/sh
 
 MPLAYER="`which mplayer 2> /dev/null`"
 MENCODER="`which mencoder 2> /dev/null`"
