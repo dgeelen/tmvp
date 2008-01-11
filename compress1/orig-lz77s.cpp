@@ -1,19 +1,11 @@
-//---------------------------------------------------------------------------
-
-#pragma hdrstop
-
-//---------------------------------------------------------------------------
-
-#pragma argsused
-
 #include "mystream.h"
 #include <string>
 #include <stdio.h>
 /* LZ77 (Simple) */
 
 /*
- * 1xxx xxxx											-> copy x literals from encoded stream
- * 0xxx xxxx xxxx xxxx yyyy yyyy	-> copy y bytes from decoded stream starting at offset x
+ * 1xxx xxxx                        -> copy x literals from encoded stream
+ * 0xxx xxxx xxxx xxxx yyyy yyyy    -> copy y bytes from decoded stream starting at offset x
  */
 
 using namespace std;
@@ -29,6 +21,8 @@ const uint32 WIND_MASK = WIND_SIZE - 1;
 //#define lookuphash(a, b, c, d) (((a)<<0)^((b)<<8)^((c)<<8)^((d)<<8))
 //#define lookuphash(a, b, c, d) (((a)<<0)|((b)<<8))
 
+// calculates next hash based on the old one + the new octet
+// the old hash in lookupind will be replaced by the new one
 #define nexthash(new) lookupind = (((lookupind<<6)^(new))&HASH_MASK)
 
 int main(int argc, char* argv[])
@@ -43,41 +37,43 @@ int main(int argc, char* argv[])
 	FILE* ifhandle = (ifname == "-") ? stdin  : fopen(ifname.c_str(), "rb");
 	FILE* ofhandle = (ofname == "-") ? stdout : fopen(ofname.c_str(), "wb");
 
-	MyInStream instr(ifhandle);
-	MyOutStream outstr(ofhandle);
+	MyInStream instr(ifhandle);              // input stream with buffering and limited random access
+	MyOutStream outstr(ofhandle);            // output stream with buffering
 
-//	int32 hashhead[HASH_SIZE];
-	int32* hashhead = new int32[HASH_SIZE];
-	int32* hashprev = new int32[WIND_SIZE];
+	uint32 ifpos = 0;                        // encoding position in input stream
+	uint32 lookupind = 0;                    // hash of the four octets starting at he encoding position
 
+	int32* hashhead = new int32[HASH_SIZE];  // lookup table from hash to most recent occurrence of the four octets
+	int32* hashprev = new int32[WIND_SIZE];  // lookup table from occurrence of four octets to previous occurrence of them
+
+	uint32 mlen;                             // length of the match that was found (0 if none)
+	uint32 mind;                             // index of the match that was found
+
+	uint32 nmlen = 0;                        // amount of octets for which no match has been found, but are not yet written out
+
+	// initialize hash lookup table
 	for (int i = 0; i < HASH_SIZE; ++i)
 		hashhead[i] = -(int32)WIND_SIZE;
 
-	uint32 mind;
-	uint32 mlen;
-
-	uint32 nmlen = 0;
-
-	uint32 ifpos = 0;
-
-	uint32 lookupind = 0;
-
+	// calculate hash from first four octets
 	nexthash(instr[0]);
 	nexthash(instr[1]);
 	nexthash(instr[2]);
 	nexthash(instr[3]);
 
-	while (instr.check(ifpos))
+	while (instr.check(ifpos)) // while there are octets to encode
 	{
 		mlen = 0;
 		// check for a match (of at least length 4)
-		if (instr.check(ifpos+3)) {
-			instr.check(ifpos+255);
+		if (instr.check(ifpos+3)) { // if there are at least 3 more octets available
+			instr.check(ifpos+255); // make sure octets needed for match finding are available
+
+			// calculate maximum number of octets to check against
 			uint32 bound = instr.getmax() - ifpos;
 			if (bound > 255) bound = 255;
 
-			for (int32 lind = hashhead[lookupind]; ifpos < lind + WIND_SIZE; lind = hashprev[lind & WIND_MASK])
-			{
+			// do magic with hashhead/hashprev to find longest match
+			for (int32 lind = hashhead[lookupind]; ifpos < lind + WIND_SIZE; lind = hashprev[lind & WIND_MASK]) {
 				uint32 clen = 0;
 				while ((clen < bound) && (instr[ifpos+clen] == instr[lind+clen]))
 					clen++;
@@ -89,10 +85,10 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		// if no match increase nomatch count (and add lookup)
-		if (mlen==0)
-		{
+		// if no match increase nomatch count
+		if (mlen==0) {
 			if (instr.check(ifpos+3)) {
+				// advance lookup hash
 				hashprev[ifpos & WIND_MASK] = hashhead[lookupind];
 				hashhead[lookupind] = ifpos;
 			}
@@ -100,14 +96,15 @@ int main(int argc, char* argv[])
 			++ifpos;
 			nexthash(instr[ifpos+3]);
 		};
-		// if match or nomatch limit exceeded, output nomatch (literal) codes
-		if ((mlen!=0 && nmlen!=0) || nmlen == 127)
-		{
+
+		// if match found or nomatch limit exceeded, output nomatch (literal) codes
+		if ((mlen!=0 && nmlen!=0) || nmlen == 127) {
 			outstr.write(nmlen | (1<<7));
 			for (uint i = ifpos-nmlen; i < ifpos; ++i)
 				outstr.write(instr[i]);
 			nmlen = 0;
 		}
+
 		// if match output codes for copy (and add lookups)
 		if (mlen!=0) {
 			mind = ifpos - mind;
@@ -116,6 +113,7 @@ int main(int argc, char* argv[])
 			outstr.write(mlen);
 			while (instr.check(ifpos) && (mlen > 0)) {
 				if (instr.check(ifpos+3)) {
+					// advance lookup hash
 					hashprev[ifpos & WIND_MASK] = hashhead[lookupind];
 					hashhead[lookupind] = ifpos;
 				}
@@ -126,12 +124,11 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if (nmlen!=0)
-	{
+	// finish up, write out last literals if there are any left
+	if (nmlen!=0) {
 		outstr.write(nmlen | (1<<7));
 		for (uint i = ifpos-nmlen; i < ifpos; ++i)
 			outstr.write(instr[i]);
-//		nmlen = 0;
 	}
 
 	outstr.flush();

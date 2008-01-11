@@ -9,7 +9,7 @@
 #include "../common/UTypes.h"
 
 /**
- * MyInStream - provides limited random access reading into a file
+ * MyInStream - provides limited random access reading from a file
  *
  * USAGE:
  *   -pass the constructor a file handle opened for reading
