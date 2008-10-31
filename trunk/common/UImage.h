@@ -29,7 +29,7 @@ class RawRGBImage {
 	uint32 GetHeight();
 
 	void LoadFromFile(std::string filename);
-	void LoadFromPNG(std::string filename, uint32 awidth = -1, uint32 aheight = -1);
+	void LoadFromPNG(std::string filename, uint32 awidth = 0, uint32 aheight = 0);
 	void LoadFromRAW(std::string filename, uint32 awidth, uint32 aheight, uint32 framenr = 0);
 	void LoadFromRAW(FILE* filehandle, uint32 awidth, uint32 aheight);
 	void LoadFromBMP(std::string filename);
