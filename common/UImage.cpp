@@ -95,7 +95,7 @@ void RawRGBImage::LoadFromPNG(string filename, uint32 awidth, uint32 aheight)
 
 	png_bytep* row_pointers;
 
-	if (awidth != -1 && aheight != -1)
+	if (awidth != 0 && aheight != 0)
 	{
 		SetSize(awidth, aheight);
 		row_pointers = (png_bytep*)png_malloc(png_ptr, height*sizeof(png_bytep));
@@ -106,7 +106,7 @@ void RawRGBImage::LoadFromPNG(string filename, uint32 awidth, uint32 aheight)
 
 	png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_STRIP_ALPHA, NULL);
 
-	if (awidth != -1 && aheight != -1)
+	if (awidth != 0 && aheight != 0)
 	{
 		png_free(png_ptr, row_pointers);
 	}
