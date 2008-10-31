@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 MPLAYER="`which mplayer 2> /dev/null`"
 MENCODER="`which mencoder 2> /dev/null`"
@@ -131,7 +131,7 @@ echo -n .
 
 #echo ">Starting audio decoder (mplayer)"
 #Volnorm=2:1 => uses several samples for better accuracy. However results in ~1s of soft sound at the start of the file
-"$MPLAYER" "${INFILE}" -vc null -vo null -ao pcm:fast:file="${TMPDIR}"/audfifo1:nowaveheader \
+"$MPLAYER" "${INFILE}" -vo null -ao pcm:fast:file="${TMPDIR}"/audfifo1:nowaveheader \
   -af volnorm=2:1,resample=8000,channels=1:2:0:0:1:0,format=u8 \
   ${3} ${5} \
   -quiet &> aud.log &
