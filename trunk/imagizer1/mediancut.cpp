@@ -91,12 +91,12 @@ box box::split() {
     AvgRGBColor tcol(((*start)+(*q)));
     //fprintf(stderr,"  avg((%i, %i, %i), (%i, %i, %i))=(%i, %i, %i)\n", start->a[0], start->a[1], start->a[2], q->a[0], q->a[1], q->a[2], tcol.avg().a[0], tcol.avg().a[1], tcol.avg().a[2]);
     uint32 best_dist=ULONG_MAX;
+    median = start + 1;
     for(vector<RGBColor>::iterator i=start; i!=end; ++i) {
-      uint32 dist=MRGBDistInt((*i), tcol.avg());
-      if(dist < best_dist) {
-        best_dist=dist;
-        median=i;
-      }
+    	if (tcol.avg().a[longest_axis] < i->a[longest_axis]) {
+    		median = i;
+    		break;
+    	}
     }
     //fprintf(stderr,"  median-start=%u, end-median=%u\n", median-start, end-median);
   }
