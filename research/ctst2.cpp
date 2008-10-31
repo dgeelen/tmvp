@@ -3,7 +3,7 @@
 #include <locale.h>
 #include "stdio.h"
 
-int main()
+int main(int argc, char** argv)
 {
 	initscr();
 	printw("---NCurses Image Test---\n");
@@ -41,7 +41,7 @@ int main()
 	unsigned char pal[48];
 	int ncattr[256];
 
-	FILE *fp = fopen("image.aap", "rb");
+	FILE *fp = fopen(argv[0], "rb");
 	if (!fp) {
 			printw("Error: image.aap not found\n");
 			getch();
