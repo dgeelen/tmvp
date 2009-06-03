@@ -11,6 +11,7 @@
 #include <string>
 #include <stdio.h>
 #include <list>
+#include <stdlib.h>
 
 /* LZ77 (Simple) */
 

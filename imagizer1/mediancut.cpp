@@ -2,6 +2,7 @@
 #include <vector>
 #include <queue>
 #include <algorithm>
+#include <limits>
 using namespace std;
 
 class ccmp {
@@ -72,7 +73,7 @@ box box::split() {
       cb+=i->a[2];
     }
     RGBColor avg(cr/(end-start), cg/(end-start), cb/(end-start));
-    uint32 best_dist=ULONG_MAX;
+    uint32 best_dist=std::numeric_limits<uint32>::max();
     uint32 split=0;
     sort(start, end, comp);
     for(vector<RGBColor>::iterator i=start; i!=end; ++i) {
@@ -90,7 +91,7 @@ box box::split() {
     --q;
     AvgRGBColor tcol(((*start)+(*q)));
     //fprintf(stderr,"  avg((%i, %i, %i), (%i, %i, %i))=(%i, %i, %i)\n", start->a[0], start->a[1], start->a[2], q->a[0], q->a[1], q->a[2], tcol.avg().a[0], tcol.avg().a[1], tcol.avg().a[2]);
-    uint32 best_dist=ULONG_MAX;
+    uint32 best_dist=std::numeric_limits<uint32>::max();
     median = start + 1;
     for(vector<RGBColor>::iterator i=start; i!=end; ++i) {
     	if (tcol.avg().a[longest_axis] < i->a[longest_axis]) {
@@ -195,7 +196,7 @@ void MedianCut(RawRGBImage* img,  TextPal* pal, cutmethod CutMethod) {
   }
   if((100*BlackishPixelCount)/(img->GetWidth()*img->GetHeight()) >= 5) {
     RGBColor Black(0ul);
-    uint32 best_dist=ULONG_MAX;
+    uint32 best_dist=std::numeric_limits<uint32>::max();
     uint32 index=0;
     for(uint32 i=0; i<16; ++i) {
       uint32 dist=MRGBDistInt( Black, pal->GetColor( i));

@@ -8,6 +8,8 @@
 #include "math.h"
 #include "median_cut.h"
 #include "mediancut.h"
+#include <limits>
+#include <stdlib.h>
 #include <vector>
 
 //---------------------------------------------------------------------------
@@ -139,7 +141,7 @@ void TPalMedianCutSort::CalcPal(RawRGBImage* src, TextPal* dst)
 	double total_dist = 0;
 
 	for(int u = 0 ; u < 16 ; u++) {  // for every entry in the palette
-		uint32 best_dist = ULONG_MAX;
+		uint32 best_dist = std::numeric_limits<uint32>::max();
 
 		long int best_old = -1;
 		long int best_med = -1;
@@ -199,7 +201,7 @@ void TPalMedianCutSmartSort::CalcPal(RawRGBImage* src, TextPal* dst) {
   }
 
   for(int u = 0 ; u < 16 ; u++) {  // for every entry in the palette
-    uint32 best_dist = ULONG_MAX;
+    uint32 best_dist = std::numeric_limits<uint32>::max();
     long int best_old = -1;
     long int best_new = -1;
     for(int i = 0 ; i < 16 ; i++)  // for every entry in the palette not assigned yet
@@ -297,7 +299,7 @@ void TRenderBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 			unsigned char best_char;
 
 			unsigned long int char_dist;
-			unsigned long int best_char_dist=ULONG_MAX;
+			unsigned long int best_char_dist=std::numeric_limits<unsigned long int>::max();
 			unsigned char best_quad[4];
 			unsigned long int best_quad_dist;
 			unsigned long int quad_dist;
@@ -312,7 +314,7 @@ void TRenderBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 					RGBColor* curlookup = &lookup[fg][bg][0];
 					for( unsigned char region=0; region < 4 ; region ++) { // try all regions
 						RGBColor ttcol = tcol[region];
-						best_quad_dist=ULONG_MAX;
+						best_quad_dist=std::numeric_limits<unsigned long int>::max();
 						for( unsigned char quad=0; quad < 4; quad++) { // with all 4 quad blocks
 
 							quad_dist = MRGBDistInt(ttcol, curlookup[quad]);
@@ -401,7 +403,7 @@ void TRenderSemiBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 			unsigned char best_char;
 
 			unsigned long int char_dist;
-			unsigned long int best_char_dist=ULONG_MAX;
+			unsigned long int best_char_dist=std::numeric_limits<unsigned long int>::max();
 			unsigned char best_quad[4];
 			unsigned long int best_quad_dist;
 			unsigned long int quad_dist;
@@ -420,7 +422,7 @@ void TRenderSemiBruteBlock::DoRender(RawRGBImage* src, TextImage* dst)
 					RGBColor* curlookup = &lookup[pcol[fg]][pcol[bg]][0];
 					for( unsigned char region=0; region < 4 ; region ++) { // try all regions
 						RGBColor ttcol = tcol[region];
-						best_quad_dist=ULONG_MAX;
+						best_quad_dist=std::numeric_limits<unsigned long int>::max();
 						for( unsigned char quad=0; quad < 4; quad++) { // with all 4 quad blocks
 
 							quad_dist = MRGBDistInt(ttcol, curlookup[quad]);

@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 //#include <conio.h>
 //#include <assert.h>
+#include <stdlib.h>
 #include "../common/UTypes.h"
 
 using namespace std;
