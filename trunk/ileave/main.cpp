@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include "../common/UTypes.h"
+#include <stdlib.h>
 
 using namespace std;
 

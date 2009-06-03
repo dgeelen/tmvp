@@ -6,7 +6,7 @@
 #include <vector>
 #include "../common/UTypes.h"
 #include "../common/UImage.h"
-#
+#include <limits>
 //#include "UCmdLineParser.h"
 using namespace std;
 //---------------------------------------------------------------------------
@@ -262,8 +262,8 @@ char bestcontrast(TextPal *p) {
 	uint32 fg=0;
 	uint32 bg=0;
 	uint32 dist=0;
-	uint32 best_fg_dist=ULONG_MAX;
-	uint32 best_bg_dist=ULONG_MAX;
+	uint32 best_fg_dist=std::numeric_limits<uint32>::max();
+	uint32 best_bg_dist=std::numeric_limits<uint32>::max();
 	for(uint32 i=0; i<16; i++) {
 		dist=MRGBDistInt( p->GetColor( i ), black);
 		if(dist<best_bg_dist){
